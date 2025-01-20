@@ -7,6 +7,9 @@ name = "vmm"
 rust-version.workspace = true
 version.workspace = true
 
+[workspace]
+members = ["crates/sys-util"]
+
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"
 
