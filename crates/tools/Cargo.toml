@@ -1,0 +1,12 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm-tools"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+customasm = "^0.13.7"
+vmm = { path = "../../" }
