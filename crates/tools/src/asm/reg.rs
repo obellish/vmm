@@ -1,6 +1,9 @@
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+	borrow::Cow,
+	fmt::{Display, Formatter, Result as FmtResult},
+};
 
-use super::{RegOrLit1, RegOrLit2};
+use super::ToVasm;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -121,11 +124,6 @@ impl Reg {
 			Self::Smt => "smt",
 		}
 	}
-
-	#[must_use]
-	pub const fn to_vasm(self) -> &'static str {
-		self.name()
-	}
 }
 
 impl Display for Reg {
@@ -137,5 +135,11 @@ impl Display for Reg {
 impl From<Reg> for u8 {
 	fn from(value: Reg) -> Self {
 		value.code()
+	}
+}
+
+impl ToVasm for Reg {
+	fn to_vasm(&self) -> Cow<'static, str> {
+		Cow::Borrowed(self.name())
 	}
 }

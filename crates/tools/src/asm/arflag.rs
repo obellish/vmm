@@ -1,4 +1,6 @@
-use super::{RegOrLit1, RegOrLit2};
+use std::borrow::Cow;
+
+use super::{RegOrLit1, RegOrLit2, ToVasm};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArFlag {
@@ -56,11 +58,6 @@ impl ArFlag {
 			Self::ZeroLower => "ZLF",
 		}
 	}
-
-	#[must_use]
-	pub const fn to_vasm(self) -> &'static str {
-		self.short_name()
-	}
 }
 
 impl From<ArFlag> for u8 {
@@ -78,5 +75,11 @@ impl From<ArFlag> for RegOrLit1 {
 impl From<ArFlag> for RegOrLit2 {
 	fn from(value: ArFlag) -> Self {
 		value.code().into()
+	}
+}
+
+impl ToVasm for ArFlag {
+	fn to_vasm(&self) -> Cow<'static, str> {
+		Cow::Borrowed(self.short_name())
 	}
 }

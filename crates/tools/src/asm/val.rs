@@ -43,14 +43,6 @@ macro_rules! declare_val {
 			}
 
 			#[must_use]
-			pub fn to_vasm(self) -> String {
-				match self {
-					Self::Reg(reg) => reg.name().to_owned(),
-					Self::Lit(num) => format!("{num:#X}"),
-				}
-			}
-
-			#[must_use]
 			pub fn to_vasm_signed(self) -> String {
 				match self {
 					Self::Reg(reg) => reg.name().to_owned(),
@@ -90,6 +82,15 @@ macro_rules! declare_val {
 		impl ::std::convert::From<$inum> for $typename {
 			fn from(lit: $inum) -> Self {
 				Self::signed_lit(lit)
+			}
+		}
+
+		impl $crate::asm::ToVasm for $typename {
+			fn to_vasm(&self) -> ::std::borrow::Cow<'static, str> {
+				match self {
+					Self::Reg(reg) => ::std::borrow::Cow::Borrowed(reg.name()),
+					Self::Lit(num) => ::std::borrow::Cow::Owned(format!("{num:#X}")),
+				}
 			}
 		}
 	};
