@@ -7,6 +7,7 @@ use super::{
 	mmu::{MemAction, Mmu},
 };
 
+#[derive(Debug)]
 pub struct Cpu {
 	pub regs: Registers,
 	pub(crate) mem: MappedMemory,
@@ -50,9 +51,8 @@ impl Cpu {
 
 		self.cycles = self.cycles.wrapping_add(1);
 
-		let instr = match self.mem_exec(self.regs.pc) {
-			None => return,
-			Some(bytes) => bytes.to_be_bytes(),
+		let Some(instr) = self.mem_exec(self.regs.pc).map(u32::to_be_bytes) else {
+			return;
 		};
 
 		let opcode = instr[0] >> 3;
@@ -181,7 +181,7 @@ impl Cpu {
 			0x03..=0x05 | 0x08..=0x0C => {
 				let (reg, mut value) = args!(REG, REG_OR_LIT_2);
 
-				if matches!(opcode, 0x08 | 0x0C) && !opregs[1] {
+				if matches!(opcode, 0x0B | 0x0C) && !opregs[1] {
 					value >>= 8;
 				}
 
@@ -640,7 +640,7 @@ impl Cpu {
 		}
 	}
 
-	fn mem_do<T>(
+	fn mem_do<T: std::fmt::Debug>(
 		&mut self,
 		action: MemAction,
 		v_addr: u32,

@@ -16,7 +16,6 @@ mod tests {
 	};
 
 	#[test]
-	#[ignore]
 	fn flash_mem() -> Result<(), ComponentCreationError> {
 		let mut program =
 			Program::from_iter(ExtInstr::WriteAddrLit(0x1000, 0x0123_4567).to_instr());

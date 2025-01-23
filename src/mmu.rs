@@ -1,6 +1,6 @@
 use super::{cpu::Registers, mem::MappedMemory};
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct Mmu;
 
 #[allow(clippy::unused_self, clippy::needless_pass_by_ref_mut)]
@@ -34,11 +34,7 @@ impl Mmu {
 
 		let mode_shift = if matches!(regs.smt, 0) { 0u32 } else { 3 };
 
-		let action_shift = match action {
-			MemAction::Read => 2,
-			MemAction::Write => 1,
-			MemAction::Exec => 0,
-		};
+		let action_shift = action as u32;
 
 		if matches!(v_entry & (0b1 << (24 + action_shift + mode_shift)), 1) {
 			EntryDecodingResult::Decoded(v_entry & 0b1111_1111_1111_1111_1111_1111)
@@ -94,7 +90,7 @@ pub enum EntryDecodingResult {
 
 #[derive(Debug, Clone, Copy)]
 pub enum MemAction {
-	Read,
-	Write,
-	Exec,
+	Read = 2,
+	Write = 1,
+	Exec = 0,
 }

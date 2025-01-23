@@ -153,3 +153,107 @@ impl StdError for BufferedUtf8Error<'_> {
 }
 
 pub type DecodedStr<'a> = Result<&'a str, BufferedUtf8Error<'a>>;
+
+#[cfg(test)]
+mod tests {
+	use std::sync::{Arc, Mutex};
+
+	use crate::{
+		display::BufferedDisplay,
+		error::ComponentCreationError,
+		storage::BootRom,
+		vmm_tools::{
+			asm::{ExtInstr, Instr, Program, Reg},
+			debug::{RunConfig, exec_vm},
+		},
+	};
+
+	fn display_prog(text: &str, display_addr: u32, display_final_addr: u32) -> Option<Program> {
+		let mut instr = ExtInstr::SetReg(Reg::Ac0, display_addr).to_instr();
+		instr.push(Instr::Cpy(Reg::Avr, 0u8.into()));
+
+		let mut byte_index = 0;
+
+		let text_bytes = text.bytes();
+
+		if text_bytes.len() as u64 > u64::from(display_final_addr - display_addr) {
+			return None;
+		}
+
+		for byte in text_bytes {
+			instr.push(Instr::Add(Reg::Avr, byte.into()));
+			byte_index += 1;
+
+			if byte_index < 4 {
+				instr.push(Instr::Shl(Reg::Avr, 8u8.into()));
+			} else {
+				instr.extend([
+					Instr::Wea(Reg::Ac0.into(), 0u8.into(), 0u8.into()),
+					Instr::Add(Reg::Ac0, 4u8.into()),
+					Instr::Cpy(Reg::Avr, 0u8.into()),
+				]);
+				byte_index = 0;
+			}
+		}
+
+		if !matches!(byte_index, 0) {
+			instr.push(Instr::Wea(Reg::Ac0.into(), 0u8.into(), 0u8.into()));
+		}
+
+		instr.extend_from_slice(&ExtInstr::WriteAddrLit(display_final_addr, 0xAA).to_instr());
+
+		Some(Program::from_iter(instr))
+	}
+
+	#[test]
+	fn buffered_display() -> Result<(), ComponentCreationError> {
+		let mut prog = display_prog("Hello world!", 0x1000, 0x1100 - 0x04).unwrap();
+		prog.push(Instr::Halt.into());
+
+		let received_message = Arc::new(Mutex::new(false));
+		let received_message_closure = Arc::clone(&received_message);
+
+		let (_, state) = exec_vm(
+			vec![
+				Box::new(BootRom::with_size(prog.encode_words(), 0x1000, 0x0)?),
+				Box::new(BufferedDisplay::new(
+					0x100,
+					move |message| {
+						let mut received_message = received_message_closure.lock().unwrap();
+
+						assert!(
+							!*received_message,
+							"received a message twice (second message: {})",
+							message.unwrap_or("<invalid UTF-8 string>")
+						);
+
+						let message = message
+							.expect("invalid UTF-8 message received")
+							.trim_end_matches(char::from(0));
+
+						assert_eq!(
+							message, "Hello world!",
+							"invalid message received: {message}"
+						);
+
+						*received_message = true;
+					},
+					0x1,
+				)?),
+			],
+			RunConfig::halt_on_exception(),
+		);
+
+		assert!(
+			state.ex.is_none(),
+			"unexpected exception occurred while running the vm"
+		);
+
+		assert!(
+			*received_message.lock().unwrap(),
+			"no message received by buffered display"
+		);
+
+		Ok(())
+	}
+}

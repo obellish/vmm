@@ -3,6 +3,7 @@ mod mappings;
 pub use self::mappings::*;
 use super::board::HardwareBridge;
 
+#[derive(Debug)]
 pub struct MappedMemory {
 	bridge: HardwareBridge,
 	mappings: Vec<Mapping>,

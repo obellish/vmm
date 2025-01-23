@@ -78,3 +78,86 @@ impl Debug for SyncCharKeyboard {
 			.finish_non_exhaustive()
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use std::sync::{Arc, Mutex};
+
+	use crate::{
+		error::ComponentCreationError,
+		keyboard::SyncCharKeyboard,
+		storage::BootRom,
+		vmm_tools::{
+			asm::{ExtInstr, Instr, Program, Reg},
+			debug::{RunConfig, exec_vm},
+		},
+	};
+
+	static PLACEHOLDER_KEYB_EVENT: char = 'Z';
+
+	fn keyb_prog(input_end_addr: u32) -> Program {
+		let mut prog = Program::from_iter(ExtInstr::SetReg(Reg::Ac0, input_end_addr).to_instr());
+		prog.extend(ExtInstr::SetReg(Reg::Avr, 0x01).to_prog_words());
+		prog.push(Instr::Wea(Reg::Ac0.into(), 0u8.into(), 0u8.into()).into());
+
+		prog
+	}
+
+	#[test]
+	fn sync_char() -> Result<(), ComponentCreationError> {
+		let mut prog = keyb_prog(0x1004);
+		prog.push(Instr::Halt.into());
+
+		let received_request = Arc::new(Mutex::new(false));
+		let received_request_closure = Arc::clone(&received_request);
+
+		let (mut vm, state) = exec_vm(
+			vec![
+				Box::new(BootRom::with_size(prog.encode_words(), 0x1000, 0x0)?),
+				Box::new(SyncCharKeyboard::new(
+					move || {
+						let mut received_request = received_request_closure.lock().unwrap();
+						assert!(!*received_request, "received a keyboard request twice");
+						*received_request = true;
+
+						PLACEHOLDER_KEYB_EVENT
+					},
+					0x1,
+				)),
+			],
+			RunConfig::halt_on_exception(),
+		);
+
+		assert!(
+			state.ex.is_none(),
+			"unexpected exception occurred while running the vm"
+		);
+
+		assert!(
+			*received_request.lock().unwrap(),
+			"no keyboard request was triggered"
+		);
+
+		vm.map(|mem| {
+			let mut ex = 0;
+
+			let word = mem.read(0x1000, &mut ex);
+
+			assert_eq!(
+				ex, 0,
+				"exception occurred while reading word at address 0x1000: {ex:#008X}"
+			);
+
+			let character = std::char::from_u32(word).unwrap_or_else(|| {
+				panic!("got invalid character code from keyboard: {word:#004X}")
+			});
+
+			assert_eq!(
+				character, PLACEHOLDER_KEYB_EVENT,
+				"invalid character from keyboard: {character}"
+			);
+		});
+
+		Ok(())
+	}
+}

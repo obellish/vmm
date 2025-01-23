@@ -1,4 +1,4 @@
-pub trait Bus {
+pub trait Bus: std::fmt::Debug {
 	fn name(&self) -> &'static str;
 
 	fn metadata(&self) -> [u32; 8];

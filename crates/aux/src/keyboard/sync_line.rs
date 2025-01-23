@@ -131,3 +131,27 @@ impl Debug for SyncLineKeyboard {
 			.finish_non_exhaustive()
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use std::sync::{Arc, Mutex};
+
+	use crate::{
+		keyboard::SyncLineKeyboard,
+		storage::BootRom,
+		vmm_tools::{
+			asm::{ExtInstr, Instr, Program, Reg},
+			debug::{RunConfig, exec_vm},
+		},
+	};
+
+	static PLACEHOLDER_KEYB_INPUT: &str = "Placeholder keyboard input";
+
+	fn keyb_prog(input_end_addr: u32) -> Program {
+		let mut prog = Program::from_iter(ExtInstr::SetReg(Reg::Ac0, input_end_addr).to_instr());
+		prog.extend(ExtInstr::SetReg(Reg::Avr, 0xAA).to_prog_words());
+		prog.push(Instr::Wea(Reg::Ac0.into(), 0u8.into(), 0u8.into()).into());
+
+		prog
+	}
+}

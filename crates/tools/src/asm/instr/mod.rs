@@ -377,7 +377,7 @@ impl ToLasm for Instr {
 			| Self::Xor(_, RegOrLit2::Reg(a)) => {
 				format!("zro {}", a.to_lasm())
 			}
-			Self::Cpy(a, b) => format!("cpy {} {}", a.to_lasm(), b.to_lasm()),
+			Self::Cpy(a, b) => format!("cpy {}, {}", a.to_lasm(), b.to_lasm()),
 			Self::Ex(a, b) => format!("ex {}, {}", a.to_lasm(), b.to_lasm()),
 			Self::Add(a, RegOrLit2::Lit(1)) => format!("inc {}", a.to_lasm()),
 			Self::Add(a, b) => format!("add {}, {}", a.to_lasm(), b.to_lasm()),

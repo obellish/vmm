@@ -7,6 +7,7 @@ pub use self::bus::*;
 pub(crate) use self::hwb::*;
 use super::{cpu::Cpu, mem::MappedMemory};
 
+#[derive(Debug)]
 pub struct MotherBoard {
 	aux: Vec<Rc<RefCell<Box<dyn Bus>>>>,
 	cpu: Cpu,

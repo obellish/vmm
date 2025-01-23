@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use super::Bus;
 
+#[derive(Debug)]
 struct AuxWithCache {
 	shared_bus: Rc<RefCell<Box<dyn Bus>>>,
 	cache: AuxCache,
@@ -46,6 +47,7 @@ pub struct AuxCache {
 }
 
 #[repr(transparent)]
+#[derive(Debug)]
 pub struct HardwareBridge {
 	aux: Vec<AuxWithCache>,
 }
