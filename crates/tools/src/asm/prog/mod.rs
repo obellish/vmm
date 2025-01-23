@@ -122,6 +122,12 @@ impl DerefMut for Program {
 	}
 }
 
+impl Extend<Instr> for Program {
+	fn extend<T: IntoIterator<Item = Instr>>(&mut self, iter: T) {
+		self.0.extend(iter.into_iter().map(ProgramWord::from));
+	}
+}
+
 impl Extend<ProgramWord> for Program {
 	fn extend<T: IntoIterator<Item = ProgramWord>>(&mut self, iter: T) {
 		self.0.extend(iter);

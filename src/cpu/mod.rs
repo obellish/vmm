@@ -97,47 +97,47 @@ impl Cpu {
 				__reg_or_lit!(0, 2)
 			};
 			(REG, REG) => {
-				(args!(REG), params[1])
+				(params[0], params[1])
 			};
 			(REG, REG_OR_LIT_1) => {
-				(args!(REG), __reg_or_lit!(1, 1))
+				(params[0], __reg_or_lit!(1, 1))
 			};
 			(REG, REG_OR_LIT_2) => {
-				(args!(REG), __reg_or_lit!(1, 2))
+				(params[0], __reg_or_lit!(1, 2))
 			};
 			(REG_OR_LIT_1, REG) => {
-				(args!(REG_OR_LIT_1), params[1])
+				(__reg_or_lit!(0, 1), params[1])
 			};
 			(REG_OR_LIT_1, REG_OR_LIT_1) => {
-				(args!(REG_OR_LIT_1), __reg_or_lit!(1, 1))
+				(__reg_or_lit!(0, 1), __reg_or_lit!(1, 1))
 			};
 			(REG_OR_LIT_1, REG_OR_LIT_2) => {
-				(args!(REG_OR_LIT_1), __reg_or_lit!(1, 2))
+				(__reg_or_lit!(0, 1), __reg_or_lit!(1, 2))
 			};
 			(REG, REG, REG) => {
-				(args!(REG), params[1], params[2])
+				(params[0], params[1], params[2])
 			};
 			(REG, REG, REG_OR_LIT_1) => {
-				(args!(REG), params[1], __reg_or_lit!(2, 1))
+				(params[0], params[1], __reg_or_lit!(2, 1))
 			};
 			(REG, REG_OR_LIT_1, REG) => {
-				(args!(REG), __reg_or_lit!(1, 1), params[2])
+				(params[0], __reg_or_lit!(1, 1), params[2])
 			};
 			(REG, REG_OR_LIT_1, REG_OR_LIT_1) => {
-				(args!(REG), __reg_or_lit!(1, 1), __reg_or_lit!(2, 1))
+				(params[0], __reg_or_lit!(1, 1), __reg_or_lit!(2, 1))
 			};
 			(REG_OR_LIT_1, REG, REG) => {
-				(args!(REG_OR_LIT_1), params[1], params[2])
+				(__reg_or_lit!(0, 1), params[1], params[2])
 			};
 			(REG_OR_LIT_1, REG, REG_OR_LIT_1) => {
-				(args!(REG_OR_LIT_1), params[1], __reg_or_lit!(2, 1))
+				(__reg_or_lit!(0, 1), params[1], __reg_or_lit!(2, 1))
 			};
 			(REG_OR_LIT_1, REG_OR_LIT_1, REG) => {
-				(args!(REG_OR_LIT_1), __reg_or_lit!(1, 1), params[2])
+				(__reg_or_lit!(0, 1), __reg_or_lit!(1, 1), params[2])
 			};
 			(REG_OR_LIT_1, REG_OR_LIT_1, REG_OR_LIT_1) => {
 				(
-					args!(REG_OR_LIT_1),
+					__reg_or_lit!(0, 1),
 					__reg_or_lit!(1, 1),
 					__reg_or_lit!(2, 1),
 				)

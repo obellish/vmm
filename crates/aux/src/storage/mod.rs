@@ -19,7 +19,7 @@ mod tests {
 	fn flash_mem() -> Result<(), ComponentCreationError> {
 		let mut program =
 			Program::from_iter(ExtInstr::WriteAddrLit(0x1000, 0x0123_4567).to_instr());
-		program.extend(ExtInstr::WriteAddrLit(0x1008, 0x89AB_CDEF).to_prog_words());
+		program.extend(ExtInstr::WriteAddrLit(0x1008, 0x89AB_CDEF).to_instr());
 		program.push(Instr::Halt.into());
 
 		let (mut vm, state) = exec_vm(
