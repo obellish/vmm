@@ -7,16 +7,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'brainfuck_rs'",
+            "name": "Debug unit tests in library 'vmm_aux'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=brainfuck-rs"
+                    "--package=vmm-aux"
                 ],
                 "filter": {
-                    "name": "brainfuck_rs",
+                    "name": "vmm_aux",
                     "kind": "lib"
                 }
             },
@@ -26,38 +26,36 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'brainfuck-rs' with 'hello-world.bf'",
+            "name": "Debug unit tests in library 'vmm'",
             "cargo": {
                 "args": [
-                    "build",
-                    "--bin=brainfuck-rs",
-                    "--package=brainfuck-rs"
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=vmm"
                 ],
                 "filter": {
-                    "name": "brainfuck-rs",
-                    "kind": "bin"
+                    "name": "vmm",
+                    "kind": "lib"
                 }
             },
-            "args": [
-                "--",
-                "./programs/hello_world.bf"
-            ],
+            "args": [],
             "cwd": "${workspaceFolder}"
         },
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'brainfuck-rs'",
+            "name": "Debug unit tests in library 'vmm_tools'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=brainfuck-rs",
-                    "--package=brainfuck-rs"
+                    "--lib",
+                    "--package=vmm-tools"
                 ],
                 "filter": {
-                    "name": "brainfuck-rs",
-                    "kind": "bin"
+                    "name": "vmm_tools",
+                    "kind": "lib"
                 }
             },
             "args": [],

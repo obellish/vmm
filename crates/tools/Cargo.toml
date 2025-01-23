@@ -9,5 +9,5 @@ version.workspace = true
 
 [dependencies]
 customasm = "^0.13.7"
-thiserror = "2.0.11"
+thiserror.workspace = true
 vmm = { path = "../../" }

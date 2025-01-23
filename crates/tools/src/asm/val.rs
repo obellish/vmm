@@ -1,5 +1,3 @@
-use super::Reg;
-
 macro_rules! declare_val {
 	($typename:ident, $num:ident, $inum:ident) => {
 		#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -163,3 +163,87 @@ impl ProgramDecodingError {
 		Self { source, line }
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::asm::{Reg, RegOrLit2, cst};
+
+	fn prog() -> Program {
+		[
+			Instr::Add(Reg::A0, 0xFFu8.into()),
+			Instr::Sub(Reg::A0, 0xFFu8.into()),
+			Instr::Div(Reg::A0, 0x00u8.into(), cst::DIV_ZRO_MIN.into()),
+			Instr::Mod(
+				Reg::A0,
+				0x00u8.into(),
+				(cst::DIV_ZRO_MIN | cst::DIV_OFW_MAX).into(),
+			),
+			Instr::Jpr(RegOrLit2::from(-80i16)),
+		]
+		.into_iter()
+		.collect()
+	}
+
+	const fn encoded() -> [u8; 20] {
+		[
+			0x1C, 0x00, 0x00, 0xFF, 0x24, 0x00, 0x00, 0xFF, 0x34, 0x00, 0x00, 0x04, 0x3C, 0x00,
+			0x00, 0x07, 0x70, 0xFF, 0xB0, 0x00,
+		]
+	}
+
+	const fn assembled() -> [&'static str; 5] {
+		[
+			"add a0, 0xFF",
+			"sub a0, 0xFF",
+			"div a0, 0x0, DIV_ZRO_MIN",
+			"mod a0, 0x0, DIV_ZRO_MIN | DIV_OFW_MAX",
+			"jpr -0x50",
+		]
+	}
+
+	#[test]
+	fn encoding() {
+		assert_eq!(prog().encode(), encoded(), "encoded program is not valid");
+	}
+
+	#[test]
+	fn decoding() -> Result<(), ProgramDecodingError> {
+		let re_prog = Program::decode(&encoded(), false)?;
+		assert_eq!(
+			re_prog,
+			prog(),
+			"original and re-encoded program are different"
+		);
+
+		Ok(())
+	}
+
+	#[test]
+	fn asm_conversion() {
+		let lasm = prog().to_lasm_lines();
+		let assembled = assembled();
+
+		assert_eq!(
+			lasm.len(),
+			assembled.len(),
+			"assembled code is {} than expected.\nexpected:\n\n{}\n\ngot:\n\n{}",
+			if lasm.len() > assembled.len() {
+				"greater"
+			} else {
+				"smaller"
+			},
+			assembled.join("\n"),
+			lasm.join("\n")
+		);
+
+		for i in 0..lasm.len() {
+			assert_eq!(
+				lasm[i],
+				assembled[i],
+				"assembled program differs from expected one.\nat line {}",
+				i + 1,
+			);
+		}
+	}
+}

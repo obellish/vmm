@@ -275,6 +275,11 @@ version = "0.1.0"
 [[package]]
 name = "vmm-aux"
 version = "0.1.0"
+dependencies = [
+ "thiserror",
+ "vmm",
+ "vmm-tools",
+]
 
 [[package]]
 name = "vmm-tools"

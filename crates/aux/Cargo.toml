@@ -6,3 +6,8 @@ license.workspace = true
 name = "vmm-aux"
 rust-version.workspace = true
 version.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+vmm = { path = "../../" }
+vmm-tools = { path = "../tools" }

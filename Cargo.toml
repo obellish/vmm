@@ -62,3 +62,6 @@ panic = "abort"
 
 [workspace.metadata.docs.rs]
 all-features = true
+
+[workspace.dependencies]
+thiserror = "2"
