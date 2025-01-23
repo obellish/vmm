@@ -43,7 +43,7 @@ macro_rules! declare_val {
 			}
 
 			#[must_use]
-			pub fn to_vasm_signed(self) -> String {
+			pub fn to_lasm_signed(self) -> String {
 				match self {
 					Self::Reg(reg) => reg.name().to_owned(),
 					Self::Lit(num) => match num as $inum {
@@ -53,7 +53,7 @@ macro_rules! declare_val {
 				}
 			}
 
-			pub fn to_vasm_with(self, formatter: impl FnOnce($num) -> String) -> String {
+			pub fn to_lasm_with(self, formatter: impl FnOnce($num) -> String) -> String {
 				match self {
 					Self::Reg(reg) => reg.name().to_owned(),
 					Self::Lit(num) => formatter(num),
@@ -85,8 +85,8 @@ macro_rules! declare_val {
 			}
 		}
 
-		impl $crate::asm::ToVasm for $typename {
-			fn to_vasm(&self) -> ::std::borrow::Cow<'static, str> {
+		impl $crate::asm::ToLasm for $typename {
+			fn to_lasm(&self) -> ::std::borrow::Cow<'static, str> {
 				match self {
 					Self::Reg(reg) => ::std::borrow::Cow::Borrowed(reg.name()),
 					Self::Lit(num) => ::std::borrow::Cow::Owned(format!("{num:#X}")),

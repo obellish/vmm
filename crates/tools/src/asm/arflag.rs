@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::{RegOrLit1, RegOrLit2, ToVasm};
+use super::{RegOrLit1, RegOrLit2, ToLasm};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ArFlag {
@@ -78,8 +78,8 @@ impl From<ArFlag> for RegOrLit2 {
 	}
 }
 
-impl ToVasm for ArFlag {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for ArFlag {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		Cow::Borrowed(self.short_name())
 	}
 }

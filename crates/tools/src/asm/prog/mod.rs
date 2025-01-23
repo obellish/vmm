@@ -5,7 +5,7 @@ use std::ops::{Deref, DerefMut};
 use thiserror::Error;
 
 pub use self::word::ProgramWord;
-use super::{Instr, InstrDecodingError, ToVasm};
+use super::{Instr, InstrDecodingError, ToLasm};
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Hash)]
 #[repr(transparent)]
@@ -79,28 +79,28 @@ impl Program {
 	}
 
 	#[must_use]
-	pub fn to_vasm(&self, annotate_instr_addr: bool) -> String {
+	pub fn to_lasm(&self, annotate_instr_addr: bool) -> String {
 		if annotate_instr_addr {
-			self.to_vasm_lines_annotated()
+			self.to_lasm_lines_annotated()
 		} else {
-			self.to_vasm_lines()
+			self.to_lasm_lines()
 		}
 		.join("\n")
 	}
 
 	#[must_use]
-	pub fn to_vasm_lines(&self) -> Vec<String> {
+	pub fn to_lasm_lines(&self) -> Vec<String> {
 		self.iter()
-			.map(|pword| pword.to_vasm().into_owned())
+			.map(|pword| pword.to_lasm().into_owned())
 			.collect()
 	}
 
 	#[must_use]
-	pub fn to_vasm_lines_annotated(&self) -> Vec<String> {
+	pub fn to_lasm_lines_annotated(&self) -> Vec<String> {
 		let mut counter = 0;
 		self.iter()
 			.map(|pword| {
-				let instr = format!("{counter:#010X}: {}", pword.to_vasm());
+				let instr = format!("{counter:#010X}: {}", pword.to_lasm());
 				counter += 4;
 				instr
 			})

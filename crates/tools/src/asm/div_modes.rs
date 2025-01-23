@@ -1,6 +1,6 @@
 use std::{borrow::Cow, fmt::Debug};
 
-use super::{RegOrLit1, ToVasm, cst};
+use super::{RegOrLit1, ToLasm, cst};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DivMode(pub DivSignMode, pub DivByZeroMode, pub DivOverflowMode);
@@ -79,20 +79,20 @@ impl From<DivMode> for u8 {
 	}
 }
 
-impl ToVasm for DivMode {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for DivMode {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		let mut modes = Vec::new();
 
 		if self.0 != DivSignMode::default() {
-			modes.push(self.0.to_vasm());
+			modes.push(self.0.to_lasm());
 		}
 
 		if self.1 != DivByZeroMode::default() {
-			modes.push(self.1.to_vasm());
+			modes.push(self.1.to_lasm());
 		}
 
 		if self.2 != DivOverflowMode::default() {
-			modes.push(self.2.to_vasm());
+			modes.push(self.2.to_lasm());
 		}
 
 		if modes.is_empty() {
@@ -147,8 +147,8 @@ impl From<DivSignMode> for u8 {
 	}
 }
 
-impl ToVasm for DivSignMode {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for DivSignMode {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		Cow::Borrowed(match self {
 			Self::Signed => "DIV_SIG",
 			Self::Unsigned => "DIV_USG",
@@ -205,8 +205,8 @@ impl From<DivByZeroMode> for u8 {
 	}
 }
 
-impl ToVasm for DivByZeroMode {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for DivByZeroMode {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		Cow::Borrowed(match self {
 			Self::Forbid => "DIV_ZRO_FRB",
 			Self::EqToMin => "DIV_ZRO_MIN",
@@ -254,8 +254,8 @@ impl From<DivOverflowMode> for u8 {
 	}
 }
 
-impl ToVasm for DivOverflowMode {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for DivOverflowMode {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		Cow::Borrowed(match self {
 			Self::Forbid => "DIV_OFW_FRB",
 			Self::EqToMin => "DIV_OFW_MIN",
@@ -265,7 +265,7 @@ impl ToVasm for DivOverflowMode {
 	}
 }
 
-pub trait DivSubMode: Clone + Copy + Debug + Eq + Sized + ToVasm {
+pub trait DivSubMode: Clone + Copy + Debug + Eq + Sized + ToLasm {
 	const MASK: u8;
 
 	#[must_use]

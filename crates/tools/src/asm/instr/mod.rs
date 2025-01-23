@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use thiserror::Error;
 
 pub use self::ext::ExtInstr;
-use super::{ArFlag, DivMode, HwInfo, If2Cond, Reg, RegOrLit1, RegOrLit2, ToVasm, cst};
+use super::{ArFlag, DivMode, HwInfo, If2Cond, Reg, RegOrLit1, RegOrLit2, ToLasm, cst};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Instr {
@@ -367,28 +367,28 @@ impl Instr {
 	}
 }
 
-impl ToVasm for Instr {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for Instr {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		Cow::Owned(match *self {
-			Self::Cpy(Reg::Pc, b) => format!("jp {}", b.to_vasm()),
+			Self::Cpy(Reg::Pc, b) => format!("jp {}", b.to_lasm()),
 			Self::Cpy(a, RegOrLit2::Lit(0))
 			| Self::Mul(a, RegOrLit2::Lit(0))
 			| Self::And(a, RegOrLit2::Lit(0))
 			| Self::Xor(_, RegOrLit2::Reg(a)) => {
-				format!("zro {}", a.to_vasm())
+				format!("zro {}", a.to_lasm())
 			}
-			Self::Cpy(a, b) => format!("cpy {} {}", a.to_vasm(), b.to_vasm()),
-			Self::Ex(a, b) => format!("ex {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Add(a, RegOrLit2::Lit(1)) => format!("inc {}", a.to_vasm()),
-			Self::Add(a, b) => format!("add {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Sub(a, RegOrLit2::Lit(1)) => format!("dec {}", a.to_vasm()),
-			Self::Sub(a, b) => format!("sub {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Mul(a, b) => format!("mul {}, {}", a.to_vasm(), b.to_vasm()),
+			Self::Cpy(a, b) => format!("cpy {} {}", a.to_lasm(), b.to_lasm()),
+			Self::Ex(a, b) => format!("ex {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Add(a, RegOrLit2::Lit(1)) => format!("inc {}", a.to_lasm()),
+			Self::Add(a, b) => format!("add {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Sub(a, RegOrLit2::Lit(1)) => format!("dec {}", a.to_lasm()),
+			Self::Sub(a, b) => format!("sub {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Mul(a, b) => format!("mul {}, {}", a.to_lasm(), b.to_lasm()),
 			Self::Div(a, b, RegOrLit1::Reg(c)) => {
-				format!("div {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm())
+				format!("div {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm())
 			}
 			Self::Mod(a, b, RegOrLit1::Reg(c)) => {
-				format!("mod {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm())
+				format!("mod {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm())
 			}
 			Self::Div(a, b, RegOrLit1::Lit(mode)) | Self::Mod(a, b, RegOrLit1::Lit(mode)) => {
 				format!(
@@ -398,35 +398,35 @@ impl ToVasm for Instr {
 					} else {
 						"mod"
 					},
-					a.to_vasm(),
-					b.to_vasm(),
+					a.to_lasm(),
+					b.to_lasm(),
 					DivMode::decode(mode).map_or_else(
 						|| format!("{mode:#010b} ; warning: invalid division mode"),
-						|mode| mode.to_vasm().into_owned()
+						|mode| mode.to_lasm().into_owned()
 					)
 				)
 			}
-			Self::And(a, b) => format!("and {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Bor(a, b) => format!("bor {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Xor(a, b) => format!("xor {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Shl(a, b) => format!("shl {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Shr(a, b) => format!("shr {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Cmp(a, b) => format!("cmp {}, {}", a.to_vasm(), b.to_vasm()),
-			Self::Jpr(a) => format!("jpr {}", a.to_vasm_signed()),
-			Self::Lsm(a) => format!("lsm {}", a.to_vasm()),
-			Self::Itr(a) => format!("itr {}", a.to_vasm()),
-			Self::If(RegOrLit1::Reg(reg)) => format!("if {}", reg.to_vasm()),
+			Self::And(a, b) => format!("and {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Bor(a, b) => format!("bor {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Xor(a, b) => format!("xor {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Shl(a, b) => format!("shl {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Shr(a, b) => format!("shr {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Cmp(a, b) => format!("cmp {}, {}", a.to_lasm(), b.to_lasm()),
+			Self::Jpr(a) => format!("jpr {}", a.to_lasm_signed()),
+			Self::Lsm(a) => format!("lsm {}", a.to_lasm()),
+			Self::Itr(a) => format!("itr {}", a.to_lasm()),
+			Self::If(RegOrLit1::Reg(reg)) => format!("if {}", reg.to_lasm()),
 			Self::If(RegOrLit1::Lit(lit)) => match ArFlag::decode(lit) {
 				Some(ArFlag::Zero) => "ifeq".to_owned(),
 				Some(ArFlag::Carry) => "ifls".to_owned(),
-				Some(flag) => format!("if {}", flag.to_vasm()),
+				Some(flag) => format!("if {}", flag.to_lasm()),
 				None => format!("if {lit:#X} ; warning: unknown flag"),
 			},
-			Self::IfN(RegOrLit1::Reg(reg)) => format!("ifn {}", reg.to_vasm()),
+			Self::IfN(RegOrLit1::Reg(reg)) => format!("ifn {}", reg.to_lasm()),
 			Self::IfN(RegOrLit1::Lit(lit)) => match ArFlag::decode(lit) {
 				Some(ArFlag::Zero) => "ifnq".to_owned(),
 				Some(ArFlag::Carry) => "ifge".to_owned(),
-				Some(flag) => format!("ifn {}", flag.to_vasm()),
+				Some(flag) => format!("ifn {}", flag.to_lasm()),
 				None => format!("ifn {lit:#X} ; warning: unknown flag"),
 			},
 			Self::If2(a, b, c) => {
@@ -438,7 +438,7 @@ impl ToVasm for Instr {
 				let mut warns = Vec::new();
 
 				let mut decode_flag = |flag: RegOrLit1, pos| {
-					flag.to_vasm_with(|lit| {
+					flag.to_lasm_with(|lit| {
 						ArFlag::decode(lit).map_or_else(
 							|| {
 								warns.push(match pos {
@@ -447,7 +447,7 @@ impl ToVasm for Instr {
 								});
 								format!("{lit:#004X}")
 							},
-							|lit| lit.to_vasm().into_owned(),
+							|lit| lit.to_lasm().into_owned(),
 						)
 					})
 				};
@@ -492,13 +492,13 @@ impl ToVasm for Instr {
 						}
 					},
 					(RegOrLit1::Reg(a), RegOrLit1::Reg(b), RegOrLit1::Reg(c)) => {
-						format!("if2 {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm())
+						format!("if2 {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm())
 					}
 					(_, _, RegOrLit1::Reg(cond)) => format!(
 						"if2 {}, {}, {}",
 						decode_flag(a, Pos::Left),
 						decode_flag(b, Pos::Right),
-						cond.to_vasm()
+						cond.to_lasm()
 					),
 				};
 
@@ -508,27 +508,27 @@ impl ToVasm for Instr {
 					format!("{no_warn} ; {}", warns.join(", "))
 				}
 			}
-			Self::Lsa(a, b, c) => format!("lsa {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm()),
-			Self::Lea(a, b, c) => format!("lea {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm()),
-			Self::Wsa(a, b, c) => format!("wsa {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm()),
-			Self::Wea(a, b, c) => format!("wea {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm()),
-			Self::Srm(a, b, c) => format!("srm {}, {}, {}", a.to_vasm(), b.to_vasm(), c.to_vasm()),
-			Self::Push(a) => format!("push {}", a.to_vasm()),
+			Self::Lsa(a, b, c) => format!("lsa {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm()),
+			Self::Lea(a, b, c) => format!("lea {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm()),
+			Self::Wsa(a, b, c) => format!("wsa {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm()),
+			Self::Wea(a, b, c) => format!("wea {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm()),
+			Self::Srm(a, b, c) => format!("srm {}, {}, {}", a.to_lasm(), b.to_lasm(), c.to_lasm()),
+			Self::Push(a) => format!("push {}", a.to_lasm()),
 			Self::Pop(Reg::Pc) => "ret".to_owned(),
-			Self::Pop(a) => format!("pop {}", a.to_vasm()),
-			Self::Call(a) => format!("call {}", a.to_vasm()),
+			Self::Pop(a) => format!("pop {}", a.to_lasm()),
+			Self::Call(a) => format!("call {}", a.to_lasm()),
 			Self::Hwd(a, b, c) => format!(
 				"hwd {}, {}, {}",
-				a.to_vasm(),
-				b.to_vasm(),
-				c.to_vasm_with(|lit| HwInfo::decode(lit).map_or_else(
+				a.to_lasm(),
+				b.to_lasm(),
+				c.to_lasm_with(|lit| HwInfo::decode(lit).map_or_else(
 					|| format!("{lit:#X} ; warning: unknown hardware information"),
-					|info| info.to_vasm().into_owned()
+					|info| info.to_lasm().into_owned()
 				))
 			),
-			Self::Cycles(a) => format!("cycles {}", a.to_vasm()),
+			Self::Cycles(a) => format!("cycles {}", a.to_lasm()),
 			Self::Halt => return Cow::Borrowed("halt"),
-			Self::Reset(a) => format!("reset {}", a.to_vasm()),
+			Self::Reset(a) => format!("reset {}", a.to_lasm()),
 		})
 	}
 }

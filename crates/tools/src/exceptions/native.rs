@@ -90,4 +90,61 @@ impl NativeException {
 			_ => return None,
 		})
 	}
+
+	#[must_use]
+	pub const fn code(self) -> u8 {
+		match self {
+			Self::UnknownOpCode(_) => 0x01,
+			Self::UnknownRegister(_) => 0x02,
+			Self::ReadProtectedRegister(_) => 0x03,
+			Self::WriteProtectedRegister(_) => 0x04,
+			Self::UnalignedMemoryAddress { unalignment: _ } => 0x05,
+			Self::MmuRefusedRead(_) => 0x06,
+			Self::MmuRefusedWrite(_) => 0x07,
+			Self::MmuRefusedExec(_) => 0x08,
+			Self::SupervisorReservedInstruction(_) => 0x09,
+			Self::DivisionOrModByZero => 0x0A,
+			Self::OverflowingDivOrMod => 0x0B,
+			Self::InvalidCondFlag(_) => 0x0C,
+			Self::InvalidCondMode(_) => 0x0D,
+			Self::UnknownComponentId(_) => 0x10,
+			Self::UnknownHardwareInformationCode(_) => 0x11,
+			Self::ComponentNotMapped(_) => 0x12,
+			Self::HardwareException(_) => 0xA0,
+			Self::Interruption(_) => 0xF0,
+		}
+	}
+
+	#[must_use]
+	pub fn associated_data(self) -> Option<u16> {
+		match self {
+			Self::Interruption(code)
+			| Self::UnknownHardwareInformationCode(code)
+			| Self::InvalidCondFlag(code)
+			| Self::InvalidCondMode(code)
+			| Self::WriteProtectedRegister(code)
+			| Self::UnknownRegister(code)
+			| Self::ReadProtectedRegister(code)
+			| Self::UnknownOpCode(code)
+			| Self::UnalignedMemoryAddress { unalignment: code }
+			| Self::SupervisorReservedInstruction(code) => Some(u16::from(code)),
+			Self::MmuRefusedRead(addr)
+			| Self::MmuRefusedWrite(addr)
+			| Self::MmuRefusedExec(addr)
+			| Self::UnknownComponentId(addr)
+			| Self::ComponentNotMapped(addr) => Some(addr),
+			Self::DivisionOrModByZero | Self::OverflowingDivOrMod => None,
+			Self::HardwareException(hw_ex) => Some(hw_ex.encode()),
+		}
+	}
+
+	#[must_use]
+	pub fn encode(self) -> u32 {
+		(u32::from(self.code()) << 16) + u32::from(self.associated_data().unwrap_or(0))
+	}
+
+	#[must_use]
+	pub fn encode_with_mode(self, was_sv: bool) -> u32 {
+		self.encode() + if was_sv { 1 << 24 } else { 0 }
+	}
 }

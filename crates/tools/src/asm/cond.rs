@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::ToVasm;
+use super::ToLasm;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -48,8 +48,8 @@ impl If2Cond {
 	}
 }
 
-impl ToVasm for If2Cond {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for If2Cond {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		let mut output = String::from("CMP_");
 
 		output.push_str(self.name());

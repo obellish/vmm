@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::asm::{Instr, Program, ProgramWord, Reg, ToVasm};
+use crate::asm::{Instr, Program, ProgramWord, Reg, ToLasm};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ExtInstr {
@@ -67,8 +67,8 @@ impl ExtInstr {
 	}
 }
 
-impl ToVasm for ExtInstr {
-	fn to_vasm(&self) -> Cow<'static, str> {
-		Cow::Owned(Program::from_iter(self.to_instr()).to_vasm(false))
+impl ToLasm for ExtInstr {
+	fn to_lasm(&self) -> Cow<'static, str> {
+		Cow::Owned(Program::from_iter(self.to_instr()).to_lasm(false))
 	}
 }

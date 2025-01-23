@@ -21,6 +21,6 @@ pub use self::{
 	val::{RegOrLit1, RegOrLit2},
 };
 
-pub trait ToVasm {
-	fn to_vasm(&self) -> Cow<'static, str>;
+pub trait ToLasm {
+	fn to_lasm(&self) -> Cow<'static, str>;
 }

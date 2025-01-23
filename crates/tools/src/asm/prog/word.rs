@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::asm::{Instr, ToVasm};
+use crate::asm::{Instr, ToLasm};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ProgramWord {
@@ -52,10 +52,10 @@ impl From<Instr> for ProgramWord {
 	}
 }
 
-impl ToVasm for ProgramWord {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for ProgramWord {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		match self {
-			Self::Instr(instr) => instr.to_vasm(),
+			Self::Instr(instr) => instr.to_lasm(),
 			Self::Raw(bytes) => Cow::Owned(format!(
 				"#d32 0x{:002X}_{:002X}_{:002X}_{:002X}",
 				bytes[0], bytes[1], bytes[2], bytes[3]

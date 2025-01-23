@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use super::ToVasm;
+use super::ToLasm;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -69,8 +69,8 @@ impl From<HwInfo> for u8 {
 	}
 }
 
-impl ToVasm for HwInfo {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for HwInfo {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		Cow::Borrowed(match self {
 			Self::Count => "HWD_COUNT",
 			Self::UidUpper => "HWD_UID_UPPER",

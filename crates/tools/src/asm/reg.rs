@@ -3,7 +3,7 @@ use std::{
 	fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use super::ToVasm;
+use super::ToLasm;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
@@ -138,8 +138,8 @@ impl From<Reg> for u8 {
 	}
 }
 
-impl ToVasm for Reg {
-	fn to_vasm(&self) -> Cow<'static, str> {
+impl ToLasm for Reg {
+	fn to_lasm(&self) -> Cow<'static, str> {
 		Cow::Borrowed(self.name())
 	}
 }
