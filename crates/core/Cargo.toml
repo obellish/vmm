@@ -1,0 +1,16 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm-core"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+lock_api = { version = "0.4", features = ["arc_lock"] }
+miette = { workspace = true, optional = true, features = [
+    "derive",
+    "fancy-no-syscall"
+] }
+winter-math.workspace = true
