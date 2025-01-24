@@ -137,6 +137,7 @@ mod tests {
 	use std::sync::{Arc, Mutex};
 
 	use crate::{
+		error::ComponentCreationError,
 		keyboard::SyncLineKeyboard,
 		storage::BootRom,
 		vmm_tools::{
@@ -153,5 +154,64 @@ mod tests {
 		prog.push(Instr::Wea(Reg::Ac0.into(), 0u8.into(), 0u8.into()).into());
 
 		prog
+	}
+
+	#[test]
+	fn sync_line() -> Result<(), ComponentCreationError> {
+		let mut prog = keyb_prog(0x1100 - 0x04);
+		prog.push(Instr::Halt.into());
+
+		let received_request = Arc::new(Mutex::new(false));
+		let received_request_closure = Arc::clone(&received_request);
+
+		let (mut vm, state) = exec_vm(
+			vec![
+				Box::new(BootRom::with_size(prog.encode_words(), 0x1000, 0x0)?),
+				Box::new(SyncLineKeyboard::new(
+					0x100,
+					move || {
+						let mut received_request = received_request_closure.lock().unwrap();
+						assert!(!*received_request, "received a keyboard request twice");
+						*received_request = true;
+
+						PLACEHOLDER_KEYB_INPUT.to_owned()
+					},
+					0x1,
+				)?),
+			],
+			RunConfig::halt_on_exception(),
+		);
+
+		assert!(
+			state.ex.is_none(),
+			"unexpected exception occurred while running the vm"
+		);
+
+		vm.map(|mem| {
+			let mut bytes = Vec::new();
+
+			let mut ex = 0;
+
+			for addr_r in 0x1000 / 4..=(0x1100 - 4) / 4 {
+				bytes.extend(&mem.read(addr_r * 4, &mut ex).to_be_bytes());
+				assert_eq!(
+					ex,
+					0,
+					"exception occurred while reading word at address {:#010X}: {ex:#008X}",
+					addr_r * 4
+				);
+			}
+
+			let string =
+				String::from_utf8(bytes).expect("received invalid UTF-8 string from keyboard");
+			let string = string.trim_end_matches(char::from(0));
+
+			assert_eq!(
+				string, PLACEHOLDER_KEYB_INPUT,
+				"invalid string from keyboard: {string}"
+			);
+		});
+
+		Ok(())
 	}
 }
