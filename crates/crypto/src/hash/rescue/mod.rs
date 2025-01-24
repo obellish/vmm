@@ -1,10 +1,16 @@
 mod arch;
 mod mds;
+mod rpo;
 
 use core::ops::Range;
 
-pub use self::arch::optimized::{add_constants_and_apply_inv_sbox, add_constants_and_apply_sbox};
-use crate::Felt;
+use winter_math::FieldElement;
+
+pub use self::{
+	arch::optimized::{add_constants_and_apply_inv_sbox, add_constants_and_apply_sbox},
+	mds::{MDS, apply_mds},
+};
+use crate::{Felt, StarkField};
 
 const NUM_ROUNDS: usize = 7;
 
@@ -183,48 +189,97 @@ const ARK2: [[Felt; STATE_WIDTH]; NUM_ROUNDS] = [
 		Felt::new(10_973_956_031_244_051_118),
 	],
 	[
-		Felt::new(6982293561042362913),
-		Felt::new(14065426295947720331),
-		Felt::new(16451845770444974180),
-		Felt::new(7139138592091306727),
-		Felt::new(9012006439959783127),
-		Felt::new(14619614108529063361),
-		Felt::new(1394813199588124371),
-		Felt::new(4635111139507788575),
-		Felt::new(16217473952264203365),
-		Felt::new(10782018226466330683),
-		Felt::new(6844229992533662050),
-		Felt::new(7446486531695178711),
+		Felt::new(6_982_293_561_042_362_913),
+		Felt::new(14_065_426_295_947_720_331),
+		Felt::new(16_451_845_770_444_974_180),
+		Felt::new(7_139_138_592_091_306_727),
+		Felt::new(9_012_006_439_959_783_127),
+		Felt::new(14_619_614_108_529_063_361),
+		Felt::new(1_394_813_199_588_124_371),
+		Felt::new(4_635_111_139_507_788_575),
+		Felt::new(16_217_473_952_264_203_365),
+		Felt::new(10_782_018_226_466_330_683),
+		Felt::new(6_844_229_992_533_662_050),
+		Felt::new(7_446_486_531_695_178_711),
 	],
 	[
-		Felt::new(3736792340494631448),
-		Felt::new(577852220195055341),
-		Felt::new(6689998335515779805),
-		Felt::new(13886063479078013492),
-		Felt::new(14358505101923202168),
-		Felt::new(7744142531772274164),
-		Felt::new(16135070735728404443),
-		Felt::new(12290902521256031137),
-		Felt::new(12059913662657709804),
-		Felt::new(16456018495793751911),
-		Felt::new(4571485474751953524),
-		Felt::new(17200392109565783176),
+		Felt::new(3_736_792_340_494_631_448),
+		Felt::new(577_852_220_195_055_341),
+		Felt::new(6_689_998_335_515_779_805),
+		Felt::new(13_886_063_479_078_013_492),
+		Felt::new(14_358_505_101_923_202_168),
+		Felt::new(7_744_142_531_772_274_164),
+		Felt::new(16_135_070_735_728_404_443),
+		Felt::new(12_290_902_521_256_031_137),
+		Felt::new(12_059_913_662_657_709_804),
+		Felt::new(16_456_018_495_793_751_911),
+		Felt::new(4_571_485_474_751_953_524),
+		Felt::new(17_200_392_109_565_783_176),
 	],
 	[
-		Felt::new(17130398059294018733),
-		Felt::new(519782857322261988),
-		Felt::new(9625384390925085478),
-		Felt::new(1664893052631119222),
-		Felt::new(7629576092524553570),
-		Felt::new(3485239601103661425),
-		Felt::new(9755891797164033838),
-		Felt::new(15218148195153269027),
-		Felt::new(16460604813734957368),
-		Felt::new(9643968136937729763),
-		Felt::new(3611348709641382851),
-		Felt::new(18256379591337759196),
+		Felt::new(17_130_398_059_294_018_733),
+		Felt::new(519_782_857_322_261_988),
+		Felt::new(9_625_384_390_925_085_478),
+		Felt::new(1_664_893_052_631_119_222),
+		Felt::new(7_629_576_092_524_553_570),
+		Felt::new(3_485_239_601_103_661_425),
+		Felt::new(9_755_891_797_164_033_838),
+		Felt::new(15_218_148_195_153_269_027),
+		Felt::new(16_460_604_813_734_957_368),
+		Felt::new(9_643_968_136_937_729_763),
+		Felt::new(3_611_348_709_641_382_851),
+		Felt::new(18_256_379_591_337_759_196),
 	],
 ];
+
+#[inline]
+fn apply_sbox(state: &mut [Felt; STATE_WIDTH]) {
+	state[0] = state[0].exp7();
+	state[1] = state[1].exp7();
+	state[2] = state[2].exp7();
+	state[3] = state[3].exp7();
+	state[4] = state[4].exp7();
+	state[5] = state[5].exp7();
+	state[6] = state[6].exp7();
+	state[7] = state[7].exp7();
+	state[8] = state[8].exp7();
+	state[9] = state[9].exp7();
+	state[10] = state[10].exp7();
+	state[11] = state[11].exp7();
+}
+
+#[inline]
+fn apply_inv_sbox(state: &mut [Felt; STATE_WIDTH]) {
+	fn exp_acc<B: StarkField, const N: usize, const M: usize>(
+		base: [B; N],
+		tail: [B; N],
+	) -> [B; N] {
+		let mut result = base;
+		for _ in 0..M {
+			result.iter_mut().for_each(|r| *r = r.square());
+		}
+		result.iter_mut().zip(tail).for_each(|(r, t)| *r += t);
+		result
+	}
+
+	let mut t1 = *state;
+	t1.iter_mut().for_each(|t| *t = t.square());
+
+	let mut t2 = t1;
+	t2.iter_mut().for_each(|t| *t = t.square());
+
+	let t3 = exp_acc::<Felt, STATE_WIDTH, 3>(t2, t2);
+	let t4 = exp_acc::<Felt, STATE_WIDTH, 6>(t3, t3);
+	let t5 = exp_acc::<Felt, STATE_WIDTH, 12>(t4, t4);
+	let t6 = exp_acc::<Felt, STATE_WIDTH, 6>(t5, t3);
+	let t7 = exp_acc::<Felt, STATE_WIDTH, 31>(t6, t6);
+
+	for (i, s) in state.iter_mut().enumerate() {
+		let a = (t7[i].square() * t6[i]).square().square();
+		let b = t1[i] * t2[i] * *s;
+		*s = a * b;
+	}
+}
 
 #[allow(clippy::trivially_copy_pass_by_ref)]
 #[inline]

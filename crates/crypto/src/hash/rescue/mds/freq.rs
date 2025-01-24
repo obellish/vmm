@@ -111,5 +111,37 @@ const fn block3(x: [i64; 3], y: [i64; 3]) -> [i64; 3] {
 
 #[cfg(test)]
 mod tests {
-	
+	use proptest::prelude::*;
+
+	use super::super::{Felt, MDS, ZERO, apply_mds};
+	use crate::hash::rescue::STATE_WIDTH;
+
+	fn apply_mds_naive(state: &mut [Felt; STATE_WIDTH]) {
+		let mut result = [ZERO; STATE_WIDTH];
+		result.iter_mut().zip(MDS).for_each(|(r, mds_row)| {
+			state.iter().zip(mds_row).for_each(|(&s, m)| {
+				*r += m * s;
+			});
+		});
+
+		*state = result;
+	}
+
+	proptest! {
+		#[test]
+		fn mds_freq_proptest(a in any::<[u64; STATE_WIDTH]>()) {
+			let mut v1 = [ZERO; STATE_WIDTH];
+			let mut v2;
+
+			for i in 0..STATE_WIDTH {
+				v1[i] = Felt::new(a[i]);
+			}
+			v2 = v1;
+
+			apply_mds_naive(&mut v1);
+			apply_mds(&mut v2);
+
+			prop_assert_eq!(v1, v2);
+		}
+	}
 }
