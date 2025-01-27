@@ -8,6 +8,7 @@ extern crate std;
 
 pub mod dsa;
 pub mod hash;
+pub mod merkle;
 pub mod rand;
 pub mod utils;
 
