@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use super::Blake3Digest;
+use super::RpoDigest;
 
-impl<'de, const N: usize> Deserialize<'de> for Blake3Digest<N> {
+impl<'de> Deserialize<'de> for RpoDigest {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'de>,
@@ -12,7 +12,7 @@ impl<'de, const N: usize> Deserialize<'de> for Blake3Digest<N> {
 	}
 }
 
-impl<const N: usize> Serialize for Blake3Digest<N> {
+impl Serialize for RpoDigest {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,

@@ -1,6 +1,7 @@
 mod arch;
 mod mds;
 mod rpo;
+mod rpx;
 
 use core::ops::Range;
 
@@ -8,7 +9,8 @@ use winter_math::FieldElement;
 
 pub use self::{
 	arch::optimized::{add_constants_and_apply_inv_sbox, add_constants_and_apply_sbox},
-	mds::{MDS, apply_mds},
+	rpo::{Rpo256, RpoDigest, RpoDigestError},
+	rpx::{Rpx256, RpxDigest, RpxDigestError},
 };
 use crate::{Felt, StarkField};
 
@@ -29,6 +31,11 @@ const DIGEST_SIZE: usize = DIGEST_RANGE.end - DIGEST_RANGE.start;
 const DIGEST_BYTES: usize = 32;
 
 const BINARY_CHUNK_SIZE: usize = 7;
+
+#[cfg(test)]
+const ALPHA: u64 = 7;
+#[cfg(test)]
+const INV_ALPHA: u64 = 10_540_996_611_094_048_183;
 
 const ARK1: [[Felt; STATE_WIDTH]; NUM_ROUNDS] = [
 	[
@@ -258,7 +265,7 @@ fn apply_inv_sbox(state: &mut [Felt; STATE_WIDTH]) {
 		for _ in 0..M {
 			result.iter_mut().for_each(|r| *r = r.square());
 		}
-		result.iter_mut().zip(tail).for_each(|(r, t)| *r += t);
+		result.iter_mut().zip(tail).for_each(|(r, t)| *r *= t);
 		result
 	}
 

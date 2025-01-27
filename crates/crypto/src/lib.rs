@@ -8,6 +8,7 @@ extern crate std;
 
 pub mod dsa;
 pub mod hash;
+pub mod rand;
 pub mod utils;
 
 pub use winter_math::{
