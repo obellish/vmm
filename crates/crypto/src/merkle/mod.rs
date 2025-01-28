@@ -3,13 +3,18 @@ mod index;
 mod mmr;
 mod node;
 mod path;
+mod store;
 
 pub use self::{
 	error::MerkleError,
 	index::NodeIndex,
-	mmr::{InOrderIndex, MmrDelta, MmrError, MmrProof},
+	mmr::{
+		InOrderIndex, InnerNodeIterator as PartialMmrInnerNodeIterator, Mmr, MmrDelta, MmrError,
+		MmrNodes, MmrPeaks, MmrProof, PartialMmr,
+	},
 	node::InnerNodeInfo,
 	path::{InnerNodeIterator, MerklePath, RootPath, ValuePath},
+	store::{MerkleStore, StoreNode},
 };
 
 #[cfg(test)]

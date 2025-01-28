@@ -3,10 +3,19 @@ mod delta;
 mod error;
 mod full;
 mod in_order;
+mod partial;
 mod peaks;
 mod proof;
 
-pub use self::{delta::MmrDelta, error::MmrError, in_order::InOrderIndex, proof::MmrProof};
+pub use self::{
+	delta::MmrDelta,
+	error::MmrError,
+	full::{Mmr, MmrNodes},
+	in_order::InOrderIndex,
+	partial::{InnerNodeIterator, PartialMmr},
+	peaks::MmrPeaks,
+	proof::MmrProof,
+};
 
 const fn leaf_to_corresponding_tree(pos: usize, forest: usize) -> Option<u32> {
 	if pos >= forest {

@@ -26,6 +26,11 @@ impl InOrderIndex {
 	}
 
 	#[must_use]
+	pub fn is_left_child(self) -> bool {
+		self.parent().left_child() == self
+	}
+
+	#[must_use]
 	pub const fn level(self) -> u32 {
 		self.idx.trailing_zeros()
 	}
