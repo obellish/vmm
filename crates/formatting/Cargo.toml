@@ -1,0 +1,18 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm-formatting"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+unicode-width = "0.2"
+
+[dev-dependencies]
+pretty_assertions = "1.0"
+
+[features]
+default = ["std"]
+std = []

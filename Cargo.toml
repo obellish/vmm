@@ -8,7 +8,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [workspace]
-members = ["crates/core", "crates/crypto"]
+members = ["crates/core", "crates/formatting"]
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"

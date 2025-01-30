@@ -9,6 +9,7 @@ version.workspace = true
 
 [dependencies]
 lock_api = { version = "0.4", features = ["arc_lock"] }
+miden-crypto = { git = "https://github.com/0xPolygonMiden/crypto.git" }
 miette = { workspace = true, optional = true, features = [
     "derive",
     "fancy-no-syscall"
