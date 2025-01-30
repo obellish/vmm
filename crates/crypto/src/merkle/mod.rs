@@ -1,11 +1,16 @@
+mod empty_roots;
 mod error;
 mod index;
 mod mmr;
 mod node;
+mod partial_mt;
 mod path;
+mod smt;
 mod store;
+mod tree;
 
 pub use self::{
+	empty_roots::EmptySubtreeRoots,
 	error::MerkleError,
 	index::NodeIndex,
 	mmr::{
@@ -13,8 +18,15 @@ pub use self::{
 		MmrNodes, MmrPeaks, MmrProof, PartialMmr,
 	},
 	node::InnerNodeInfo,
+	partial_mt::PartialMerkleTree,
 	path::{InnerNodeIterator, MerklePath, RootPath, ValuePath},
-	store::{MerkleStore, StoreNode},
+	smt::{
+		InnerNode, LeafIndex, MutationSet, NodeMutation, SMT_MAX_DEPTH, SMT_MIN_DEPTH, SimpleSmt,
+	},
+	store::{DefaultMerkleStore, MerkleStore, RecordingMerkleStore, StoreNode},
+	tree::{
+		InnerNodeIterator as MerkleTreeInnerNodeIterator, MerkleTree, path_to_text, tree_to_text,
+	},
 };
 
 #[cfg(test)]

@@ -451,14 +451,12 @@ fn forest_to_rightmost_index(forest: usize) -> InOrderIndex {
 mod tests {
 	use alloc::{collections::BTreeSet, vec::Vec};
 
-	use num::bigint::ParseBigIntError;
-
 	use super::{
 		InOrderIndex, MmrPeaks, PartialMmr, RpoDigest, forest_to_rightmost_index,
 		forest_to_root_index,
 	};
 	use crate::{
-		merkle::{Mmr, MmrError, NodeIndex, int_to_node},
+		merkle::{MerkleStore, Mmr, MmrError, NodeIndex, int_to_node},
 		utils::{Deserializable, Serializable},
 	};
 
@@ -594,7 +592,7 @@ mod tests {
 	}
 
 	#[test]
-	fn partial_mmr_inner_nodes_iterator() -> Result<(), MmrError> {
+	fn partial_mmr_inner_nodes_iterator() -> eyre::Result<()> {
 		let mmr: Mmr = LEAVES.into_iter().collect();
 		let first_peak = mmr.peaks().peaks()[0];
 
@@ -606,7 +604,139 @@ mod tests {
 
 		assert_eq!(partial_mmr.inner_nodes(core::iter::empty()).next(), None);
 
-		todo!();
+		let mut store: MerkleStore = MerkleStore::new();
+		store.extend(partial_mmr.inner_nodes(core::iter::once(&(1, node1)).copied()));
+
+		let index1 = NodeIndex::new(2, 1)?;
+		let path1 = store.get_path(first_peak, index1)?.path;
+
+		assert_eq!(path1, proof1.merkle_path);
+
+		let mut partial_mmr: PartialMmr = mmr.peaks().into();
+
+		let node0 = mmr.get(0)?;
+		let proof0 = mmr.open(0)?;
+
+		let node2 = mmr.get(2)?;
+		let proof2 = mmr.open(2)?;
+
+		partial_mmr.track(0, node0, &proof0.merkle_path)?;
+		partial_mmr.track(1, node1, &proof1.merkle_path)?;
+		partial_mmr.track(2, node2, &proof2.merkle_path)?;
+
+		let leaves = [(0, node0), (1, node1), (2, node2)];
+		let mut nodes = BTreeSet::new();
+		for node in partial_mmr.inner_nodes(leaves.iter().copied()) {
+			assert!(nodes.insert(node.value));
+		}
+
+		store.extend(partial_mmr.inner_nodes(leaves.iter().copied()));
+
+		let index0 = NodeIndex::new(2, 0)?;
+		let index1 = NodeIndex::new(2, 1)?;
+		let index2 = NodeIndex::new(2, 2)?;
+
+		let path0 = store.get_path(first_peak, index0)?.path;
+		let path1 = store.get_path(first_peak, index1)?.path;
+		let path2 = store.get_path(first_peak, index2)?.path;
+
+		assert_eq!(path0, proof0.merkle_path);
+		assert_eq!(path1, proof1.merkle_path);
+		assert_eq!(path2, proof2.merkle_path);
+
+		let mut partial_mmr: PartialMmr = mmr.peaks().into();
+
+		let node5 = mmr.get(5)?;
+		let proof5 = mmr.open(5)?;
+
+		partial_mmr.track(1, node1, &proof1.merkle_path)?;
+		partial_mmr.track(5, node5, &proof5.merkle_path)?;
+
+		let mut store: MerkleStore = MerkleStore::new();
+		store.extend(partial_mmr.inner_nodes([(1, node1), (5, node5)].iter().copied()));
+
+		let index1 = NodeIndex::new(2, 1)?;
+		let index5 = NodeIndex::new(1, 1)?;
+
+		let second_peak = mmr.peaks().peaks()[1];
+
+		let path1 = store.get_path(first_peak, index1)?.path;
+		let path5 = store.get_path(second_peak, index5)?.path;
+
+		assert_eq!(path1, proof1.merkle_path);
+		assert_eq!(path5, proof5.merkle_path);
+
+		Ok(())
+	}
+
+	#[test]
+	fn partial_mmr_add_without_track() -> Result<(), MmrError> {
+		let mut mmr = Mmr::default();
+		let empty_peaks = MmrPeaks::new(0, Vec::new())?;
+		let mut partial_mmr = PartialMmr::from_peaks(empty_peaks);
+
+		for el in (0..256).map(int_to_node) {
+			mmr.add(el);
+			partial_mmr.add(el, false);
+
+			assert_eq!(mmr.peaks(), partial_mmr.peaks());
+			assert_eq!(mmr.forest(), partial_mmr.forest());
+		}
+
+		Ok(())
+	}
+
+	#[test]
+	fn partial_mmr_add_with_track() -> Result<(), MmrError> {
+		let mut mmr = Mmr::default();
+		let empty_peaks = MmrPeaks::new(0, Vec::new())?;
+		let mut partial_mmr = PartialMmr::from_peaks(empty_peaks);
+
+		for i in 0..256 {
+			let el = int_to_node(i);
+			mmr.add(el);
+			partial_mmr.add(el, true);
+
+			assert_eq!(mmr.peaks(), partial_mmr.peaks());
+			assert_eq!(mmr.forest(), partial_mmr.forest());
+
+			for pos in 0..i {
+				let mmr_proof = mmr.open(pos as usize)?;
+				let partial_mmr_proof = partial_mmr.open(pos as usize)?.unwrap();
+				assert_eq!(mmr_proof, partial_mmr_proof);
+			}
+		}
+
+		Ok(())
+	}
+
+	#[test]
+	fn partial_mmr_add_existing_track() -> Result<(), MmrError> {
+		let mut mmr = (0..7).map(int_to_node).collect::<Mmr>();
+
+		let mut partial_mmr = PartialMmr::from_peaks(mmr.peaks());
+		let path_to_5 = mmr.open(5)?.merkle_path;
+		let leaf_at_5 = mmr.get(5)?;
+		partial_mmr.track(5, leaf_at_5, &path_to_5)?;
+
+		let leaf_at_7 = int_to_node(7);
+		mmr.add(leaf_at_7);
+		partial_mmr.add(leaf_at_7, false);
+
+		assert_eq!(mmr.open(5)?, partial_mmr.open(5)?.unwrap());
+
+		Ok(())
+	}
+
+	#[test]
+	fn partial_mmr_serialization() -> eyre::Result<()> {
+		let mmr = (0..7).map(int_to_node).collect::<Mmr>();
+		let partial_mmr = PartialMmr::from_peaks(mmr.peaks());
+
+		let bytes = partial_mmr.to_bytes();
+		let decoded = PartialMmr::read_from_bytes(&bytes)?;
+
+		assert_eq!(partial_mmr, decoded);
 
 		Ok(())
 	}
