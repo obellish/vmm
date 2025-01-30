@@ -9,9 +9,37 @@ version.workspace = true
 
 [dependencies]
 lock_api = { version = "0.4", features = ["arc_lock"] }
+memchr = { version = "2.7", default-features = false }
 miden-crypto = { git = "https://github.com/0xPolygonMiden/crypto.git" }
 miette = { workspace = true, optional = true, features = [
     "derive",
     "fancy-no-syscall"
 ] }
+num-derive = { version = "0.4", default-features = false }
+num-traits = { version = "0.2", default-features = false }
+parking_lot = { version = "0.12", optional = true }
+thiserror.workspace = true
+vmm-formatting = { path = "../formatting" }
 winter-math.workspace = true
+winter-utils = { version = "0.11", default-features = false }
+
+[dev-dependencies]
+loom = "0.7"
+proptest = "1.5"
+rand-utils.workspace = true
+
+[target.'cfg(loom)'.dependencies]
+loom = "0.7"
+
+[features]
+default = ["std"]
+diagnostics = ["dep:miette"]
+std = [
+    "dep:parking_lot",
+    "memchr/std",
+    "miden-crypto/std",
+    "thiserror/std",
+    "vmm-formatting/std",
+    "winter-math/std",
+    "winter-utils/std"
+]
