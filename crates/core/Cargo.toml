@@ -24,9 +24,11 @@ winter-math.workspace = true
 winter-utils = { version = "0.11", default-features = false }
 
 [dev-dependencies]
+eyre = "0.6"
 loom = "0.7"
 proptest = "1.5"
 rand-utils.workspace = true
+static_assertions = "1.1"
 
 [target.'cfg(loom)'.dependencies]
 loom = "0.7"

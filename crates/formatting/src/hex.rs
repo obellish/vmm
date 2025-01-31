@@ -64,3 +64,7 @@ impl ToHex for [u8] {
 		DisplayHex(self).to_hex_with_prefix()
 	}
 }
+
+pub fn to_hex(bytes: impl AsRef<[u8]>) -> String {
+	bytes.as_ref().to_hex()
+}
