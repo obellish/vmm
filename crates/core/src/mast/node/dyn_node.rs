@@ -88,3 +88,28 @@ impl DynNode {
 		self.after_exit = decorator_ids.into_iter().collect();
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use super::DynNode;
+	use crate::crypto::hash::{Rpo256, RpoDigest};
+
+	#[test]
+	pub fn dyn_node_digest() {
+		assert_eq!(
+			DynNode::r#dyn().digest(),
+			Rpo256::merge_in_domain(
+				&[RpoDigest::default(), RpoDigest::default()],
+				DynNode::DYN_DOMAIN
+			)
+		);
+
+		assert_eq!(
+			DynNode::dyncall().digest(),
+			Rpo256::merge_in_domain(
+				&[RpoDigest::default(), RpoDigest::default()],
+				DynNode::DYNCALL_DOMAIN
+			)
+		);
+	}
+}
