@@ -17,6 +17,95 @@ const DYN: u8 = 6;
 const DYNCALL: u8 = 7;
 const EXTERNAL: u8 = 8;
 
+#[derive(Debug)]
+pub struct MastNodeInfo {
+	ty: MastNodeType,
+	digest: RpoDigest,
+}
+
+impl MastNodeInfo {
+	pub fn new(mast_node: &MastNode, ops_offset: NodeDataOffset) -> Self {
+		if !mast_node.is_basic_block() {
+			debug_assert_eq!(ops_offset, 0);
+		}
+
+		let ty = MastNodeType::new(mast_node, ops_offset);
+
+		Self {
+			ty,
+			digest: mast_node.digest(),
+		}
+	}
+
+	pub fn try_into_mast_node(
+		self,
+		node_count: usize,
+		basic_block_data_decoder: &BasicBlockDataDecoder<'_>,
+	) -> Result<MastNode, DeserializationError> {
+		match self.ty {
+			MastNodeType::Block { ops_offset } => {
+				let operation = basic_block_data_decoder.decode_operations(ops_offset)?;
+				let block = BasicBlockNode::new_unchecked(operation, Vec::new(), self.digest);
+				Ok(MastNode::Block(block))
+			}
+			MastNodeType::Join {
+				left_child_id,
+				right_child_id,
+			} => {
+				let left_child = MastNodeId::from_u32_with_node_count(left_child_id, node_count)?;
+				let right_child = MastNodeId::from_u32_with_node_count(right_child_id, node_count)?;
+				let join = JoinNode::new_unchecked([left_child, right_child], self.digest);
+				Ok(MastNode::Join(join))
+			}
+			MastNodeType::Split {
+				if_branch_id,
+				else_branch_id,
+			} => {
+				let if_branch = MastNodeId::from_u32_with_node_count(if_branch_id, node_count)?;
+				let else_branch = MastNodeId::from_u32_with_node_count(else_branch_id, node_count)?;
+				let split = SplitNode::new_unchecked([if_branch, else_branch], self.digest);
+				Ok(MastNode::Split(split))
+			}
+			MastNodeType::Loop { body_id } => {
+				let body_id = MastNodeId::from_u32_with_node_count(body_id, node_count)?;
+				let loop_node = LoopNode::new_unchecked(body_id, self.digest);
+				Ok(MastNode::Loop(loop_node))
+			}
+			MastNodeType::Call { callee_id } => {
+				let callee_id = MastNodeId::from_u32_with_node_count(callee_id, node_count)?;
+				let call = CallNode::new_unchecked(callee_id, self.digest);
+				Ok(MastNode::Call(call))
+			}
+			MastNodeType::SysCall { callee_id } => {
+				let callee_id = MastNodeId::from_u32_with_node_count(callee_id, node_count)?;
+				let call = CallNode::syscall_unchecked(callee_id, self.digest);
+				Ok(MastNode::Call(call))
+			}
+			MastNodeType::Dyn => Ok(MastNode::r#dyn()),
+			MastNodeType::DynCall => Ok(MastNode::dyncall()),
+			MastNodeType::External => Ok(MastNode::external(self.digest)),
+		}
+	}
+}
+
+impl Deserializable for MastNodeInfo {
+	fn read_from<R: ByteReader>(source: &mut R) -> Result<Self, DeserializationError> {
+		let ty = Deserializable::read_from(source)?;
+		let digest = RpoDigest::read_from(source)?;
+
+		Ok(Self { ty, digest })
+	}
+}
+
+impl Serializable for MastNodeInfo {
+	fn write_into<W: ByteWriter>(&self, target: &mut W) {
+		let Self { ty, digest } = self;
+
+		ty.write_into(target);
+		digest.write_into(target);
+	}
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum MastNodeType {
@@ -94,7 +183,7 @@ impl MastNodeType {
 		payload.into()
 	}
 
-	fn decode_u32_pair(payload: u64) -> (u32, u32) {
+	const fn decode_u32_pair(payload: u64) -> (u32, u32) {
 		let left_value = (payload >> 30) as u32;
 		let right_value = (payload & 0x3f_ff_ff_ff) as u32;
 
@@ -104,8 +193,7 @@ impl MastNodeType {
 	pub fn decode_u32_payload(payload: u64) -> Result<u32, DeserializationError> {
 		payload.try_into().map_err(|_| {
 			DeserializationError::InvalidValue(format!(
-				"invalid payload: expected to fit in u32, but was {}",
-				payload
+				"invalid payload: expected to fit in u32, but was {payload}"
 			))
 		})
 	}
@@ -187,5 +275,66 @@ impl Serializable for MastNodeType {
 
 		let value = (discriminant << 60) | payload;
 		target.write_u64(value);
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use alloc::vec::Vec;
+
+	use super::{CALL, MastNodeType};
+	use crate::utils::{Deserializable, DeserializationError, Serializable};
+
+	#[test]
+	fn serialize_deserialize_60_bit_payload() -> Result<(), DeserializationError> {
+		let mast_node_type = MastNodeType::Join {
+			left_child_id: 0x3f_ff_ff_ff,
+			right_child_id: 0x3f_ff_ff_ff,
+		};
+
+		let serialized = mast_node_type.to_bytes();
+		let deserialized = MastNodeType::read_from_bytes(&serialized)?;
+
+		assert_eq!(mast_node_type, deserialized);
+
+		Ok(())
+	}
+
+	#[test]
+	#[should_panic = "left value doesn't fit in 30 bits"]
+	fn serialize_large_payload_fails_1() {
+		let mast_node_type = MastNodeType::Join {
+			left_child_id: 0x4f_ff_ff_ff,
+			right_child_id: 0x0,
+		};
+
+		_ = mast_node_type.to_bytes();
+	}
+
+	#[test]
+	#[should_panic = "right value doesn't fit in 30 bits"]
+	fn serialize_large_payload_fails_2() {
+		let mast_node_type = MastNodeType::Join {
+			left_child_id: 0x0,
+			right_child_id: 0x4f_ff_ff_ff,
+		};
+
+		_ = mast_node_type.to_bytes();
+	}
+
+	#[test]
+	fn deserialize_large_payload_fails() {
+		let serialized = {
+			let serialized_value = (u64::from(CALL) << 60) | (u64::from(u32::MAX) + 1u64);
+
+			let mut serialized_buffer = Vec::new();
+			serialized_value.write_into(&mut serialized_buffer);
+
+			serialized_buffer
+		};
+
+		let deserialized = MastNodeType::read_from_bytes(&serialized);
+
+		assert!(deserialized.is_err());
 	}
 }

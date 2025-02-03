@@ -81,6 +81,11 @@ impl MastNode {
 		Self::Dyn(DynNode::dyncall())
 	}
 
+	#[must_use]
+	pub const fn external(mast_root: RpoDigest) -> Self {
+		Self::External(ExternalNode::new(mast_root))
+	}
+
 	#[cfg(test)]
 	pub fn basic_block_with_raw_decorators(
 		operations: impl IntoIterator<Item = Operation>,
