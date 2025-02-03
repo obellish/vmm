@@ -2,72 +2,31 @@ use alloc::vec::Vec;
 use core::fmt::{Display, Formatter, Result as FmtResult};
 
 use crate::{
-	Felt, OPCODE_DYN, OPCODE_DYNCALL,
 	crypto::hash::RpoDigest,
 	mast::{DecoratorId, MastForest},
-	prettier::{Document, PrettyPrint, const_text, nl},
+	prettier::{Document, PrettyPrint, const_text, hex::ToHex, nl, text},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct DynNode {
-	is_dyncall: bool,
+pub struct ExternalNode {
+	digest: RpoDigest,
 	before_enter: Vec<DecoratorId>,
 	after_exit: Vec<DecoratorId>,
 }
 
-impl DynNode {
-	pub const DYNCALL_DOMAIN: Felt = Felt::new(OPCODE_DYNCALL as u64);
-	pub const DYN_DOMAIN: Felt = Felt::new(OPCODE_DYN as u64);
-
-	const fn new(is_dyncall: bool) -> Self {
+impl ExternalNode {
+	#[must_use]
+	pub const fn new(digest: RpoDigest) -> Self {
 		Self {
-			is_dyncall,
+			digest,
 			before_enter: Vec::new(),
 			after_exit: Vec::new(),
 		}
 	}
 
 	#[must_use]
-	pub const fn r#dyn() -> Self {
-		Self::new(false)
-	}
-
-	#[must_use]
-	pub const fn dyncall() -> Self {
-		Self::new(true)
-	}
-
-	#[must_use]
-	pub const fn is_dyncall(&self) -> bool {
-		self.is_dyncall
-	}
-
-	#[must_use]
-	pub const fn domain(&self) -> Felt {
-		if self.is_dyncall() {
-			Self::DYNCALL_DOMAIN
-		} else {
-			Self::DYN_DOMAIN
-		}
-	}
-
-	#[must_use]
 	pub const fn digest(&self) -> RpoDigest {
-		if self.is_dyncall() {
-			RpoDigest::new([
-				Felt::new(8_751_004_906_421_739_448),
-				Felt::new(13_469_709_002_495_534_233),
-				Felt::new(12_584_249_374_630_430_826),
-				Felt::new(7_624_899_870_831_503_004),
-			])
-		} else {
-			RpoDigest::new([
-				Felt::new(8_115_106_948_140_260_551),
-				Felt::new(13_491_227_816_952_616_836),
-				Felt::new(15_015_806_788_322_198_710),
-				Felt::new(16_575_543_461_540_527_115),
-			])
-		}
+		self.digest
 	}
 
 	#[must_use]
@@ -89,7 +48,7 @@ impl DynNode {
 	}
 
 	pub(super) fn to_display<'a>(&'a self, mast_forest: &'a MastForest) -> impl Display + 'a {
-		DynNodePrettyPrint {
+		ExternalNodePrettyPrint {
 			node: self,
 			mast_forest,
 		}
@@ -99,19 +58,19 @@ impl DynNode {
 		&'a self,
 		mast_forest: &'a MastForest,
 	) -> impl PrettyPrint + 'a {
-		DynNodePrettyPrint {
+		ExternalNodePrettyPrint {
 			node: self,
 			mast_forest,
 		}
 	}
 }
 
-struct DynNodePrettyPrint<'a> {
-	node: &'a DynNode,
+struct ExternalNodePrettyPrint<'a> {
+	node: &'a ExternalNode,
 	mast_forest: &'a MastForest,
 }
 
-impl DynNodePrettyPrint<'_> {
+impl ExternalNodePrettyPrint<'_> {
 	fn concatenate_decorators(
 		&self,
 		decorator_ids: &[DecoratorId],
@@ -148,51 +107,25 @@ impl DynNodePrettyPrint<'_> {
 	}
 }
 
-impl Display for DynNodePrettyPrint<'_> {
+impl Display for ExternalNodePrettyPrint<'_> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		self.pretty_print(f)
 	}
 }
 
-impl PrettyPrint for DynNodePrettyPrint<'_> {
+impl PrettyPrint for ExternalNodePrettyPrint<'_> {
 	fn render(&self) -> Document {
-		let dyn_text = if self.node.is_dyncall() {
-			const_text("dyncall")
-		} else {
-			const_text("dyn")
-		};
+		let external = const_text("external")
+			+ const_text(".")
+			+ text(self.node.digest().as_bytes().to_hex_with_prefix());
 
 		let single_line = self.single_line_pre_decorators()
-			+ dyn_text.clone()
+			+ external.clone()
 			+ self.single_line_post_decorators();
+
 		let multi_line =
-			self.multi_line_pre_decorators() + dyn_text + self.multi_line_post_decorators();
+			self.multi_line_pre_decorators() + external + self.multi_line_post_decorators();
 
 		single_line | multi_line
-	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::DynNode;
-	use crate::crypto::hash::{Rpo256, RpoDigest};
-
-	#[test]
-	pub fn dyn_node_digest() {
-		assert_eq!(
-			DynNode::r#dyn().digest(),
-			Rpo256::merge_in_domain(
-				&[RpoDigest::default(), RpoDigest::default()],
-				DynNode::DYN_DOMAIN
-			)
-		);
-
-		assert_eq!(
-			DynNode::dyncall().digest(),
-			Rpo256::merge_in_domain(
-				&[RpoDigest::default(), RpoDigest::default()],
-				DynNode::DYNCALL_DOMAIN
-			)
-		);
 	}
 }

@@ -1,19 +1,105 @@
 mod node;
+mod node_fingerprint;
 
-use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
+use core::{
+	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	ops::{Index, IndexMut},
+};
+use std::vec::Vec;
 
 use thiserror::Error;
 
-pub use self::node::DynNode;
+pub use self::{
+	node::{
+		BasicBlockNode, CallNode, DynNode, ExternalNode, JoinNode, LoopNode, MastNode,
+		OP_BATCH_SIZE, OP_GROUP_SIZE, OpBatch, OperationOrDecorator, SplitNode,
+	},
+	node_fingerprint::{DecoratorFingerprint, MastNodeFingerprint},
+};
 use crate::{
+	AdviceMap, Decorator,
 	crypto::hash::RpoDigest,
 	utils::{ByteWriter, DeserializationError, Serializable},
 };
 
-pub struct MastForest {}
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+pub struct MastForest {
+	nodes: Vec<MastNode>,
+	roots: Vec<MastNodeId>,
+	decorators: Vec<Decorator>,
+	advice_map: AdviceMap,
+}
 
 impl MastForest {
 	const MAX_NODES: usize = (1 << 30) - 1;
+
+	#[must_use]
+	pub const fn new() -> Self {
+		Self {
+			nodes: Vec::new(),
+			roots: Vec::new(),
+			decorators: Vec::new(),
+			advice_map: AdviceMap::new(),
+		}
+	}
+
+	pub fn add_decorator(&mut self, decorator: Decorator) -> Result<DecoratorId, MastForestError> {
+		if self.decorators.len() >= u32::MAX as usize {
+			return Err(MastForestError::TooManyDecorators);
+		}
+
+		let new_decorator_id = DecoratorId(self.decorators.len() as u32);
+		self.decorators.push(decorator);
+
+		Ok(new_decorator_id)
+	}
+
+	pub fn add_node(&mut self, node: MastNode) -> Result<MastNodeId, MastForestError> {
+		if self.nodes.len() == Self::MAX_NODES {
+			return Err(MastForestError::TooManyNodes);
+		}
+
+		let new_node_id = MastNodeId(self.nodes.len() as u32);
+		self.nodes.push(node);
+
+		Ok(new_node_id)
+	}
+}
+
+impl Index<MastNodeId> for MastForest {
+	type Output = MastNode;
+
+	fn index(&self, index: MastNodeId) -> &Self::Output {
+		let idx = index.0 as usize;
+
+		&self.nodes[idx]
+	}
+}
+
+impl IndexMut<MastNodeId> for MastForest {
+	fn index_mut(&mut self, index: MastNodeId) -> &mut Self::Output {
+		let idx = index.0 as usize;
+
+		&mut self.nodes[idx]
+	}
+}
+
+impl Index<DecoratorId> for MastForest {
+	type Output = Decorator;
+
+	fn index(&self, index: DecoratorId) -> &Self::Output {
+		let idx = index.0 as usize;
+
+		&self.decorators[idx]
+	}
+}
+
+impl IndexMut<DecoratorId> for MastForest {
+	fn index_mut(&mut self, index: DecoratorId) -> &mut Self::Output {
+		let idx = index.0 as usize;
+
+		&mut self.decorators[idx]
+	}
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

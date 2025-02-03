@@ -47,7 +47,7 @@ pub mod crypto {
 }
 
 pub mod prettier {
-	pub use vmm_formatting::{prettier::*, pretty_via_display, pretty_via_to_string};
+	pub use vmm_formatting::{hex, prettier::*, pretty_via_display, pretty_via_to_string};
 
 	pub fn pretty_print_csv<'a, T>(items: impl IntoIterator<Item = &'a T>) -> Document
 	where
@@ -64,17 +64,18 @@ pub mod prettier {
 	}
 }
 
-pub use miden_crypto::{EMPTY_WORD, ONE, WORD_SIZE, Word, ZERO};
-pub use winter_math::{
-	ExtensionOf, FieldElement, StarkField, ToElements,
-	fields::{QuadExtension, f64::BaseElement as Felt},
-	polynom,
+pub use miden_crypto::{
+	EMPTY_WORD, Felt, FieldElement, ONE, QuadExtension, StarkField, WORD_SIZE, Word, ZERO,
 };
+pub use winter_math::{ExtensionOf, ToElements, polynom};
 
 #[doc(inline)]
 pub use self::{
 	advice::AdviceMap,
 	kernel::Kernel,
-	operations::opcode_constants::*,
+	operations::{
+		AssemblyOp, DebugOptions, Decorator, DecoratorIterator, DecoratorList, DecoratorSlice,
+		Operation, SignatureKind, opcode_constants::*,
+	},
 	stack::{StackInputs, StackOutputs},
 };
