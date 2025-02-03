@@ -1,5 +1,6 @@
 mod node;
 mod node_fingerprint;
+mod serialization;
 
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
