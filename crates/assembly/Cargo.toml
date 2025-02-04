@@ -1,0 +1,41 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm-assembly"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+aho-corasick = { version = "1.1", default-features = false }
+lalrpop-util = { version = "0.20", default-features = false }
+miette = { workspace = true, features = ["derive", "fancy-no-syscall"] }
+regex = { version = "1.10", optional = true, default-features = false, features = [
+    "perf",
+    "unicode"
+] }
+thiserror.workspace = true
+tracing = { version = "0.1", default-features = false, features = [
+    "attributes"
+] }
+unicode-width = { workspace = true, features = ["no_std"] }
+vmm-core = { path = "../core", default-features = false, features = [
+    "diagnostics"
+] }
+
+[dev-dependencies]
+pretty_assertions.workspace = true
+regex = { version = "1.10", default-features = false, features = [
+    "perf",
+    "unicode"
+] }
+
+[build-dependencies]
+lalrpop = { version = "0.20", default-features = false }
+rustc_version = "0.4"
+
+[features]
+default = ["std"]
+std = ["aho-corasick/std", "miette/fancy", "thiserror/std", "vmm-core/std"]
+testing = ["dep:regex"]

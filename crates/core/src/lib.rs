@@ -14,7 +14,9 @@ pub mod errors;
 mod kernel;
 pub mod mast;
 mod operations;
+mod program;
 pub mod stack;
+pub mod sys_events;
 pub mod utils;
 
 pub mod crypto {
@@ -77,5 +79,6 @@ pub use self::{
 		AssemblyOp, DebugOptions, Decorator, DecoratorIterator, DecoratorList, DecoratorSlice,
 		Operation, SignatureKind, opcode_constants::*,
 	},
+	program::{Program, ProgramInfo},
 	stack::{StackInputs, StackOutputs},
 };

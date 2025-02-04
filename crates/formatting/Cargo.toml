@@ -8,10 +8,10 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-unicode-width = "0.2"
+unicode-width.workspace = true
 
 [dev-dependencies]
-pretty_assertions = "1.0"
+pretty_assertions.workspace = true
 
 [features]
 default = ["std"]
