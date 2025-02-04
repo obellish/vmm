@@ -9,7 +9,7 @@ use core::{
 pub use self::op_batch::OpBatch;
 use self::op_batch::OpBatchAccumulator;
 use crate::{
-	Decorator, DecoratorIterator, DecoratorList, DecoratorSlice, Felt, Operation, ZERO,
+	DecoratorIterator, DecoratorList, DecoratorSlice, Felt, Operation, ZERO,
 	chiplets::hasher,
 	crypto::hash::RpoDigest,
 	mast::{DecoratorId, MastForest, MastForestError},
@@ -68,7 +68,7 @@ impl BasicBlockNode {
 	#[cfg(test)]
 	pub fn with_raw_decorators(
 		operations: impl IntoIterator<Item = Operation>,
-		decorators: impl IntoIterator<Item = (usize, Decorator)>,
+		decorators: impl IntoIterator<Item = (usize, crate::Decorator)>,
 		mast_forest: &mut MastForest,
 	) -> Result<Self, MastForestError> {
 		let mut decorator_list = Vec::new();

@@ -7,17 +7,55 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'vmm_aux'",
+            "name": "Debug unit tests in library 'vmm_core'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=vmm-aux"
+                    "--package=vmm-core"
                 ],
                 "filter": {
-                    "name": "vmm_aux",
+                    "name": "vmm_core",
                     "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'vmm_formatting'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=vmm-formatting"
+                ],
+                "filter": {
+                    "name": "vmm_formatting",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug integration test 'prettier'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--test=prettier",
+                    "--package=vmm-formatting"
+                ],
+                "filter": {
+                    "name": "prettier",
+                    "kind": "test"
                 }
             },
             "args": [],
@@ -36,25 +74,6 @@
                 ],
                 "filter": {
                     "name": "vmm",
-                    "kind": "lib"
-                }
-            },
-            "args": [],
-            "cwd": "${workspaceFolder}"
-        },
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug unit tests in library 'vmm_tools'",
-            "cargo": {
-                "args": [
-                    "test",
-                    "--no-run",
-                    "--lib",
-                    "--package=vmm-tools"
-                ],
-                "filter": {
-                    "name": "vmm_tools",
                     "kind": "lib"
                 }
             },

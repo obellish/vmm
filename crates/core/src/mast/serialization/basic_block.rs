@@ -40,7 +40,11 @@ pub struct BasicBlockDataDecoder<'a> {
 	node_data: &'a [u8],
 }
 
-impl BasicBlockDataDecoder<'_> {
+impl<'a> BasicBlockDataDecoder<'a> {
+	pub const fn new(node_data: &'a [u8]) -> Self {
+		Self { node_data }
+	}
+
 	pub fn decode_operations(
 		&self,
 		ops_offset: NodeDataOffset,
