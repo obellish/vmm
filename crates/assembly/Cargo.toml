@@ -25,6 +25,7 @@ vmm-core = { path = "../core", default-features = false, features = [
 ] }
 
 [dev-dependencies]
+assert_matches.workspace = true
 pretty_assertions.workspace = true
 regex = { version = "1.10", default-features = false, features = [
     "perf",

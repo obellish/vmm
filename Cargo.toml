@@ -66,6 +66,7 @@ panic = "abort"
 all-features = true
 
 [workspace.dependencies]
+assert_matches = { version = "1.5", default-features = false }
 miette = { version = "7", default-features = false }
 pretty_assertions = "1.4"
 rand-utils = { package = "winter-rand-utils", version = "0.11", default-features = false }

@@ -9,12 +9,20 @@ extern crate std;
 
 pub mod ast;
 pub mod diagnostics;
+mod library;
 mod parser;
 
 pub use vmm_core::{mast, utils};
 
-pub use self::diagnostics::{
-	DefaultSourceManager, Report, SourceFile, SourceId, SourceManager, SourceSpan, Span, Spanned,
+pub use self::{
+	diagnostics::{
+		DefaultSourceManager, Report, SourceFile, SourceId, SourceManager, SourceSpan, Span,
+		Spanned,
+	},
+	library::{
+		LibraryError, LibraryNamespace, LibraryNamespaceError, LibraryPath, LibraryPathComponent,
+		PathError, Version, VersionError,
+	},
 };
 
 const ADVICE_READ_LIMIT: u8 = 16;

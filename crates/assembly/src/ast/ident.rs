@@ -1,4 +1,4 @@
-use alloc::{borrow::ToOwned, sync::Arc};
+use alloc::{borrow::ToOwned, string::String, sync::Arc};
 use core::{
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	hash::{Hash, Hasher},
@@ -126,6 +126,24 @@ impl Ord for Ident {
 impl PartialEq for Ident {
 	fn eq(&self, other: &Self) -> bool {
 		self.name == other.name
+	}
+}
+
+impl PartialEq<str> for Ident {
+	fn eq(&self, other: &str) -> bool {
+		(*self.name).eq(other)
+	}
+}
+
+impl PartialEq<&str> for Ident {
+	fn eq(&self, other: &&str) -> bool {
+		self.eq(*other)
+	}
+}
+
+impl PartialEq<String> for Ident {
+	fn eq(&self, other: &String) -> bool {
+		self.eq(other.as_str())
 	}
 }
 

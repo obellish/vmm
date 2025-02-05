@@ -24,7 +24,7 @@ winter-math.workspace = true
 winter-utils = { version = "0.11", default-features = false }
 
 [dev-dependencies]
-assert_matches = { version = "1.5", default-features = false }
+assert_matches.workspace = true
 eyre = "0.6"
 loom = "0.7"
 proptest = "1.5"

@@ -1304,6 +1304,7 @@ name = "vmm-assembly"
 version = "0.1.0"
 dependencies = [
  "aho-corasick",
+ "assert_matches",
  "lalrpop",
  "lalrpop-util",
  "miette",
