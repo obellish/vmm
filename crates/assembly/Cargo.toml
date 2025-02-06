@@ -38,5 +38,11 @@ rustc_version = "0.4"
 
 [features]
 default = ["std"]
-std = ["aho-corasick/std", "miette/fancy", "thiserror/std", "vmm-core/std"]
+std = [
+    "aho-corasick/std",
+    "miette/fancy",
+    "miette/std",
+    "thiserror/std",
+    "vmm-core/std"
+]
 testing = ["dep:regex"]

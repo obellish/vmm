@@ -590,6 +590,11 @@ impl<'input> Token<'input> {
 			.expect("unable to build aho-corasick searcher for token")
 	}
 
+	pub fn from_keyword_or_ident(s: &'input str) -> Self {
+		let searcher = Self::keyword_searcher();
+		Self::from_keyword_or_ident_with_searcher(s, &searcher)
+	}
+
 	pub fn from_keyword_or_ident_with_searcher(
 		s: &'input str,
 		searcher: &aho_corasick::AhoCorasick,
@@ -599,6 +604,42 @@ impl<'input> Token<'input> {
 			None => Self::Ident(s),
 			Some(matched) if matched.len() != s.len() => Self::Ident(s),
 			Some(matched) => Self::KEYWORDS[matched.pattern().as_usize()].1.clone(),
+		}
+	}
+
+	pub fn parse(s: &'input str) -> Option<Self> {
+		match Self::from_keyword_or_ident(s) {
+			Self::Ident(_) => Some(match s {
+				"@" => Self::At,
+				"!" => Self::Bang,
+				"::" => Self::ColonColon,
+				"." => Self::Dot,
+				"," => Self::Comma,
+				"=" => Self::Equal,
+				"(" => Self::Lparen,
+				"[" => Self::Lbracket,
+				"-" => Self::Minus,
+				"+" => Self::Plus,
+				"//" => Self::SlashSlash,
+				"/" => Self::Slash,
+				"*" => Self::Star,
+				")" => Self::Rparen,
+				"]" => Self::Rbracket,
+				"->" => Self::Rstab,
+				"end of file" => Self::Eof,
+				"module doc" => Self::DocComment(DocumentationType::Module(String::new())),
+				"doc comment" => Self::DocComment(DocumentationType::Form(String::new())),
+				"comment" => Self::Comment,
+				"hex-encoded value" => Self::HexValue(HexEncodedValue::U8(0)),
+				"bin-encoded value" => Self::BinValue(BinEncodedValue::U8(0)),
+				"integer" => Self::Int(0),
+				"identifier" => Self::Ident(""),
+				"constant identifier" => Self::ConstantIdent(""),
+				"quoted identifier" => Self::QuotedIdent(""),
+				"quoted string" => Self::QuotedString(""),
+				_ => return None,
+			}),
+			token => Some(token),
 		}
 	}
 }

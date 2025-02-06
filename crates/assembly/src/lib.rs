@@ -11,6 +11,7 @@ pub mod ast;
 pub mod diagnostics;
 mod library;
 mod parser;
+mod sema;
 
 pub use vmm_core::{mast, utils};
 
@@ -23,6 +24,8 @@ pub use self::{
 		LibraryError, LibraryNamespace, LibraryNamespaceError, LibraryPath, LibraryPathComponent,
 		PathError, Version, VersionError,
 	},
+	parser::{BinErrorKind, HexErrorKind, LiteralErrorKind, ParsingError},
+	sema::{SemanticAnalysisError, SyntaxError},
 };
 
 const ADVICE_READ_LIMIT: u8 = 16;

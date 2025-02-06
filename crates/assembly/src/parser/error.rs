@@ -1,4 +1,5 @@
 use alloc::{
+	borrow::ToOwned,
 	string::{String, ToString},
 	vec::Vec,
 };
@@ -9,6 +10,7 @@ use core::{
 
 use thiserror::Error;
 
+use super::{ParseError, Token};
 use crate::{SourceId, SourceSpan, diagnostics::Diagnostic};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -246,6 +248,53 @@ impl ParsingError {
 	fn tag(&self) -> u8 {
 		unsafe { *<*const _>::from(self).cast::<u8>() }
 	}
+
+	pub(crate) fn from_utf8_error(source_id: SourceId, err: core::str::Utf8Error) -> Self {
+		let start = u32::try_from(err.valid_up_to()).ok().unwrap_or(u32::MAX);
+		err.error_len().map_or_else(
+			|| Self::IncompleteUtf8 {
+				span: SourceSpan::at(source_id, start),
+			},
+			|len| Self::InvalidUtf8 {
+				span: SourceSpan::new(source_id, start..(start + len as u32)),
+			},
+		)
+	}
+
+	pub(crate) fn from_parse_error(source_id: SourceId, err: ParseError<'_>) -> Self {
+		match err {
+			ParseError::InvalidToken { location: at } => Self::InvalidToken {
+				span: SourceSpan::at(source_id, at),
+			},
+			ParseError::UnrecognizedToken {
+				token: (l, Token::Eof, r),
+				expected,
+			} => Self::UnrecognizedEof {
+				span: SourceSpan::new(source_id, l..r),
+				expected: simplify_expected_tokens(expected).collect(),
+			},
+			ParseError::UnrecognizedToken {
+				token: (l, tok, r),
+				expected,
+			} => Self::UnrecognizedToken {
+				span: SourceSpan::new(source_id, l..r),
+				token: tok.to_string(),
+				expected: simplify_expected_tokens(expected).collect(),
+			},
+			ParseError::ExtraToken { token: (l, tok, r) } => Self::ExtraToken {
+				span: SourceSpan::new(source_id, l..r),
+				token: tok.to_string(),
+			},
+			ParseError::UnrecognizedEof {
+				location: at,
+				expected,
+			} => Self::UnrecognizedEof {
+				span: SourceSpan::new(source_id, at..at),
+				expected: simplify_expected_tokens(expected).collect(),
+			},
+			ParseError::User { error } => error,
+		}
+	}
 }
 
 impl Eq for ParsingError {}
@@ -293,4 +342,43 @@ impl PartialEq for ParsingError {
 			(x, y) => x.tag() == y.tag(),
 		}
 	}
+}
+
+fn simplify_expected_tokens(
+	expected: impl IntoIterator<Item = String>,
+) -> impl Iterator<Item = String> {
+	let mut has_instruction = false;
+	let mut has_ctrl = false;
+	expected.into_iter().filter_map(move |t| {
+		let tok = match t.as_str() {
+			"bare_ident" => return Some("identifier".to_owned()),
+			"const_ident" => return Some("constant identifier".to_owned()),
+			"quoted_ident" => return Some("quoted identifier".to_owned()),
+			"doc_comment" => return Some("doc comment".to_owned()),
+			"hex_value" => return Some("hex-encoded literal".to_owned()),
+			"bin_value" => return Some("bin-encoded literal".to_owned()),
+			"uint" => return Some("integer literal".to_owned()),
+			"EOF" => return Some("end of file".to_owned()),
+			other => other[1..].strip_suffix('"').and_then(Token::parse),
+		};
+		match tok {
+			Some(Token::If | Token::While | Token::Repeat) => {
+				if has_ctrl {
+					None
+				} else {
+					has_ctrl = true;
+					Some("control flow opcode (e.g. \"if.true\")".to_owned())
+				}
+			}
+			Some(tok) if tok.is_instruction() => {
+				if has_instruction {
+					None
+				} else {
+					has_instruction = true;
+					Some("primitive opcode (e.g. \"add\")".to_owned())
+				}
+			}
+			_ => Some(t),
+		}
+	})
 }
