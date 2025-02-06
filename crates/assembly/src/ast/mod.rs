@@ -33,3 +33,5 @@ pub use self::{
 };
 
 pub const MAX_STACK_WORD_OFFSET: u8 = 12;
+
+pub(crate) type SmallOpsVec = smallvec::SmallVec<[Op; 1]>;

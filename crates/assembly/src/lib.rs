@@ -12,6 +12,8 @@ pub mod diagnostics;
 mod library;
 mod parser;
 mod sema;
+#[cfg(any(test, feature = "testing"))]
+pub mod testing;
 
 pub use vmm_core::{mast, utils};
 

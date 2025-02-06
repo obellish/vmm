@@ -125,7 +125,7 @@ pub enum Token<'input> {
 	AdvLoadw,
 	AdvPipe,
 	AdvPush,
-	PushExt2intt,
+	PushExt2Intt,
 	PushMapval,
 	PushMapvaln,
 	PushMtnode,
@@ -309,7 +309,7 @@ impl<'input> Token<'input> {
 		("adv_loadw", Token::AdvLoadw),
 		("adv_pipe", Token::AdvPipe),
 		("adv_push", Token::AdvPush),
-		("push_ext2intt", Token::PushExt2intt),
+		("push_ext2intt", Token::PushExt2Intt),
 		("push_mapval", Token::PushMapval),
 		("push_mapvaln", Token::PushMapvaln),
 		("push_mtnode", Token::PushMtnode),
@@ -467,7 +467,7 @@ impl<'input> Token<'input> {
 				| Self::AdvLoadw
 				| Self::AdvPipe
 				| Self::AdvPush
-				| Self::PushExt2intt
+				| Self::PushExt2Intt
 				| Self::PushMapval
 				| Self::PushMapvaln
 				| Self::PushMtnode
@@ -656,7 +656,7 @@ impl Display for Token<'_> {
 			Self::AdvLoadw => write!(f, "adv_loadw"),
 			Self::AdvPipe => write!(f, "adv_pipe"),
 			Self::AdvPush => write!(f, "adv_push"),
-			Self::PushExt2intt => write!(f, "push_ext2intt"),
+			Self::PushExt2Intt => write!(f, "push_ext2intt"),
 			Self::PushMapval => write!(f, "push_mapval"),
 			Self::PushMapvaln => write!(f, "push_mapvaln"),
 			Self::PushMtnode => write!(f, "push_mtnode"),
