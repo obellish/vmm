@@ -1,0 +1,16 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm-length"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { workspace = true, optional = true, features = ["alloc"] }
+
+[features]
+default = ["serde", "std"]
+serde = ["dep:serde"]
+std = ["serde?/std"]
