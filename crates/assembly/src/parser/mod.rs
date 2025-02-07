@@ -20,11 +20,26 @@ macro_rules! span {
 	};
 }
 
+use alloc::{collections::BTreeSet, sync::Arc};
+
 pub use self::{
 	error::{BinErrorKind, HexErrorKind, LiteralErrorKind, ParsingError},
 	lexer::Lexer,
 	scanner::Scanner,
 	token::{BinEncodedValue, DocumentationType, HexEncodedValue, Token},
 };
+use crate::{
+	LibraryPath, SourceManager, SourceSpan, Span, Spanned, ast,
+	diagnostics::{Report, SourceFile},
+	sema,
+};
 
 type ParseError<'a> = lalrpop_util::ParseError<u32, Token<'a>, ParsingError>;
+
+pub struct ModuleParser {
+	kind: ast::ModuleKind,
+	interned: BTreeSet<Arc<str>>,
+	warnings_as_errors: bool,
+}
+
+impl ModuleParser {}

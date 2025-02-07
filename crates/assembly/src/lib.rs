@@ -26,7 +26,7 @@ pub use self::{
 		LibraryError, LibraryNamespace, LibraryNamespaceError, LibraryPath, LibraryPathComponent,
 		PathError, Version, VersionError,
 	},
-	parser::{BinErrorKind, HexErrorKind, LiteralErrorKind, ParsingError},
+	parser::{BinErrorKind, HexErrorKind, LiteralErrorKind, ModuleParser, ParsingError},
 	sema::{SemanticAnalysisError, SyntaxError},
 };
 
