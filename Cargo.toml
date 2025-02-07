@@ -8,7 +8,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [workspace]
-members = ["crates/assembly", "crates/core", "crates/formatting"]
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"
@@ -64,12 +63,3 @@ panic = "abort"
 
 [workspace.metadata.docs.rs]
 all-features = true
-
-[workspace.dependencies]
-assert_matches = { version = "1.5", default-features = false }
-miette = { version = "8", default-features = false, package = "miden-miette" }
-pretty_assertions = "1.4"
-rand-utils = { package = "winter-rand-utils", version = "0.11", default-features = false }
-thiserror = { version = "2", default-features = false }
-unicode-width = "0.2"
-winter-math = { version = "0.11", default-features = false }
