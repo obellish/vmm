@@ -8,9 +8,15 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+bumpalo = { version = "3", optional = true, default-features = false }
+bytes = { version = "1", default-features = false, optional = true }
+indexmap = { version = "2", optional = true, default-features = false }
 serde = { workspace = true, optional = true, features = ["alloc"] }
 
 [features]
+bumpalo = ["dep:bumpalo"]
+bytes = ["dep:bytes"]
 default = ["serde", "std"]
+indexmap = ["dep:indexmap"]
 serde = ["dep:serde"]
-std = ["serde?/std"]
+std = ["bumpalo?/std", "bytes?/std", "indexmap?/std", "serde?/std"]

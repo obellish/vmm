@@ -1,12 +1,12 @@
 #[cfg(feature = "serde")]
 mod serde;
 
-use alloc::{borrow::ToOwned, vec::Vec};
+use alloc::vec::Vec;
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult},
-	ops::{
-		Add, AddAssign, BitAnd, BitOr, BitXor, Div, Index, IndexMut, Mul, Not, Rem, Sub, SubAssign,
-	},
+	num::ParseIntError,
+	ops::{Index, IndexMut, Not},
+	str::FromStr,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -27,42 +27,6 @@ impl Length {
 	}
 }
 
-impl Add for Length {
-	type Output = Self;
-
-	fn add(self, rhs: Self) -> Self::Output {
-		(self.index() + rhs.index()).into()
-	}
-}
-
-impl Add<usize> for Length {
-	type Output = Self;
-
-	fn add(self, rhs: usize) -> Self::Output {
-		(self.index() + rhs).into()
-	}
-}
-
-impl Add<Length> for usize {
-	type Output = Length;
-
-	fn add(self, rhs: Length) -> Self::Output {
-		(self + rhs.index()).into()
-	}
-}
-
-impl AddAssign for Length {
-	fn add_assign(&mut self, rhs: Self) {
-		*self = *self + rhs;
-	}
-}
-
-impl AddAssign<usize> for Length {
-	fn add_assign(&mut self, rhs: usize) {
-		*self = *self + rhs;
-	}
-}
-
 impl Display for Length {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		Display::fmt(&self.index, f)
@@ -78,6 +42,21 @@ impl From<usize> for Length {
 impl From<Length> for usize {
 	fn from(value: Length) -> Self {
 		value.index()
+	}
+}
+
+impl From<SmallLength> for Length {
+	fn from(value: SmallLength) -> Self {
+		Self::new(value.index())
+	}
+}
+
+impl FromStr for Length {
+	type Err = ParseIntError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let u = s.parse()?;
+		Ok(Self::new(u))
 	}
 }
 
@@ -100,42 +79,6 @@ impl Not for Length {
 
 	fn not(self) -> Self::Output {
 		(!self.index()).into()
-	}
-}
-
-impl Sub for Length {
-	type Output = Self;
-
-	fn sub(self, rhs: Self) -> Self::Output {
-		(self.index() - rhs.index()).into()
-	}
-}
-
-impl Sub<usize> for Length {
-	type Output = Self;
-
-	fn sub(self, rhs: usize) -> Self::Output {
-		(self.index() - rhs).into()
-	}
-}
-
-impl Sub<Length> for usize {
-	type Output = Length;
-
-	fn sub(self, rhs: Length) -> Self::Output {
-		(self - rhs.index()).into()
-	}
-}
-
-impl SubAssign for Length {
-	fn sub_assign(&mut self, rhs: Self) {
-		*self = *self - rhs;
-	}
-}
-
-impl SubAssign<usize> for Length {
-	fn sub_assign(&mut self, rhs: usize) {
-		*self = *self - rhs;
 	}
 }
 
@@ -235,6 +178,69 @@ impl Display for SmallLength {
 	}
 }
 
+impl From<u8> for SmallLength {
+	fn from(value: u8) -> Self {
+		Self::Byte(value)
+	}
+}
+
+impl From<u16> for SmallLength {
+	fn from(value: u16) -> Self {
+		if u8::try_from(value).is_ok() {
+			Self::Byte(value as u8)
+		} else {
+			Self::Word(value)
+		}
+	}
+}
+
+impl From<u32> for SmallLength {
+	fn from(value: u32) -> Self {
+		if u16::try_from(value).is_ok() {
+			(value as u16).into()
+		} else {
+			Self::Double(value)
+		}
+	}
+}
+
+impl From<u64> for SmallLength {
+	fn from(value: u64) -> Self {
+		if u32::try_from(value).is_ok() {
+			(value as u32).into()
+		} else {
+			Self::Quad(value)
+		}
+	}
+}
+
+impl From<usize> for SmallLength {
+	fn from(value: usize) -> Self {
+		if u8::try_from(value).is_ok() {
+			Self::Byte(value as u8)
+		} else if u16::try_from(value).is_ok() {
+			Self::Word(value as u16)
+		} else {
+			(value as u64).into()
+		}
+	}
+}
+
+impl From<Length> for SmallLength {
+	fn from(value: Length) -> Self {
+		Self::from(value.index())
+	}
+}
+
+impl FromStr for SmallLength {
+	type Err = ParseIntError;
+
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		let u = s.parse::<usize>()?;
+		Ok(u.into())
+	}
+}
+
 impl<T> Index<SmallLength> for [T] {
 	type Output = T;
 
@@ -247,4 +253,253 @@ impl<T> IndexMut<SmallLength> for [T] {
 	fn index_mut(&mut self, index: SmallLength) -> &mut Self::Output {
 		&mut self[index.index()]
 	}
+}
+
+macro_rules! impl_ops {
+	($type:ident; $($name:ident: $method:ident($op:tt)),*) => {
+		$(
+			impl ::core::ops::$name<$type> for usize {
+				type Output = $type;
+
+				fn $method(self, rhs: $type) -> Self::Output {
+					(self $op rhs.index()).into()
+				}
+			}
+
+			impl ::core::ops::$name<usize> for $type {
+				type Output = Self;
+
+				fn $method(self, rhs: usize) -> Self::Output {
+					(self.index() $op rhs).into()
+				}
+			}
+
+			impl ::core::ops::$name for $type {
+				type Output = Self;
+
+				fn $method(self, rhs: Self) -> Self::Output {
+					(self.index() $op rhs.index()).into()
+				}
+			}
+		)*
+	};
+}
+
+macro_rules! impl_ops_assign {
+	($type:ident; $($name:ident: $method:ident($op:tt)),*) => {
+		$(
+			impl ::core::ops::$name for $type {
+				fn $method(&mut self, rhs: Self) {
+					*self = *self $op rhs
+				}
+			}
+
+			impl ::core::ops::$name<usize> for $type {
+				fn $method(&mut self, rhs: usize) {
+					*self = *self $op rhs
+				}
+			}
+		)*
+	};
+}
+
+macro_rules! to_primitive {
+	($($t:ty)*) => {
+		$(
+			#[allow(clippy::cast_lossless, clippy::checked_conversions)]
+			impl ::core::convert::From<$crate::SmallLength> for $t {
+				fn from(value: $crate::SmallLength) -> Self {
+					match value {
+						$crate::SmallLength::Byte(value) => {
+							value as Self
+						}
+						$crate::SmallLength::Word(value) => {
+							if value <= (<$t>::MAX as u16) {
+								value as Self
+							} else {
+								panic!("word overflow: {} -> {}", value, stringify!($t))
+							}
+						}
+						$crate::SmallLength::Double(value) => {
+							if value <= (<$t>::MAX as u32) {
+								value as Self
+							} else {
+								panic!("double overflow: {} -> {}", value, stringify!($t))
+							}
+						}
+						$crate::SmallLength::Quad(value) => {
+							if value <= (<$t>::MAX as u64) {
+								value as Self
+							} else {
+								panic!("quad overflow: {} -> {}", value, stringify!($t))
+							}
+						}
+					}
+				}
+			}
+		)*
+	};
+}
+
+macro_rules! from_primitive {
+	($($ty:ty { $uty:ty })*) => {
+		$(
+			impl ::core::convert::From<$ty> for $crate::SmallLength {
+				fn from(value: $ty) -> Self {
+					if value < 0 {
+						panic!("cannot convert negative value to length")
+					}
+
+					(value as $uty).into()
+				}
+			}
+		)*
+	};
+}
+
+macro_rules! from_length_bytes {
+	($($method:ident: $impl_method:ident),*) => {
+		$(
+			#[must_use]
+			pub fn $method(bytes: ::alloc::vec::Vec<u8>) -> Self {
+				$crate::SmallLength::$impl_method(bytes).into()
+			}
+		)*
+	};
+}
+
+macro_rules! to_length_bytes {
+	($($method:ident: $impl_method:ident),*) => {
+		$(
+			#[must_use]
+			pub fn $method(self) -> ::alloc::vec::Vec<u8> {
+				let s: $crate::SmallLength = self.index().into();
+				s.$impl_method()
+			}
+		)*
+	};
+}
+
+macro_rules! from_bytes {
+	($($name:ident: $from:ident),*) => {
+		$(
+			#[must_use]
+			pub fn $name(raw: ::alloc::vec::Vec<u8>) -> Self {
+				let len = raw.len();
+				assert_ne!(len, 0, "cannot convert empty bytes to length");
+
+				match len {
+					1 => {
+						let mut bytes = [0];
+						bytes.copy_from_slice(&raw);
+						Self::Byte(u8::$from(bytes))
+					}
+					2 => {
+						let mut bytes = [0; 2];
+						bytes.copy_from_slice(&raw);
+						Self::Word(u16::$from(bytes))
+					}
+					4 => {
+						let mut bytes = [0; 4];
+						bytes.copy_from_slice(&raw);
+						Self::Double(u32::$from(bytes))
+					}
+					8 => {
+						let mut bytes = [0; 8];
+						bytes.copy_from_slice(&raw);
+						Self::Quad(u64::$from(bytes))
+					}
+					_ => panic!("invalid byte length: {}", len)
+				}
+			}
+		)*
+	};
+}
+
+macro_rules! to_bytes {
+	($($name:ident: $to:ident),*) => {
+		$(
+			#[must_use]
+			pub fn $name(self) -> ::alloc::vec::Vec<u8> {
+				match self {
+					Self::Byte(value) => {
+						value.$to().to_vec()
+					}
+					Self::Word(value) => {
+						value.$to().to_vec()
+					}
+					Self::Double(value) => {
+						value.$to().to_vec()
+					}
+					Self::Quad(value) => {
+						value.$to().to_vec()
+					}
+				}
+			}
+		)*
+	};
+}
+
+impl Length {
+	from_length_bytes! { from_le_bytes: from_le_bytes, from_be_bytes: from_be_bytes }
+
+	to_length_bytes! { to_le_bytes: to_le_bytes, to_be_bytes: to_be_bytes }
+}
+
+impl SmallLength {
+	from_bytes! { from_le_bytes: from_le_bytes, from_be_bytes: from_be_bytes }
+
+	to_bytes! { to_le_bytes: to_le_bytes, to_be_bytes: to_be_bytes }
+}
+
+to_primitive! { usize u8 u16 u32 u64 u128 }
+
+from_primitive! { i8{u8} i16{u16} i32{u32} i64{u64} isize{usize} }
+
+impl_ops! {
+	Length;
+	Add: add(+),
+	Sub: sub(-),
+	Mul: mul(*),
+	Div: div(/),
+	Rem: rem(%),
+	BitAnd: bitand(&),
+	BitOr: bitor(|),
+	BitXor: bitxor(^)
+}
+
+impl_ops_assign! {
+	Length;
+	AddAssign: add_assign(+),
+	SubAssign: sub_assign(-),
+	MulAssign: mul_assign(*),
+	DivAssign: div_assign(/),
+	RemAssign: rem_assign(%),
+	BitAndAssign: bitand_assign(&),
+	BitOrAssign: bitor_assign(|),
+	BitXorAssign: bitxor_assign(^)
+}
+
+impl_ops! {
+	SmallLength;
+	Add: add(+),
+	Sub: sub(-),
+	Mul: mul(*),
+	Div: div(/),
+	Rem: rem(%),
+	BitAnd: bitand(&),
+	BitOr: bitor(|),
+	BitXor: bitxor(^)
+}
+
+impl_ops_assign! {
+	SmallLength;
+	AddAssign: add_assign(+),
+	SubAssign: sub_assign(-),
+	MulAssign: mul_assign(*),
+	DivAssign: div_assign(/),
+	RemAssign: rem_assign(%),
+	BitAndAssign: bitand_assign(&),
+	BitOrAssign: bitor_assign(|),
+	BitXorAssign: bitxor_assign(^)
 }
