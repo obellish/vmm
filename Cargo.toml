@@ -75,3 +75,4 @@ all-features = true
 
 [workspace.dependencies]
 serde = { version = "1", default-features = false }
+vmm-var-num = { path = "./crates/var-num", default-features = false }

@@ -51,6 +51,20 @@ impl From<SmallLength> for Length {
 	}
 }
 
+#[cfg(feature = "var-num")]
+impl From<Length> for vmm_var_num::VarNum {
+	fn from(value: Length) -> Self {
+		value.index().into()
+	}
+}
+
+#[cfg(feature = "var-num")]
+impl From<Length> for vmm_var_num::VarUInt {
+	fn from(value: Length) -> Self {
+		value.index().into()
+	}
+}
+
 impl FromStr for Length {
 	type Err = ParseIntError;
 
@@ -229,6 +243,25 @@ impl From<usize> for SmallLength {
 impl From<Length> for SmallLength {
 	fn from(value: Length) -> Self {
 		Self::from(value.index())
+	}
+}
+
+#[cfg(feature = "var-num")]
+impl From<SmallLength> for vmm_var_num::VarNum {
+	fn from(value: SmallLength) -> Self {
+		Self::UInt(value.into())
+	}
+}
+
+#[cfg(feature = "var-num")]
+impl From<SmallLength> for vmm_var_num::VarUInt {
+	fn from(value: SmallLength) -> Self {
+		match value {
+			SmallLength::Byte(b) => Self::U8(b),
+			SmallLength::Word(b) => Self::U16(b),
+			SmallLength::Double(b) => Self::U32(b),
+			SmallLength::Quad(b) => Self::U64(b),
+		}
 	}
 }
 

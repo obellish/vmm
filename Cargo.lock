@@ -292,11 +292,17 @@ dependencies = [
  "bytes",
  "indexmap",
  "serde",
+ "vmm-var-num",
 ]
 
 [[package]]
 name = "vmm-value"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "vmm-length",
+ "vmm-var-num",
+]
 
 [[package]]
 name = "vmm-var-num"
