@@ -8,14 +8,8 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-indexmap = "2"
-num-derive = "0.4"
-num-traits = "0.2"
-small_len = "1"
-vm_value = "0.4"
 
 [workspace]
-members = ["crates/length", "crates/value", "crates/var-num"]
 resolver = "3"
 
 [workspace.lints.rust]
@@ -74,5 +68,3 @@ panic = "abort"
 all-features = true
 
 [workspace.dependencies]
-serde = { version = "1", default-features = false }
-vmm-var-num = { path = "./crates/var-num", default-features = false }
