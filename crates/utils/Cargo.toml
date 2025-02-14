@@ -1,0 +1,20 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm-utils"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+libc.workspace = true
+serde = { workspace = true, optional = true }
+
+[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
+bitflags.workspace = true
+
+[features]
+default = ["std"]
+serde = ["dep:serde"]
+std = ["libc/std", "serde?/std"]

@@ -3,3 +3,7 @@
 
 #[cfg(feature = "std")]
 extern crate std;
+
+pub mod errno;
+#[cfg(feature = "std")]
+pub mod tempfile;
