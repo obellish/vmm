@@ -7,8 +7,6 @@ name = "vmm"
 rust-version.workspace = true
 version.workspace = true
 
-[dependencies]
-
 [workspace]
 resolver = "3"
 
@@ -66,5 +64,3 @@ panic = "abort"
 
 [workspace.metadata.docs.rs]
 all-features = true
-
-[workspace.dependencies]
