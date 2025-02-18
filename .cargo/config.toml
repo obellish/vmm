@@ -1,5 +1,4 @@
 [build]
-rustflags = ["-C", "symbol-mangling-version=v0", "-C", "target-cpu=native"]
 rustdocflags = ["--cfg", "docsrs", "--show-type-layout", "-Z", "unstable-options"]
 
 [alias]
@@ -7,14 +6,8 @@ coverage = "tarpaulin"
 feature-check = "hack check --feature-powerset --no-dev-deps"
 full-doc = "doc --keep-going --all-features -Zrustdoc-map -Zrustdoc-scrape-examples"
 
-[target.'cfg(not(target_arch = "wasm32"))']
-rustflags = ["-C", "target-cpu=native"]
-
-[target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
-
-[target.i686-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+[target.riscv32-vmm-bot]
+rustflags = ["-C", "link-arg=-Triscv32-vmm-bot.ld"]
 
 [doc.extern-map.registries]
 crates-io = "https://docs.rs/"
