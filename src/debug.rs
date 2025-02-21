@@ -15,7 +15,7 @@ pub struct DiagnosticsPlugin;
 impl PluginGroup for DiagnosticsPlugin {
 	fn build(self) -> PluginGroupBuilder {
 		PluginGroupBuilder::start::<Self>()
-			.add(FrameTimeDiagnosticsPlugin::default())
+			.add(FrameTimeDiagnosticsPlugin)
 			.add(LogDiagnosticsPlugin::default())
 			.add(EntityCountDiagnosticsPlugin)
 			.add(SystemInformationDiagnosticsPlugin)

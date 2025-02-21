@@ -1,4 +1,5 @@
 use bevy::{
+	log::LogPlugin,
 	prelude::*,
 	remote::{RemotePlugin, http::RemoteHttpPlugin},
 };
