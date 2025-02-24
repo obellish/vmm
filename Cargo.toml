@@ -8,8 +8,17 @@ rust-version.workspace = true
 version.workspace = true
 
 [features]
+debug = [
+    "bevy/asset_processor",
+    "bevy/bevy_dev_tools",
+    "bevy/bevy_remote",
+    "bevy/file_watcher",
+    "bevy/trace"
+]
+default = ["debug"]
 
 [dependencies]
+bevy = { git = "https://github.com/bevyengine/bevy.git", rev = "0855a0e8ad8b45933da17a3d60a05fdae6ebd274" }
 
 [workspace]
 resolver = "3"
