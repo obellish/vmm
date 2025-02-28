@@ -1,8 +1,11 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
+#![feature(arbitrary_self_types)]
 
 pub mod debug;
 
+use avian3d::prelude::*;
 use bevy::prelude::*;
+use bevy_enhanced_input::prelude::*;
 
 use self::debug::DebugPlugins;
 
@@ -10,11 +13,13 @@ pub struct MainPlugin;
 
 impl Plugin for MainPlugin {
 	fn build(&self, app: &mut App) {
-		#[cfg(feature = "debug")]
-		app.insert_resource(bevy::dev_tools::picking_debug::DebugPickingMode::Noisy);
-
-		app.add_plugins((DefaultPlugins, DebugPlugins))
-			.add_systems(Startup, setup);
+		app.add_plugins((
+			DefaultPlugins,
+			DebugPlugins,
+			PhysicsPlugins::default(),
+			EnhancedInputPlugin,
+		))
+		.add_systems(Startup, setup);
 	}
 }
 
@@ -24,15 +29,19 @@ fn setup(
 	mut materials: ResMut<'_, Assets<StandardMaterial>>,
 ) {
 	commands.spawn((
-		Mesh3d(meshes.add(Circle::new(4.0))),
+		RigidBody::Static,
+		Collider::cylinder(4.0, 0.1),
+		Mesh3d(meshes.add(Cylinder::new(4.0, 0.1))),
 		MeshMaterial3d(materials.add(Color::WHITE)),
-		Transform::from_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_2)),
 	));
 
 	commands.spawn((
-		Mesh3d(meshes.add(Cuboid::new(1.0, 1.0, 1.0))),
+		RigidBody::Dynamic,
+		Collider::cuboid(1.0, 1.0, 1.0),
+		AngularVelocity(Vec3::new(2.5, 3.5, 1.5)),
+		Mesh3d(meshes.add(Cuboid::from_length(1.0))),
 		MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
-		Transform::from_xyz(0.0, 0.5, 0.0),
+		Transform::from_xyz(0.0, 4.0, 0.0),
 	));
 
 	commands.spawn((
@@ -45,6 +54,6 @@ fn setup(
 
 	commands.spawn((
 		Camera3d::default(),
-		Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Vec3::Y),
+		Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Dir3::Y),
 	));
 }
