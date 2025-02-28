@@ -6,7 +6,10 @@ pub mod car;
 #[cfg(feature = "debug")]
 pub mod debug;
 
-use bevy::prelude::*;
+use bevy::{
+	prelude::*,
+	render::mesh::{SphereKind, SphereMeshBuilder},
+};
 use bevy_enhanced_input::prelude::*;
 use bevy_rapier3d::prelude::*;
 use vmm_utils::prelude::*;
@@ -66,6 +69,11 @@ fn setup(
 		(
 			RigidBody::Dynamic,
 			Collider::ball(0.5),
+			Mesh3d(meshes.add(SphereMeshBuilder::new(
+				0.5,
+				SphereKind::Ico { subdivisions: 4 },
+			))),
+			MeshMaterial3d(materials.add(Color::WHITE)),
 			Restitution::coefficient(0.7),
 		)
 			.with_xyz(0.0, 4.0, 0.0),
