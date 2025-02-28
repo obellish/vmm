@@ -1,23 +1,31 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![feature(arbitrary_self_types)]
 
+pub mod camera;
+pub mod car;
+#[cfg(feature = "debug")]
 pub mod debug;
 
 use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
 
+#[cfg(feature = "debug")]
 use self::debug::DebugPlugins;
+use self::{camera::CarCameraPlugin, car::Car};
 
 pub struct MainPlugin;
 
 impl Plugin for MainPlugin {
 	fn build(&self, app: &mut App) {
+		#[cfg(feature = "debug")]
+		app.add_plugins(DebugPlugins);
+
 		app.add_plugins((
 			DefaultPlugins,
-			DebugPlugins,
 			PhysicsPlugins::default(),
 			EnhancedInputPlugin,
+			CarCameraPlugin,
 		))
 		.add_systems(Startup, setup);
 	}
@@ -42,6 +50,7 @@ fn setup(
 		Mesh3d(meshes.add(Cuboid::from_length(1.0))),
 		MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
 		Transform::from_xyz(0.0, 4.0, 0.0),
+		Car,
 	));
 
 	commands.spawn((
