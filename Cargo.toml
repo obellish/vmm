@@ -14,16 +14,19 @@ debug = [
     "bevy/bevy_dev_tools",
     "bevy/bevy_remote",
     "bevy/file_watcher",
-    "bevy/trace"
+    "bevy/trace",
+    "bevy_rapier3d/debug-render-3d"
 ]
 default = []
 
 [dependencies]
-avian3d = "0.2"
 bevy = { workspace = true, default-features = true }
 bevy_enhanced_input = { version = "0.7" }
+bevy_rapier3d = { version = "0.29", features = ["simd-stable"] }
+vmm_utils = { path = "crates/utils" }
 
 [workspace]
+members = ["crates/utils"]
 resolver = "3"
 
 [workspace.dependencies]

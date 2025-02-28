@@ -6,13 +6,17 @@ pub mod car;
 #[cfg(feature = "debug")]
 pub mod debug;
 
-use avian3d::prelude::*;
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
+use bevy_rapier3d::prelude::*;
+use vmm_utils::prelude::*;
 
 #[cfg(feature = "debug")]
 use self::debug::DebugPlugins;
-use self::{camera::CarCameraPlugin, car::Car};
+use self::{
+	camera::{CarCamera, CarCameraPlugin},
+	car::Car,
+};
 
 pub struct MainPlugin;
 
@@ -22,8 +26,11 @@ impl Plugin for MainPlugin {
 		app.add_plugins(DebugPlugins);
 
 		app.add_plugins((
-			DefaultPlugins,
-			PhysicsPlugins::default(),
+			DefaultPlugins.set(AssetPlugin {
+				mode: AssetMode::Processed,
+				..default()
+			}),
+			RapierPhysicsPlugin::<NoUserData>::default(),
 			EnhancedInputPlugin,
 			CarCameraPlugin,
 		))
@@ -36,33 +43,31 @@ fn setup(
 	mut meshes: ResMut<'_, Assets<Mesh>>,
 	mut materials: ResMut<'_, Assets<StandardMaterial>>,
 ) {
-	commands.spawn((
-		RigidBody::Static,
-		Collider::cylinder(4.0, 0.1),
-		Mesh3d(meshes.add(Cylinder::new(4.0, 0.1))),
-		MeshMaterial3d(materials.add(Color::WHITE)),
-	));
-
-	commands.spawn((
-		RigidBody::Dynamic,
-		Collider::cuboid(1.0, 1.0, 1.0),
-		AngularVelocity(Vec3::new(2.5, 3.5, 1.5)),
-		Mesh3d(meshes.add(Cuboid::from_length(1.0))),
-		MeshMaterial3d(materials.add(Color::srgb_u8(124, 144, 255))),
-		Transform::from_xyz(0.0, 4.0, 0.0),
-		Car,
-	));
-
-	commands.spawn((
+	commands.spawn(
 		PointLight {
 			shadows_enabled: true,
 			..default()
-		},
-		Transform::from_xyz(4.0, 8.0, 4.0),
-	));
+		}
+		.with_xyz(0.0, 4.0, 0.0),
+	);
+
+	commands.spawn(
+		CarCamera
+			.with_transform(Transform::from_xyz(-3.0, 3.0, 10.0).looking_at(Vec3::ZERO, Dir3::Y)),
+	);
 
 	commands.spawn((
-		Camera3d::default(),
-		Transform::from_xyz(-2.5, 4.5, 9.0).looking_at(Vec3::ZERO, Dir3::Y),
+		Collider::cuboid(100.0, 0.1, 100.0).with_xyz(0.0, -2.0, 0.0),
+		Mesh3d(meshes.add(Cuboid::new(100.0, 0.1, 100.0))),
+		MeshMaterial3d(materials.add(Color::WHITE)),
 	));
+
+	commands.spawn(
+		(
+			RigidBody::Dynamic,
+			Collider::ball(0.5),
+			Restitution::coefficient(0.7),
+		)
+			.with_xyz(0.0, 4.0, 0.0),
+	);
 }

@@ -7,4 +7,5 @@ impl Plugin for CarCameraPlugin {
 }
 
 #[derive(Debug, Component)]
+#[require(Camera3d)]
 pub struct CarCamera;
