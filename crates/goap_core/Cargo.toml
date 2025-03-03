@@ -1,11 +1,13 @@
+lints.workspace = true
+
 [package]
-name = "vmm_water"
 edition.workspace = true
 license.workspace = true
+name = "vmm_goap_core"
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-
-[lints]
-workspace = true
+bevy_reflect = "0.15"
+pathfinding = "4.10"
+tracing = "0.1"
