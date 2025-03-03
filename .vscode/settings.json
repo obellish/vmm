@@ -55,5 +55,8 @@
     "evenBetterToml.formatter.arrayAutoExpand": true,
     "evenBetterToml.formatter.arrayAutoCollapse": true,
     "evenBetterToml.taplo.configFile.enabled": true,
-    "evenBetterToml.taplo.configFile.path": "talpo.toml"
+    "evenBetterToml.taplo.configFile.path": "talpo.toml",
+    "rust-analyzer.cargo.extraEnv": {
+        "RUSTFLAGS": "-Clinker=rust-lld.exe"
+    }
 }

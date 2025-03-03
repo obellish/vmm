@@ -1,5 +1,6 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![feature(arbitrary_self_types)]
+#![allow(unused)]
 
 pub mod camera;
 pub mod car;
@@ -29,23 +30,17 @@ impl Plugin for MainPlugin {
 		app.add_plugins(DebugPlugins);
 
 		app.add_plugins((
-			DefaultPlugins.set(AssetPlugin {
-				mode: AssetMode::Processed,
-				..default()
-			}),
+			DefaultPlugins,
 			RapierPhysicsPlugin::<NoUserData>::default(),
+			RapierPickingPlugin,
 			EnhancedInputPlugin,
 			CarCameraPlugin,
 		))
-		.add_systems(Startup, setup);
+		.add_systems(Startup, (setup, Car::spawn));
 	}
 }
 
-fn setup(
-	mut commands: Commands<'_, '_>,
-	mut meshes: ResMut<'_, Assets<Mesh>>,
-	mut materials: ResMut<'_, Assets<StandardMaterial>>,
-) {
+fn setup(mut commands: Commands<'_, '_>, asset_server: Res<'_, AssetServer>) {
 	commands.spawn(
 		PointLight {
 			shadows_enabled: true,
@@ -54,28 +49,10 @@ fn setup(
 		.with_xyz(0.0, 4.0, 0.0),
 	);
 
+	commands.spawn(Collider::cuboid(100.0, 0.1, 100.0).with_xyz(0.0, -2.0, 0.0));
+
 	commands.spawn(
 		CarCamera
 			.with_transform(Transform::from_xyz(-3.0, 3.0, 10.0).looking_at(Vec3::ZERO, Dir3::Y)),
-	);
-
-	commands.spawn((
-		Collider::cuboid(100.0, 0.1, 100.0).with_xyz(0.0, -2.0, 0.0),
-		Mesh3d(meshes.add(Cuboid::new(100.0, 0.1, 100.0))),
-		MeshMaterial3d(materials.add(Color::WHITE)),
-	));
-
-	commands.spawn(
-		(
-			RigidBody::Dynamic,
-			Collider::ball(0.5),
-			Mesh3d(meshes.add(SphereMeshBuilder::new(
-				0.5,
-				SphereKind::Ico { subdivisions: 4 },
-			))),
-			MeshMaterial3d(materials.add(Color::WHITE)),
-			Restitution::coefficient(0.7),
-		)
-			.with_xyz(0.0, 4.0, 0.0),
 	);
 }
