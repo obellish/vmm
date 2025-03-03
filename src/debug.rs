@@ -5,7 +5,6 @@ use bevy::{
 		EntityCountDiagnosticsPlugin, LogDiagnosticsPlugin, SystemInformationDiagnosticsPlugin,
 	},
 };
-use bevy_rapier3d::prelude::*;
 
 pub struct DebugPlugins;
 
@@ -16,6 +15,5 @@ impl PluginGroup for DebugPlugins {
 			.add(LogDiagnosticsPlugin::default())
 			.add(EntityCountDiagnosticsPlugin)
 			.add(SystemInformationDiagnosticsPlugin)
-			.add(RapierDebugRenderPlugin::default())
 	}
 }
