@@ -7,6 +7,7 @@ pub mod camera;
 pub mod debug;
 
 use bevy::{
+	log::LogPlugin,
 	prelude::*,
 	render::mesh::{SphereKind, SphereMeshBuilder},
 };
@@ -24,8 +25,15 @@ impl Plugin for MainPlugin {
 		#[cfg(feature = "debug")]
 		app.add_plugins(DebugPlugins);
 
-		app.add_plugins((DefaultPlugins, EnhancedInputPlugin))
-			.add_systems(Startup, setup);
+		app.add_plugins((
+			DefaultPlugins.set(LogPlugin {
+				filter: "debug,wgpu_core=error,wgpu_hal=error,naga=error,vmm=debug".to_owned(),
+				level: bevy::log::Level::DEBUG,
+				..default()
+			}),
+			EnhancedInputPlugin,
+		))
+		.add_systems(Startup, setup);
 	}
 }
 

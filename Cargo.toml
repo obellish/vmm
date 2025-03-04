@@ -20,10 +20,8 @@ default = []
 
 [dependencies]
 bevy = { workspace = true, default-features = true }
-bevy_dogoap = { version = "0.4" }
 bevy_enhanced_input = { version = "0.7" }
 vmm_utils = { path = "crates/utils" }
-rand = "0.9"
 
 [workspace]
 members = ["crates/utils"]
