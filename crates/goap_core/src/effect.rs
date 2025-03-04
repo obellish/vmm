@@ -23,9 +23,13 @@ impl Effect {
 	}
 
 	#[must_use]
-	pub fn with_mutator(mut self, mutator: Mutator) -> Self {
-		self.mutators.push(mutator);
+	pub fn add_mutator(mut self, mutator: Mutator) -> Self {
+		self.push_mutator(mutator);
 		self
+	}
+
+	pub fn push_mutator(&mut self, mutator: Mutator) {
+		self.mutators.push(mutator);
 	}
 }
 

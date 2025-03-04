@@ -74,6 +74,30 @@ impl Display for Datum {
 
 impl Eq for Datum {}
 
+impl From<bool> for Datum {
+	fn from(value: bool) -> Self {
+		Self::Bool(value)
+	}
+}
+
+impl From<i64> for Datum {
+	fn from(value: i64) -> Self {
+		Self::I64(value)
+	}
+}
+
+impl From<f64> for Datum {
+	fn from(value: f64) -> Self {
+		Self::F64(value)
+	}
+}
+
+impl From<usize> for Datum {
+	fn from(value: usize) -> Self {
+		Self::Enum(value)
+	}
+}
+
 impl Hash for Datum {
 	fn hash<H: Hasher>(&self, state: &mut H) {
 		core::mem::discriminant(self).hash(state);
