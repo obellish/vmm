@@ -11,3 +11,10 @@ version.workspace = true
 bevy_reflect = "0.15"
 pathfinding = "4.10"
 tracing = "0.1"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+harness = false
+name = "long_plan"
