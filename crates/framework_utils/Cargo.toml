@@ -1,0 +1,13 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "bevy_framework_utils"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+bevy_ecs.workspace = true
+bevy_hierarchy.workspace = true
+disqualified = "1"

@@ -673,6 +673,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_framework_kind"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "bevy_framework_utils",
+ "bevy_reflect",
+ "bevy_utils",
+]
+
+[[package]]
+name = "bevy_framework_save"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_framework_utils",
+ "bevy_hierarchy",
+ "bevy_reflect",
+ "bevy_scene",
+ "bevy_utils",
+ "ron",
+ "serde",
+]
+
+[[package]]
+name = "bevy_framework_utils"
+version = "0.1.0"
+dependencies = [
+ "bevy_ecs",
+ "bevy_hierarchy",
+ "disqualified",
+]
+
+[[package]]
 name = "bevy_gilrs"
 version = "0.15.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
