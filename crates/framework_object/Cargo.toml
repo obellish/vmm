@@ -1,0 +1,15 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "bevy_framework_object"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+bevy_core = "0.15"
+bevy_ecs.workspace = true
+bevy_framework_kind = { path = "../framework_kind" }
+bevy_framework_utils.workspace = true
+bevy_hierarchy.workspace = true

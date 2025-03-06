@@ -82,18 +82,18 @@ fn main() -> Result<()> {
 		app.add_plugins(LoadPlugin)
 			.add_systems(PreUpdate, load(static_file(SAVE_PATH)));
 
-        app.world_mut().spawn_empty();
+		app.world_mut().spawn_empty();
 
-        app.update();
+		app.update();
 
-        let world = app.world_mut();
-        let bar = world.query_filtered::<Entity, With<Bar>>().single(world);
+		let world = app.world_mut();
+		let bar = world.query_filtered::<Entity, With<Bar>>().single(world);
 
-        assert_eq!(world.query::<&Foo>().single(world).0, 42);
-        assert_eq!(world.query::<&FooBar>().single(world).0, bar);
-        assert!(world.entity(bar).contains::<Save>());
+		assert_eq!(world.query::<&Foo>().single(world).0, 42);
+		assert_eq!(world.query::<&FooBar>().single(world).0, bar);
+		assert!(world.entity(bar).contains::<Save>());
 
-        remove_file(SAVE_PATH)?;
+		remove_file(SAVE_PATH)?;
 	}
 
 	Ok(())

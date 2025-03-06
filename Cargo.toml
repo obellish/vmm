@@ -25,7 +25,7 @@ vmm_utils = { path = "crates/utils" }
 
 [workspace]
 members = [
-    "crates/framework_kind",
+    "crates/framework_kind", "crates/framework_object",
     "crates/framework_save",
     "crates/framework_utils",
     "crates/utils"

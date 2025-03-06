@@ -683,6 +683,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_framework_object"
+version = "0.1.0"
+dependencies = [
+ "bevy_core",
+ "bevy_ecs",
+ "bevy_framework_kind",
+ "bevy_framework_utils",
+ "bevy_hierarchy",
+]
+
+[[package]]
 name = "bevy_framework_save"
 version = "0.1.0"
 dependencies = [
