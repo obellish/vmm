@@ -1,0 +1,8 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "bevy_framework_check"
+rust-version.workspace = true
+version.workspace = true

@@ -151,6 +151,64 @@ pub trait ObjectHierarchy<T: Kind = Any>: ObjectRebind<T> + ObjectName {
 			.filter_map(move |object| objects.get(object.entity()).ok())
 			.map(|object| self.rebind_as(object.instance()))
 	}
+
+	fn query_descendants_wide<'a, Q: QueryData, F: QueryFilter>(
+		&'a self,
+		query: &'a Query<'_, '_, Q, F>,
+	) -> impl Iterator<Item = QueryItem<'a, Q::ReadOnly>> + 'a {
+		self.descendants_wide().filter_map(move |object| {
+			let entity = object.entity();
+			query.get(entity).ok()
+		})
+	}
+
+	fn query_descendants_deep<'a, Q: QueryData, F: QueryFilter>(
+		&'a self,
+		query: &'a Query<'_, '_, Q, F>,
+	) -> impl Iterator<Item = QueryItem<'a, Q::ReadOnly>> + 'a {
+		self.descendants_deep().filter_map(move |object| {
+			let entity = object.entity();
+			query.get(entity).ok()
+		})
+	}
+
+	fn query_self_and_descendants_wide<'a, Q: QueryData, F: QueryFilter>(
+		&'a self,
+		query: &'a Query<'_, '_, Q, F>,
+	) -> impl Iterator<Item = QueryItem<'a, Q::ReadOnly>> + 'a {
+		self.self_and_descendants_wide().filter_map(move |object| {
+			let entity = object.entity();
+			query.get(entity).ok()
+		})
+	}
+
+	fn query_self_and_descendants_deep<'a, Q: QueryData, F: QueryFilter>(
+		&'a self,
+		query: &'a Query<'_, '_, Q, F>,
+	) -> impl Iterator<Item = QueryItem<'a, Q::ReadOnly>> + 'a {
+		self.self_and_descendants_deep().filter_map(move |object| {
+			let entity = object.entity();
+			query.get(entity).ok()
+		})
+	}
+
+	fn find_descendant_of_kind_wide<U: Kind>(
+		&self,
+		objects: &Objects<'_, '_, U>,
+	) -> Option<Self::Rebind<U>> {
+		self.descendants_wide()
+			.find_map(|object| objects.get(object.entity()).ok())
+			.map(|object| self.rebind_as(object.instance()))
+	}
+
+	fn find_descendant_of_kind_deep<U: Kind>(
+		&self,
+		objects: &Objects<'_, '_, U>,
+	) -> Option<Self::Rebind<U>> {
+		self.descendants_deep()
+			.find_map(|object| objects.get(object.entity()).ok())
+			.map(|object| self.rebind_as(object.instance()))
+	}
 }
 
 impl<T: Kind> ObjectHierarchy<T> for Object<'_, '_, '_, T> {

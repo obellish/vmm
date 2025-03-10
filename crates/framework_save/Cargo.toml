@@ -8,7 +8,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bevy_app = "0.15"
+bevy_app.workspace = true
 bevy_ecs.workspace = true
 bevy_framework_utils.workspace = true
 bevy_hierarchy.workspace = true
@@ -19,5 +19,5 @@ ron = "0.8"
 serde.workspace = true
 
 [dev-dependencies]
-anyhow = "1"
+anyhow.workspace = true
 bevy = { workspace = true, default-features = true }

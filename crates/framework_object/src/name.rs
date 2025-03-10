@@ -8,7 +8,10 @@ pub trait ObjectName {
 
 impl<T: Kind> ObjectName for Object<'_, '_, '_, T> {
 	fn name(&self) -> Option<&str> {
-		self.name.get(self.entity()).ok().map(bevy_core::Name::as_str)
+		self.name
+			.get(self.entity())
+			.ok()
+			.map(bevy_core::Name::as_str)
 	}
 }
 

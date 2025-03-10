@@ -3,17 +3,17 @@ lints.workspace = true
 [package]
 edition.workspace = true
 license.workspace = true
-name = "bevy_framework_object"
+name = "bevy_framework_tag"
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bevy_core = "0.15"
+bevy_app.workspace = true
 bevy_ecs.workspace = true
-bevy_framework_kind = { path = "../framework_kind" }
-bevy_framework_utils.workspace = true
-bevy_hierarchy.workspace = true
+bevy_reflect.workspace = true
+bevy_utils.workspace = true
+const-fnv1a-hash = "1.1"
+serde = { workspace = true, features = ["derive"] }
 
 [dev-dependencies]
 bevy = { workspace = true, default-features = true }
-anyhow.workspace = true
