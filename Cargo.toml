@@ -24,7 +24,9 @@ bevy_enhanced_input = { version = "0.7" }
 vmm_utils = { path = "crates/utils" }
 
 [workspace]
-members = [ "crates/framework_check",
+members = [
+    "crates/framework",
+    "crates/framework_check",
     "crates/framework_kind",
     "crates/framework_object",
     "crates/framework_save",
@@ -39,6 +41,8 @@ anyhow = "1"
 bevy = { version = "0.15", default-features = false }
 bevy_app = "0.15"
 bevy_ecs = "0.15"
+bevy_framework_kind = { path = "crates/framework_kind" }
+bevy_framework_save = { path = "crates/framework_save" }
 bevy_framework_utils = { path = "crates/framework_utils" }
 bevy_hierarchy = "0.15"
 bevy_reflect = "0.15"
