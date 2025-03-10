@@ -24,7 +24,7 @@ bevy_enhanced_input = { version = "0.7" }
 vmm_utils = { path = "crates/utils" }
 
 [workspace]
-members = [
+members = [ "crates/behavior",
     "crates/framework",
     "crates/framework_check",
     "crates/framework_kind",
@@ -33,7 +33,7 @@ members = [
     "crates/framework_tag",
     "crates/framework_utils",
     "crates/utils"
-]
+, "crates/vector_shapes"]
 resolver = "3"
 
 [workspace.dependencies]

@@ -492,6 +492,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_behavior"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bevy",
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_framework_kind",
+ "bevy_reflect",
+ "bevy_utils",
+]
+
+[[package]]
 name = "bevy_color"
 version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1405,6 +1418,10 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "bevy_vector_shapes"
+version = "0.1.0"
 
 [[package]]
 name = "bevy_window"
