@@ -1,0 +1,28 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "goap_pathfinding"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+indexmap = "2.7"
+integer-sqrt = "0.1"
+num-traits = "0.2"
+rustc-hash = "2.1"
+
+[dev-dependencies]
+criterion = "0.5"
+itertools = "0.14"
+rand = "0.9"
+rand_xorshift = "0.4"
+
+[[bench]]
+harness = false
+name = "algos"
+
+[[bench]]
+harness = false
+name = "algos-fill"

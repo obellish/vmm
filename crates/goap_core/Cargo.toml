@@ -1,0 +1,13 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "goap_core"
+rust-version.workspace = true
+version.workspace = true
+
+
+[dependencies]
+goap_pathfinding = { path = "../goap_pathfinding" }
+serde = { workspace = true, features = ["derive"] }
