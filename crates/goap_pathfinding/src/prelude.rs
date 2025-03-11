@@ -6,6 +6,7 @@ pub use super::{
 		cycle_detection::{brent, floyd},
 		dfs::*,
 		dijkstra::*,
+		edmonds_karp::*,
 	},
 	matrix::*,
 	utils::*,
