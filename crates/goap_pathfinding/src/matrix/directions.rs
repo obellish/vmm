@@ -1,0 +1,10 @@
+pub const E: (isize, isize) = (0, 1);
+pub const S: (isize, isize) = (1, 0);
+pub const W: (isize, isize) = (0, -1);
+pub const N: (isize, isize) = (-1, 0);
+pub const NE: (isize, isize) = (-1, 1);
+pub const SE: (isize, isize) = (1, 1);
+pub const NW: (isize, isize) = (-1, -1);
+pub const SW: (isize, isize) = (1, -1);
+pub const DIRECTIONS_4: [(isize, isize); 4] = [E, S, W, N];
+pub const DIRECTIONS_8: [(isize, isize); 8] = [NE, E, SE, S, SW, W, NW, N];

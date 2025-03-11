@@ -65,6 +65,8 @@ where
 			return None;
 		}
 
+		self.complete();
+
 		let path = self
 			.current
 			.iter()
@@ -284,4 +286,62 @@ where
 {
 	astar_bag(start, successors, heuristic, success)
 		.map(|(solutions, cost)| (solutions.collect(), cost))
+}
+
+#[cfg(test)]
+mod tests {
+	use itertools::Itertools;
+
+	use super::astar_bag;
+
+	#[test]
+	fn multiple_sinks() {
+		let (solutions, cost) = astar_bag(
+			&1,
+			|&n| match n {
+				1 => vec![(2, 1), (3, 1)],
+				2 | 3 => vec![(4, 3), (5, 1)],
+				5 => vec![(6, 1)],
+				6 => vec![(7, 1)],
+				_ => vec![],
+			},
+			|_| 0,
+			|&n| matches!(n, 4 | 7),
+		)
+		.unwrap();
+
+		assert_eq!(cost, 4);
+		assert_eq!(
+			solutions.sorted().collect_vec(),
+			[
+				vec![1, 2, 4],
+				vec![1, 2, 5, 6, 7],
+				vec![1, 3, 4],
+				vec![1, 3, 5, 6, 7]
+			]
+		);
+	}
+
+	#[test]
+	fn numerous_solutions() {
+		#[cfg(not(miri))]
+		const N: usize = 10;
+		#[cfg(miri)]
+		const N: usize = 5;
+		const GOAL: usize = 3 * N;
+
+		let (solutions, cost) = astar_bag(
+			&0,
+			|&n| match n {
+				x if matches!(x % 3, 2) => vec![(x + 1, 1)],
+				x => vec![(x + 1, 1), (x + 2, 1)],
+			},
+			|&n| GOAL.saturating_sub(n) / 2,
+			|&n| matches!(n, GOAL),
+		)
+		.unwrap();
+
+		assert_eq!(cost, N * 2);
+		assert_eq!(solutions.count(), 1 << N);
+	}
 }

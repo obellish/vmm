@@ -1,6 +1,6 @@
 use goap_pathfinding::directed::astar::astar;
 
-static GOAL: Pos = Pos(4,6);
+static GOAL: Pos = Pos(4, 6);
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct Pos(i32, i32);
@@ -30,7 +30,12 @@ impl Pos {
 
 #[test]
 fn astar_docs() {
-    let result = astar(&Pos(1, 1), Pos::successors, |p| p.distance(&GOAL) / 3, |p| *p == GOAL);
+	let result = astar(
+		&Pos(1, 1),
+		Pos::successors,
+		|p| p.distance(&GOAL) / 3,
+		|p| *p == GOAL,
+	);
 
-    assert_eq!(result.unwrap().1, 4);
+	assert_eq!(result.unwrap().1, 4);
 }

@@ -71,5 +71,52 @@ fn corner_to_corner_bfs(c: &mut Criterion) {
 	});
 }
 
-criterion_group!(benches, corner_to_corner_astar, corner_to_corner_bfs);
+fn corner_to_corner_bfs_bidirectional(c: &mut Criterion) {
+	c.bench_function(stringify!(corner_to_corner_bfs_bidirectional), |b| {
+		b.iter(|| {
+			assert_ne!(
+				bfs_bidirectional(&Pt::new(0, 0), &Pt::new(64, 64), successors, successors),
+				None
+			);
+		});
+	});
+}
+
+fn corner_to_corner_dfs(c: &mut Criterion) {
+	c.bench_function(stringify!(corner_to_corner_dfs), |b| {
+		b.iter(|| {
+			assert_ne!(
+				dfs(Pt::new(0, 0), successors, |n| matches!(
+					n,
+					Pt { x: 64, y: 64 }
+				)),
+				None
+			);
+		});
+	});
+}
+
+fn corner_to_corner_dijkstra(c: &mut Criterion) {
+	c.bench_function(stringify!(corner_to_corner_dijkstra), |b| {
+		b.iter(|| {
+			assert_ne!(
+				dijkstra(
+					&Pt::new(0, 0),
+					|n| successors(n).into_iter().map(|n| (n, 1)),
+					|n| matches!(n, Pt { x: 64, y: 64 })
+				),
+				None
+			);
+		});
+	});
+}
+
+criterion_group!(
+	benches,
+	corner_to_corner_astar,
+	corner_to_corner_bfs,
+	corner_to_corner_bfs_bidirectional,
+	corner_to_corner_dfs,
+	corner_to_corner_dijkstra
+);
 criterion_main!(benches);

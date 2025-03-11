@@ -105,10 +105,62 @@ where
 
 		for _ in 0..(successors.len() - i_backwards) {
 			let node = successors.get_index(i_backwards)?.0;
+			for predecessor_node in predecessors_fn(node) {
+				if !successors.contains_key(&predecessor_node) {
+					successors.insert(predecessor_node.clone(), Some(i_backwards));
+				}
+
+				if predecessors.contains_key(&predecessor_node) {
+					break 'l Some(predecessor_node);
+				}
+			}
+			i_backwards += 1;
+		}
+
+		if i_forwards == predecessors.len() && i_backwards == successors.len() {
+			break 'l None;
 		}
 	};
 
-	todo!()
+	middle.map(|middle| {
+		let mut path = Vec::new();
+		let mut node = Some(middle.clone());
+		while let Some(n) = node {
+			path.push(n.clone());
+			node = predecessors[&n]
+				.and_then(|i| predecessors.get_index(i))
+				.map(|n| n.0.clone());
+		}
+
+		path.reverse();
+
+		let mut node = successors[&middle]
+			.and_then(|i| successors.get_index(i))
+			.map(|n| n.0.clone());
+		while let Some(n) = node {
+			path.push(n.clone());
+			node = successors[&n]
+				.and_then(|i| successors.get_index(i))
+				.map(|n| n.0.clone());
+		}
+
+		path
+	})
+}
+
+pub fn bfs_reach<N, FN, IN>(start: N, successors: FN) -> BfsReachable<N, FN>
+where
+	N: Clone + Eq + Hash,
+	FN: FnMut(&N) -> IN,
+	IN: IntoIterator<Item = N>,
+{
+	let mut seen = FxIndexSet::default();
+	seen.insert(start);
+	BfsReachable {
+		i: 0,
+		seen,
+		successors,
+	}
 }
 
 fn bfs_core<'a, N, IN>(

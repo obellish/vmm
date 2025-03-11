@@ -1,5 +1,10 @@
 pub mod astar;
 pub mod bfs;
+pub mod count_paths;
+pub mod cycle_detection;
+pub mod dfs;
+pub mod dijkstra;
+pub mod edmonds_karp;
 
 use std::hash::Hash;
 
