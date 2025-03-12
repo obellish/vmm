@@ -14,6 +14,14 @@ pub use super::{
 		topological_sort::{topological_sort, topological_sort_into_groups},
 		yen::yen,
 	},
+	grid::Grid,
+	kuhn_munkres::*,
 	matrix::*,
+	undirected::{
+		cliques::{maximal_cliques, maximal_cliques_collect},
+		connected_components::*,
+		kruskal::{kruskal, kruskal_indices},
+		prim::prim,
+	},
 	utils::*,
 };
