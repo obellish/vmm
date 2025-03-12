@@ -26,3 +26,7 @@ name = "algos"
 [[bench]]
 harness = false
 name = "edmonds_karp"
+
+[[bench]]
+harness = false
+name = "matrices"
