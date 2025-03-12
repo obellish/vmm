@@ -81,3 +81,57 @@ fn bron_kerbosch<N>(
 		skip_nodes.insert(node.to_owned());
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use std::collections::HashSet;
+
+	use itertools::Itertools;
+
+	use super::maximal_cliques_collect;
+
+	fn sort(cliques: &[HashSet<&i32>]) -> Vec<Vec<i32>> {
+		let mut cliques_as_vectors = cliques
+			.iter()
+			.map(|cliq| {
+				let mut s = cliq.iter().map(|&x| *x).collect_vec();
+				s.sort_unstable();
+				s
+			})
+			.collect_vec();
+		cliques_as_vectors.sort();
+		cliques_as_vectors
+	}
+
+	#[test]
+	fn find_vertices() {
+		let vertices = (1..10).collect_vec();
+		let cliques = maximal_cliques_collect(&vertices, &mut |a, b| matches!((*a - *b) % 3, 0));
+		let cliques_as_vectors = sort(&cliques);
+
+		assert_eq!(
+			cliques_as_vectors,
+			[vec![1, 4, 7], vec![2, 5, 8], vec![3, 6, 9]]
+		);
+	}
+
+	#[test]
+	fn same_node_appears_in_multiple_cliques() {
+		let vertices = (1..10).collect_vec();
+		let cliques = maximal_cliques_collect(&vertices, &mut |a, b| {
+			matches!(*a % 3, 0) && matches!(*b % 3, 0) || matches!((*a - *b) % 4, 0)
+		});
+		let cliques_as_vectors = sort(&cliques);
+
+		assert_eq!(
+			cliques_as_vectors,
+			[
+				vec![1, 5, 9],
+				vec![2, 6],
+				vec![3, 6, 9],
+				vec![3, 7],
+				vec![4, 8]
+			]
+		);
+	}
+}

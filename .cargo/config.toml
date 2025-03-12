@@ -2,6 +2,7 @@
 rustdocflags = ["--cfg", "docsrs", "--show-type-layout", "-Z", "unstable-options"]
 
 [alias]
+mutate = "mutant --test-tool=nextest"
 coverage = "tarpaulin"
 feature-check = "hack check --feature-powerset --no-dev-deps"
 full-doc = "doc --keep-going --all-features -Zrustdoc-map -Zrustdoc-scrape-examples"
