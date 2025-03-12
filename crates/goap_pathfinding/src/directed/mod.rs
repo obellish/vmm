@@ -5,6 +5,12 @@ pub mod cycle_detection;
 pub mod dfs;
 pub mod dijkstra;
 pub mod edmonds_karp;
+pub mod fringe;
+pub mod idastar;
+pub mod iddfs;
+pub mod strongly_connected_components;
+pub mod topological_sort;
+pub mod yen;
 
 use std::hash::Hash;
 

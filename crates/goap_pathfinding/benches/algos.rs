@@ -214,6 +214,36 @@ fn corner_to_corner_dijkstra(c: &mut Criterion) {
 	});
 }
 
+fn corner_to_corner_fringe(c: &mut Criterion) {
+	let mut group = c.benchmark_group(stringify!(corner_to_corner_fringe));
+	group.bench_function("small struct", |b| {
+		b.iter(|| {
+			assert_ne!(
+				fringe(
+					&Pt::new(0, 0),
+					|n| Pt::successors(n).into_iter().map(|n| (n, 1)),
+					Pt::heuristic,
+					Pt::correct
+				),
+				None
+			);
+		});
+	});
+	group.bench_function("large struct", |b| {
+		b.iter(|| {
+			assert_ne!(
+				fringe(
+					&BigPt::new(0, 0),
+					|n| BigPt::successors(n).into_iter().map(|n| (n, 1)),
+					BigPt::heuristic,
+					BigPt::correct
+				),
+				None
+			);
+		});
+	});
+}
+
 fn no_path_astar(c: &mut Criterion) {
 	let mut group = c.benchmark_group(stringify!(no_path_astar));
 	group.bench_function("small struct", |b| {
@@ -265,6 +295,7 @@ criterion_group!(
 	corner_to_corner_bfs_bidirectional,
 	corner_to_corner_dfs,
 	corner_to_corner_dijkstra,
+	corner_to_corner_fringe,
 	no_path_astar,
 	no_path_bfs
 );
