@@ -2621,6 +2621,8 @@ dependencies = [
 name = "goap_core"
 version = "0.1.0"
 dependencies = [
+ "bevy_reflect",
+ "bevy_utils",
  "goap_pathfinding",
  "serde",
 ]
