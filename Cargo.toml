@@ -10,23 +10,26 @@ version.workspace = true
 [dependencies]
 
 [workspace]
+members = ["crates/nbt"]
 resolver = "3"
-members = ["crates/geom"]
 
 [workspace.dependencies]
+winapi = "0.3"
+
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(loom)"] }
 
 [workspace.lints.clippy]
 cast_possible_truncation = "allow"
 cast_possible_wrap = "allow"
 cast_precision_loss = "allow"
+cast_ptr_alignment = "allow"
 cast_sign_loss = "allow"
 cognitive_complexity = "allow"
 disallowed_methods = "deny"
 float_cmp = "allow"
 fn_params_excessive_bools = "allow"
+inline_always = "allow"
 large_stack_arrays = "allow"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
