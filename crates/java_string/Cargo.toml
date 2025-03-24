@@ -1,0 +1,14 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "java_string"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[features]
+serde = ["dep:serde"]
