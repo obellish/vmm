@@ -3,7 +3,6 @@ use std::{
 	cmp::Ordering,
 	fmt::{Debug, Display, Formatter, Result as FmtResult, Write as _},
 	hash::{Hash, Hasher},
-	io::SeekFrom,
 	iter::{FusedIterator, Once, once},
 	mem,
 	ops::Range,

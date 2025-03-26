@@ -105,6 +105,12 @@ where
 	}
 }
 
+impl<S> AsRef<S> for Ident<S> {
+	fn as_ref(&self) -> &S {
+		&self.string
+	}
+}
+
 impl<S> Borrow<str> for Ident<S>
 where
 	S: Borrow<str>,

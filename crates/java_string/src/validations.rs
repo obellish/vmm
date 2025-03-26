@@ -218,8 +218,34 @@ const fn contains_nonascii(x: usize) -> bool {
 #[track_caller]
 pub fn slice_error_fail(s: &JavaStr, begin: usize, end: usize) -> ! {
 	const MAX_DISPLAY_LENGTH: usize = 256;
+	let trunc_len = s.floor_char_boundary(MAX_DISPLAY_LENGTH);
+	let s_trunc = &s[..trunc_len];
+	let ellipsis = if trunc_len < s.len() { "[...]" } else { "" };
 
-	todo!()
+	if begin > s.len() || end > s.len() {
+		let oob_index = if begin > s.len() { begin } else { end };
+		panic!("byte index {oob_index} is out of bounds of `{s_trunc}`{ellipsis}");
+	}
+
+	assert!(
+		begin <= end,
+		"begin <= end ({begin} <= {end}) when slicing `{s_trunc}`{ellipsis}"
+	);
+
+	let index = if s.is_char_boundary(begin) {
+		end
+	} else {
+		begin
+	};
+
+	let char_start = s.floor_char_boundary(index);
+	let ch = s[char_start..].chars().next().unwrap();
+	let char_range = char_start..char_start + ch.len_utf8();
+
+	panic!(
+		"byte index {index} is not a char boundary; is it inside {ch:?} (bytes {char_range:?}) of \
+		`{s_trunc}`{ellipsis}"
+	);
 }
 
 #[cold]

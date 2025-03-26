@@ -226,7 +226,7 @@ delegate!(FusedIterator for SplitWhitespace<'a>);
 #[must_use]
 #[repr(transparent)]
 pub struct Lines<'a> {
-    pub(crate) inner: Map<SplitInclusive<'a, char>, fn(&JavaStr) -> &JavaStr>,
+	pub(crate) inner: Map<SplitInclusive<'a, char>, fn(&JavaStr) -> &JavaStr>,
 }
 
 delegate!(Iterator for Lines<'a> => &'a JavaStr);

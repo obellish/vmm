@@ -29,21 +29,49 @@ use std::{
 };
 
 use super::{
-	EscapeDebugExtArgs, Utf8Error,
-	validations::{run_utf8_full_validation_from_semi, slice_error_fail},
-};
-use crate::{
-	Bytes, CharEscapeIter, CharIndices, Chars, EscapeDebug, EscapeDefault, EscapeUnicode,
-	JavaCodePoint, JavaStrPattern, MatchIndices, Matches, RMatchIndices, RMatches, RSplit, RSplitN,
-	RSplitTerminator, Split, SplitAsciiWhitespace, validations::str_end_index_overflow_fail,
+	Bytes, CharEscapeIter, CharIndices, Chars, EscapeDebug, EscapeDebugExtArgs, EscapeDefault,
+	EscapeUnicode, JavaCodePoint, JavaStrPattern, JavaString, Lines, MatchIndices, Matches,
+	ParseError, RMatchIndices, RMatches, RSplit, RSplitN, RSplitTerminator, Split,
+	SplitAsciiWhitespace, SplitInclusive, SplitN, SplitTerminator, SplitWhitespace, Utf8Error,
+	validations::{
+		run_utf8_full_validation_from_semi, run_utf8_semi_validation, slice_error_fail,
+		str_end_index_overflow_fail,
+	},
 };
 
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
 #[repr(transparent)]
 pub struct JavaStr {
 	inner: [u8],
 }
 
 impl JavaStr {
+	pub const fn from_full_utf8(v: &[u8]) -> Result<&Self, Utf8Error> {
+		match std::str::from_utf8(v) {
+			Ok(str) => Ok(Self::from_str(str)),
+			Err(err) => Err(Utf8Error::from_std(err)),
+		}
+	}
+
+	pub fn from_full_utf8_mut(v: &mut [u8]) -> Result<&mut Self, Utf8Error> {
+		match std::str::from_utf8_mut(v) {
+			Ok(str) => Ok(Self::from_mut_str(str)),
+			Err(err) => Err(Utf8Error::from_std(err)),
+		}
+	}
+
+	pub fn from_semi_utf8(v: &[u8]) -> Result<&Self, Utf8Error> {
+		run_utf8_semi_validation(v)?;
+
+		Ok(unsafe { Self::from_semi_utf8_unchecked(v) })
+	}
+
+	pub fn from_semi_utf8_mut(v: &mut [u8]) -> Result<&mut Self, Utf8Error> {
+		run_utf8_semi_validation(v)?;
+
+		Ok(unsafe { Self::from_semi_utf8_unchecked_mut(v) })
+	}
+
 	#[must_use]
 	pub const unsafe fn from_semi_utf8_unchecked(v: &[u8]) -> &Self {
 		unsafe { mem::transmute(v) }
@@ -60,6 +88,11 @@ impl JavaStr {
 
 	pub fn from_mut_str(s: &mut str) -> &mut Self {
 		unsafe { Self::from_semi_utf8_unchecked_mut(s.as_bytes_mut()) }
+	}
+
+	#[must_use]
+	pub fn from_boxed_str(v: Box<str>) -> Box<Self> {
+		unsafe { Self::from_boxed_semi_utf8_unchecked(v.into_boxed_bytes()) }
 	}
 
 	#[must_use]
@@ -95,6 +128,21 @@ impl JavaStr {
 	#[must_use]
 	pub const unsafe fn as_str_unchecked(&self) -> &str {
 		unsafe { std::str::from_utf8_unchecked(self.as_bytes()) }
+	}
+
+	#[must_use]
+	pub fn as_str_lossy(&self) -> Cow<'_, str> {
+		match run_utf8_full_validation_from_semi(self.as_bytes()) {
+			Ok(()) => unsafe { Cow::Borrowed(self.as_str_unchecked()) },
+			Err(error) => unsafe {
+				Cow::Owned(
+					self.transform_invalid_string(error, str::to_owned, |_| {
+						Self::from_str("\u{FFFD}")
+					})
+					.into_string_unchecked(),
+				)
+			},
+		}
 	}
 
 	#[must_use]
@@ -418,17 +466,489 @@ impl JavaStr {
 			slice_error_fail(self, 0, mid)
 		}
 	}
+
+	pub const fn split_inclusive<P: JavaStrPattern>(&self, pat: P) -> SplitInclusive<'_, P> {
+		SplitInclusive::new(self, pat)
+	}
+
+	pub fn split_once(&self, mut delimiter: impl JavaStrPattern) -> Option<(&Self, &Self)> {
+		let (index, len) = delimiter.find_in(self)?;
+
+		unsafe {
+			Some((
+				self.get_unchecked(..index),
+				self.get_unchecked(index + len..),
+			))
+		}
+	}
+
+	pub const fn split_terminator<P: JavaStrPattern>(&self, pat: P) -> SplitTerminator<'_, P> {
+		SplitTerminator::new(self, pat)
+	}
+
+	#[must_use]
+	pub fn split_whitespace(&self) -> SplitWhitespace<'_> {
+		SplitWhitespace {
+			inner: self
+				.split(JavaCodePoint::is_whitespace as fn(JavaCodePoint) -> bool)
+				.filter(|str| !str.is_empty()),
+		}
+	}
+
+	pub const fn splitn<P: JavaStrPattern>(&self, n: usize, pat: P) -> SplitN<'_, P> {
+		SplitN::new(self, pat, n)
+	}
+
+	#[must_use]
+	pub fn into_string(self: Box<Self>) -> JavaString {
+		let slice = self.into_boxed_bytes();
+		unsafe { JavaString::from_semi_utf8_unchecked(slice.into_vec()) }
+	}
+
+	pub fn lines(&self) -> Lines<'_> {
+		Lines {
+			inner: self.split_inclusive('\n').map(|line| {
+				let Some(line) = line.strip_suffix('\n') else {
+					return line;
+				};
+
+				let Some(line) = line.strip_suffix('\r') else {
+					return line;
+				};
+
+				line
+			}),
+		}
+	}
+
+	#[must_use]
+	pub fn repeat(&self, n: usize) -> JavaString {
+		unsafe { JavaString::from_semi_utf8_unchecked(self.as_bytes().repeat(n)) }
+	}
+
+	pub fn replace(&self, from: impl JavaStrPattern, to: &str) -> JavaString {
+		self.replace_java(from, Self::from_str(to))
+	}
+
+	pub fn replace_java(&self, from: impl JavaStrPattern, to: &Self) -> JavaString {
+		let mut result = JavaString::new();
+		let mut last_end = 0;
+		for (start, part) in self.match_indices(from) {
+			result.push_java_str(unsafe { self.get_unchecked(last_end..start) });
+			result.push_java_str(to);
+			last_end = start + part.len();
+		}
+
+		result.push_java_str(unsafe { self.get_unchecked(last_end..self.len()) });
+
+		result
+	}
+
+	pub fn replacen(&self, from: impl JavaStrPattern, to: &str, count: usize) -> JavaString {
+		self.replacen_java(from, Self::from_str(to), count)
+	}
+
+	pub fn replacen_java(&self, from: impl JavaStrPattern, to: &Self, count: usize) -> JavaString {
+		let mut result = JavaString::with_capacity(32);
+		let mut last_end = 0;
+		for (start, part) in self.match_indices(from).take(count) {
+			result.push_java_str(unsafe { self.get_unchecked(last_end..start) });
+			result.push_java_str(to);
+			last_end = start + part.len();
+		}
+
+		result.push_java_str(unsafe { self.get_unchecked(last_end..self.len()) });
+		result
+	}
+
+	pub fn parse<F: FromStr>(&self) -> Result<F, ParseError<<F as FromStr>::Err>> {
+		let s = self.as_str()?;
+		s.parse().map_err(ParseError::Other)
+	}
+
+	#[must_use]
+	pub fn to_ascii_lowercase(&self) -> JavaString {
+		let mut s = self.to_owned();
+		s.make_ascii_lowercase();
+		s
+	}
+
+	#[must_use]
+	pub fn to_ascii_uppercase(&self) -> JavaString {
+		let mut s = self.to_owned();
+		s.make_ascii_uppercase();
+		s
+	}
+
+	pub fn to_lowercase(&self) -> JavaString {
+		self.transform_string(str::to_lowercase, |ch| ch)
+	}
+
+	pub fn to_uppercase(&self) -> JavaString {
+		self.transform_string(str::to_uppercase, |ch| ch)
+	}
+
+	fn transform_string(
+		&self,
+		mut string_transformer: impl FnMut(&str) -> String,
+		invalid_char_transformer: impl FnMut(&Self) -> &Self,
+	) -> JavaString {
+		let bytes = self.as_bytes();
+		match run_utf8_full_validation_from_semi(bytes) {
+			Ok(()) => JavaString::from(string_transformer(unsafe {
+				std::str::from_utf8_unchecked(bytes)
+			})),
+			Err(error) => {
+				self.transform_invalid_string(error, string_transformer, invalid_char_transformer)
+			}
+		}
+	}
+
+	fn transform_invalid_string(
+		&self,
+		error: Utf8Error,
+		mut string_transformer: impl FnMut(&str) -> String,
+		mut invalid_char_transformer: impl FnMut(&Self) -> &Self,
+	) -> JavaString {
+		let bytes = self.as_bytes();
+		let mut result = JavaString::from(string_transformer(unsafe {
+			std::str::from_utf8_unchecked(bytes.get_unchecked(..error.valid_up_to))
+		}));
+		result.push_java_str(invalid_char_transformer(unsafe {
+			Self::from_semi_utf8_unchecked(
+				bytes.get_unchecked(error.valid_up_to..error.valid_up_to + 3),
+			)
+		}));
+		let mut index = error.valid_up_to + 3;
+		loop {
+			let remainder = unsafe { bytes.get_unchecked(index..) };
+			match run_utf8_full_validation_from_semi(remainder) {
+				Ok(()) => {
+					result.push_str(&string_transformer(unsafe {
+						std::str::from_utf8_unchecked(remainder)
+					}));
+					return result;
+				}
+				Err(error) => {
+					result.push_str(&string_transformer(unsafe {
+						std::str::from_utf8_unchecked(
+							bytes.get_unchecked(index..index + error.valid_up_to),
+						)
+					}));
+					result.push_java_str(invalid_char_transformer(unsafe {
+						Self::from_semi_utf8_unchecked(bytes.get_unchecked(
+							index + error.valid_up_to..index + error.valid_up_to + 3,
+						))
+					}));
+					index += error.valid_up_to + 3;
+				}
+			}
+		}
+	}
+}
+
+impl Add<&JavaStr> for Cow<'_, JavaStr> {
+	type Output = Self;
+
+	fn add(mut self, rhs: &JavaStr) -> Self::Output {
+		self += rhs;
+		self
+	}
+}
+
+impl AddAssign<&JavaStr> for Cow<'_, JavaStr> {
+	fn add_assign(&mut self, rhs: &JavaStr) {
+		if !rhs.is_empty() {
+			self.to_mut().push_java_str(rhs);
+		}
+	}
+}
+
+impl AsRef<[u8]> for JavaStr {
+	fn as_ref(&self) -> &[u8] {
+		self.as_bytes()
+	}
+}
+
+impl AsRef<JavaStr> for str {
+	fn as_ref(&self) -> &JavaStr {
+		JavaStr::from_str(self)
+	}
+}
+
+impl AsRef<JavaStr> for String {
+	fn as_ref(&self) -> &JavaStr {
+		JavaStr::from_str(self)
+	}
+}
+
+impl AsRef<Self> for JavaStr {
+	fn as_ref(&self) -> &Self {
+		self
+	}
+}
+
+impl Clone for Box<JavaStr> {
+	fn clone(&self) -> Self {
+		let buf: Box<[u8]> = self.as_bytes().into();
+		unsafe { JavaStr::from_boxed_semi_utf8_unchecked(buf) }
+	}
 }
 
 impl Debug for JavaStr {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-		todo!()
+		f.write_char('"')?;
+		let mut from = 0;
+		for (i, c) in self.char_indices() {
+			let esc = c.escape_debug_ext(EscapeDebugExtArgs {
+				single_quote: false,
+				double_quote: true,
+			});
+
+			if esc.len() != 1 || c.as_char().is_none() {
+				unsafe {
+					f.write_str(self[from..i].as_str_unchecked())?;
+				}
+
+				for c in esc {
+					f.write_char(c)?;
+				}
+
+				from = i + c.len_utf8();
+			}
+		}
+
+		unsafe {
+			f.write_str(self[from..].as_str_unchecked())?;
+		}
+
+		f.write_char('"')
 	}
 }
 
 impl Default for &JavaStr {
 	fn default() -> Self {
 		JavaStr::from_str("")
+	}
+}
+
+impl Default for Box<JavaStr> {
+	fn default() -> Self {
+		JavaStr::from_boxed_str(Box::<str>::default())
+	}
+}
+
+impl Display for JavaStr {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.write_str(&self.as_str_lossy())
+	}
+}
+
+impl<'a> From<&'a JavaStr> for Cow<'a, JavaStr> {
+	fn from(value: &'a JavaStr) -> Self {
+		Self::Borrowed(value)
+	}
+}
+
+impl From<&JavaStr> for Arc<JavaStr> {
+	fn from(value: &JavaStr) -> Self {
+		let arc = Arc::<[u8]>::from(value.as_bytes());
+		unsafe { Self::from_raw(Arc::into_raw(arc) as *const JavaStr) }
+	}
+}
+
+impl From<&JavaStr> for Box<JavaStr> {
+	fn from(value: &JavaStr) -> Self {
+		unsafe { JavaStr::from_boxed_semi_utf8_unchecked(Box::from(value.as_bytes())) }
+	}
+}
+
+impl From<&JavaStr> for Rc<JavaStr> {
+	fn from(value: &JavaStr) -> Self {
+		let rc = Rc::<[u8]>::from(value.as_bytes());
+		unsafe { Self::from_raw(Rc::into_raw(rc) as *const JavaStr) }
+	}
+}
+
+impl From<&JavaStr> for Vec<u8> {
+	fn from(value: &JavaStr) -> Self {
+		From::from(value.as_bytes())
+	}
+}
+
+impl From<Cow<'_, JavaStr>> for Box<JavaStr> {
+	fn from(value: Cow<'_, JavaStr>) -> Self {
+		match value {
+			Cow::Borrowed(s) => Self::from(s),
+			Cow::Owned(s) => Self::from(s),
+		}
+	}
+}
+
+impl From<JavaString> for Box<JavaStr> {
+	fn from(value: JavaString) -> Self {
+		value.into_boxed_str()
+	}
+}
+
+impl<'a> From<&'a str> for &'a JavaStr {
+	fn from(value: &'a str) -> Self {
+		JavaStr::from_str(value)
+	}
+}
+
+impl<'a> From<&'a String> for &'a JavaStr {
+	fn from(value: &'a String) -> Self {
+		JavaStr::from_str(value)
+	}
+}
+
+impl Hash for JavaStr {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		state.write(self.as_bytes());
+		state.write_u8(0xff);
+	}
+}
+
+impl<I: JavaStrSliceIndex> Index<I> for JavaStr {
+	type Output = Self;
+
+	fn index(&self, index: I) -> &Self::Output {
+		index.index(self)
+	}
+}
+
+impl<I: JavaStrSliceIndex> IndexMut<I> for JavaStr {
+	fn index_mut(&mut self, index: I) -> &mut Self::Output {
+		index.index_mut(self)
+	}
+}
+
+impl<'b> PartialEq<&'b JavaStr> for Cow<'_, str> {
+	fn eq(&self, other: &&'b JavaStr) -> bool {
+		self == *other
+	}
+}
+
+impl<'b> PartialEq<&'b JavaStr> for Cow<'_, JavaStr> {
+	fn eq(&self, other: &&'b JavaStr) -> bool {
+		self == *other
+	}
+}
+
+impl<'a> PartialEq<Cow<'a, str>> for &JavaStr {
+	fn eq(&self, other: &Cow<'a, str>) -> bool {
+		*self == other
+	}
+}
+
+impl<'a> PartialEq<Cow<'a, str>> for JavaStr {
+	fn eq(&self, other: &Cow<'a, str>) -> bool {
+		other == self
+	}
+}
+
+impl<'a> PartialEq<Cow<'a, JavaStr>> for &JavaStr {
+	fn eq(&self, other: &Cow<'a, JavaStr>) -> bool {
+		*self == other
+	}
+}
+
+impl<'a> PartialEq<Cow<'a, Self>> for JavaStr {
+	fn eq(&self, other: &Cow<'a, Self>) -> bool {
+		other == self
+	}
+}
+
+impl PartialEq<String> for &JavaStr {
+	fn eq(&self, other: &String) -> bool {
+		*self == other
+	}
+}
+
+impl PartialEq<String> for JavaStr {
+	fn eq(&self, other: &String) -> bool {
+		self == &other[..]
+	}
+}
+
+impl PartialEq<JavaStr> for String {
+	fn eq(&self, other: &JavaStr) -> bool {
+		&self[..] == other
+	}
+}
+
+impl PartialEq<JavaString> for &JavaStr {
+	fn eq(&self, other: &JavaString) -> bool {
+		*self == other
+	}
+}
+
+impl PartialEq<JavaString> for JavaStr {
+	fn eq(&self, other: &JavaString) -> bool {
+		self == other[..]
+	}
+}
+
+impl PartialEq<JavaStr> for Cow<'_, str> {
+	fn eq(&self, other: &JavaStr) -> bool {
+		match self {
+			Cow::Borrowed(this) => this == other,
+			Cow::Owned(this) => this == other,
+		}
+	}
+}
+
+impl PartialEq<JavaStr> for Cow<'_, JavaStr> {
+	fn eq(&self, other: &JavaStr) -> bool {
+		match self {
+			Self::Borrowed(this) => this == other,
+			Self::Owned(this) => this == other,
+		}
+	}
+}
+
+impl PartialEq<JavaStr> for str {
+	fn eq(&self, other: &JavaStr) -> bool {
+		JavaStr::from_str(self) == other
+	}
+}
+
+impl PartialEq<JavaStr> for &str {
+	fn eq(&self, other: &JavaStr) -> bool {
+		self.as_bytes() == &other.inner
+	}
+}
+
+impl PartialEq<str> for JavaStr {
+	fn eq(&self, other: &str) -> bool {
+		&self.inner == other.as_bytes()
+	}
+}
+
+impl<'a> PartialEq<&'a str> for JavaStr {
+	fn eq(&self, other: &&'a str) -> bool {
+		&self.inner == other.as_bytes()
+	}
+}
+
+impl PartialEq<JavaStr> for &JavaStr {
+	fn eq(&self, other: &JavaStr) -> bool {
+		self.inner == other.inner
+	}
+}
+
+impl<'a> PartialEq<&'a Self> for JavaStr {
+	fn eq(&self, other: &&'a Self) -> bool {
+		self.inner == other.inner
+	}
+}
+
+impl ToOwned for JavaStr {
+	type Owned = JavaString;
+
+	fn to_owned(&self) -> Self::Owned {
+		unsafe { JavaString::from_semi_utf8_unchecked(self.as_bytes().to_owned()) }
 	}
 }
 
