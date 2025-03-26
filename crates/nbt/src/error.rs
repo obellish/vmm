@@ -11,6 +11,7 @@ pub struct Error {
 	cause: Box<Cause>,
 }
 
+#[allow(unused)]
 impl Error {
 	pub(crate) fn owned(message: impl Into<String>) -> Self {
 		Self {
@@ -52,6 +53,7 @@ impl From<IoError> for Error {
 	}
 }
 
+#[allow(unused)]
 #[derive(Debug)]
 enum Cause {
 	Io(IoError),

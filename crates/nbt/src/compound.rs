@@ -13,6 +13,7 @@ pub struct Compound<S = String> {
 	map: Map<S>,
 }
 
+#[allow(clippy::missing_const_for_fn)]
 impl<S> Compound<S> {
 	#[must_use]
 	pub fn new() -> Self {

@@ -94,22 +94,22 @@ fn struct_to_compound() -> Result<()> {
 
 #[test]
 fn compound_to_struct() -> Result<()> {
-    let s = Struct::deserialize(make_compound())?;
+	let s = Struct::deserialize(make_compound())?;
 
-    assert_eq!(s, make_struct());
+	assert_eq!(s, make_struct());
 
-    Ok(())
+	Ok(())
 }
 
 #[test]
 fn compound_to_json() -> Result<()> {
-    let mut j = serde_json::to_value(make_compound())?;
+	let mut j = serde_json::to_value(make_compound())?;
 
-    let p = j.pointer_mut("/bar/a").unwrap();
-    assert_eq!(*p, serde_json::Value::from(1));
-    *p = true.into();
+	let p = j.pointer_mut("/bar/a").unwrap();
+	assert_eq!(*p, serde_json::Value::from(1));
+	*p = true.into();
 
-    assert_eq!(j, make_json());
+	assert_eq!(j, make_json());
 
-    Ok(())
+	Ok(())
 }

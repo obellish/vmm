@@ -3,10 +3,9 @@ lints.workspace = true
 [package]
 edition.workspace = true
 license.workspace = true
-name = "vmm_ident"
+name = "vmm_math"
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-serde.workspace = true
-vmm_ident_macros = { path = "../ident_macros" }
+glam = "0.30"

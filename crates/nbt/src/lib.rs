@@ -1,13 +1,21 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 
+#[cfg(feature = "binary")]
+pub mod binary;
 pub mod compound;
 pub mod conv;
 mod error;
 pub mod list;
 #[cfg(feature = "serde")]
 pub mod serde;
+#[cfg(feature = "snbt")]
+pub mod snbt;
 pub mod value;
 
+#[cfg(feature = "binary")]
+#[doc(inline)]
+pub use self::binary::{from_binary, to_binary};
+#[doc(inline)]
 pub use self::{compound::Compound, error::*, list::List, value::Value};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]

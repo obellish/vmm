@@ -3,12 +3,12 @@
 use std::{
 	borrow::{Borrow, Cow},
 	cmp::Ordering,
+	error::Error as StdError,
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	str::FromStr,
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as _};
-use thiserror::Error;
 #[doc(hidden)]
 pub use vmm_ident_macros::parse_ident_str;
 
@@ -286,10 +286,19 @@ impl<'a> TryFrom<Cow<'a, str>> for Ident<Cow<'a, str>> {
 	}
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Error)]
-#[error("invalid resource identifier \"{0}\"")]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct IdentError(pub String);
+
+impl Display for IdentError {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.write_str("invalid resource identifier \"")?;
+		f.write_str(&self.0)?;
+		f.write_str("\"")
+	}
+}
+
+impl StdError for IdentError {}
 
 fn parse(string: Cow<'_, str>) -> Result<Ident<Cow<'_, str>>, IdentError> {
 	let check_namespace = |s: &str| {

@@ -13,20 +13,19 @@ cesu8 = { version = "1.1", optional = true }
 indexmap = { version = "2", optional = true }
 java_string = { path = "../java_string", optional = true }
 serde = { workspace = true, optional = true }
-thiserror = { workspace = true, optional = true }
-uuid = { version = "1.8", optional = true }
-vmm_ident = { path = "../ident", optional = true }
+uuid = { workspace = true, optional = true }
+vmm_ident = { workspace = true, optional = true }
 
 [dev-dependencies]
-anyhow = "1"
+anyhow.workspace = true
 pretty_assertions = "1.4"
 serde = { workspace = true, features = ["derive"] }
-serde_json = "1"
+serde_json.workspace = true
 
 [features]
 binary = ["dep:byteorder", "dep:cesu8"]
 java_string = ["dep:java_string"]
 preserve_order = ["dep:indexmap"]
-serde = ["dep:serde", "dep:thiserror", "indexmap?/serde"]
+serde = ["dep:serde", "indexmap?/serde"]
 snbt = []
 vmm_ident = ["dep:vmm_ident"]
