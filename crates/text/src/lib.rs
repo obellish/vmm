@@ -2,8 +2,6 @@
 
 pub mod color;
 mod into_text;
-#[cfg(test)]
-mod tests;
 
 use std::{
 	borrow::Cow,

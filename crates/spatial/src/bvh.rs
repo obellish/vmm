@@ -1,8 +1,14 @@
-use std::{iter::FusedIterator, mem};
+use std::{
+	mem,
+	slice::{Iter, IterMut},
+};
 
 use approx::abs_diff_eq;
-use rayon::iter::{
-	IndexedParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator,
+use rayon::{
+	iter::{
+		IntoParallelIterator, IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator,
+	},
+	slice::{Iter as ParIter, IterMut as ParIterMut},
 };
 use vek::{Aabb, Vec3};
 
@@ -76,6 +82,34 @@ where
 
 		debug_assert_eq!(self.internal_nodes.len(), self.leaf_nodes.len() - 1);
 	}
+
+	#[must_use]
+	pub fn traverse(&self) -> Option<Node<'_, T>> {
+		if self.leaf_nodes.is_empty() {
+			None
+		} else {
+			Some(Node::from_idx(self, self.root))
+		}
+	}
+
+	#[allow(clippy::iter_without_into_iter)]
+	pub fn iter(&self) -> Iter<'_, T> {
+		self.leaf_nodes.iter()
+	}
+
+	#[allow(clippy::iter_without_into_iter)]
+	pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+		self.leaf_nodes.iter_mut()
+	}
+
+	#[must_use]
+	pub fn par_iter(&self) -> ParIter<'_, T> {
+		self.leaf_nodes.par_iter()
+	}
+
+	pub fn par_iter_mut(&mut self) -> ParIterMut<'_, T> {
+		self.leaf_nodes.par_iter_mut()
+	}
 }
 
 impl<T> Default for Bvh<T>
@@ -84,6 +118,88 @@ where
 {
 	fn default() -> Self {
 		Self::new()
+	}
+}
+
+impl<'a, T> IntoIterator for &'a Bvh<T>
+where
+	T: Bounded3D + Send + Sync,
+{
+	type IntoIter = Iter<'a, T>;
+	type Item = &'a T;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter()
+	}
+}
+
+impl<'a, T> IntoIterator for &'a mut Bvh<T>
+where
+	T: Bounded3D + Send + Sync,
+{
+	type IntoIter = IterMut<'a, T>;
+	type Item = &'a mut T;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.iter_mut()
+	}
+}
+
+impl<'a, T> IntoParallelIterator for &'a Bvh<T>
+where
+	T: Bounded3D + Send + Sync,
+{
+	type Item = &'a T;
+	type Iter = ParIter<'a, T>;
+
+	fn into_par_iter(self) -> Self::Iter {
+		self.par_iter()
+	}
+}
+
+impl<'a, T> IntoParallelIterator for &'a mut Bvh<T>
+where
+	T: Bounded3D + Send + Sync,
+{
+	type Item = &'a mut T;
+	type Iter = ParIterMut<'a, T>;
+
+	fn into_par_iter(self) -> Self::Iter {
+		self.par_iter_mut()
+	}
+}
+
+impl<O> SpatialIndex for Bvh<O>
+where
+	O: Bounded3D + Send + Sync,
+{
+	type Object = O;
+
+	fn query<T>(
+		&self,
+		mut collides: impl FnMut(Aabb<f64>) -> bool,
+		mut f: impl FnMut(&Self::Object) -> Option<T>,
+	) -> Option<T> {
+		query_rec(self.traverse()?, &mut collides, &mut f)
+	}
+
+	fn raycast(
+		&self,
+		origin: Vec3<f64>,
+		direction: Vec3<f64>,
+		mut f: impl FnMut(RaycastHit<'_, Self::Object, f64>) -> bool,
+	) -> Option<RaycastHit<'_, Self::Object, f64>> {
+		debug_assert!(
+			direction.is_normalized(),
+			"the ray direction must be normalized"
+		);
+
+		let root = self.traverse()?;
+		let (near, far) = ray_box_intersect(origin, direction, root.aabb())?;
+
+		let mut hit = None;
+		raycast_rec(root, &mut hit, near, far, origin, direction, &mut f);
+		hit
 	}
 }
 
@@ -295,4 +411,84 @@ fn partition<T>(s: &mut [T], mut pred: impl FnMut(&T) -> bool) -> usize {
 
 fn middle(a: f64, b: f64) -> f64 {
 	(a + b) / 2.0
+}
+
+fn query_rec<O: Bounded3D, T>(
+	node: Node<'_, O>,
+	collides: &mut impl FnMut(Aabb<f64>) -> bool,
+	f: &mut impl FnMut(&O) -> Option<T>,
+) -> Option<T> {
+	match node {
+		Node::Internal(int) => {
+			let (bb, left, right) = int.split();
+
+			if collides(bb) {
+				query_rec(left, collides, f).or_else(|| query_rec(right, collides, f))
+			} else {
+				None
+			}
+		}
+		Node::Leaf(leaf) => {
+			if collides(leaf.aabb()) {
+				f(leaf)
+			} else {
+				None
+			}
+		}
+	}
+}
+
+fn raycast_rec<'a, O: Bounded3D>(
+	node: Node<'a, O>,
+	hit: &mut Option<RaycastHit<'a, O>>,
+	near: f64,
+	far: f64,
+	origin: Vec3<f64>,
+	direction: Vec3<f64>,
+	f: &mut impl FnMut(RaycastHit<'a, O>) -> bool,
+) {
+	if let Some(hit) = hit {
+		if hit.near <= near {
+			return;
+		}
+	}
+
+	match node {
+		Node::Internal(int) => {
+			let (.., left, right) = int.split();
+
+			let int_left = ray_box_intersect(origin, direction, left.aabb());
+			let int_right = ray_box_intersect(origin, direction, right.aabb());
+
+			match (int_left, int_right) {
+				(Some((near_left, far_left)), Some((near_right, far_right))) => {
+					if near_left < near_right {
+						raycast_rec(left, hit, near_left, far_left, origin, direction, f);
+						raycast_rec(right, hit, near_right, far_right, origin, direction, f);
+					} else {
+						raycast_rec(right, hit, near_right, far_right, origin, direction, f);
+						raycast_rec(left, hit, near_left, far_left, origin, direction, f);
+					}
+				}
+				(Some((near, far)), None) => {
+					raycast_rec(left, hit, near, far, origin, direction, f);
+				}
+				(None, Some((near, far))) => {
+					raycast_rec(right, hit, near, far, origin, direction, f);
+				}
+				(None, None) => {}
+			}
+		}
+		Node::Leaf(leaf) => {
+			let this_hit = RaycastHit {
+				object: leaf,
+				near,
+				far,
+			};
+
+			if f(this_hit) {
+				*hit = Some(this_hit);
+			}
+		}
+	}
 }
