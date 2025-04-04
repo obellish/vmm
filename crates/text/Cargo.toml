@@ -12,7 +12,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 uuid = { workspace = true, features = ["serde"] }
 vmm_ident.workspace = true
-vmm_nbt = { path = "../nbt" }
+vmm_nbt.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true

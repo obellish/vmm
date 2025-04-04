@@ -584,7 +584,7 @@ pub fn build() -> Result<TokenStream> {
 	let prop_value_count = prop_values.len();
 
 	Ok(quote! {
-		use vmm_math::{Aabb, DVec3};
+		use ::vmm_math::{Aabb, DVec3};
 
 		#[doc = "Represents the state of a block. This does not include block entity data such as"]
 		#[doc = "the text on a sign, the design on a banner, or the content of a spawner."]

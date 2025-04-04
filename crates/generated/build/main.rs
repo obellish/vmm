@@ -7,12 +7,14 @@ mod sound;
 mod status_effects;
 
 use std::alloc::System;
+
 use anyhow::Result;
+use vmm_alloc::{AllocChain, SyncStalloc};
 use vmm_build_utils::write_generated_file;
-use vmm_alloc::{SyncStalloc, AllocChain};
 
 #[global_allocator]
-static ALLOC: AllocChain<'static, SyncStalloc<65534, 4>, System> = SyncStalloc::new().chain(&System);
+static ALLOC: AllocChain<'static, SyncStalloc<65534, 4>, System> =
+	SyncStalloc::new().chain(&System);
 
 fn main() -> Result<()> {
 	write_generated_file(self::attributes::build()?, "attributes.rs")?;

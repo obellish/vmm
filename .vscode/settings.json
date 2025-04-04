@@ -1,6 +1,6 @@
 {
     "rust-analyzer.showUnlinkedFileNotification": false,
-    "rust-analyzer.check.command": "clippy",
+    // "rust-analyzer.check.command": "clippy",
     "rust-analyzer.cargo.buildScripts.enable": false,
     "rust-analyzer.cargo.features": "all",
     "rust-analyzer.inlayHints.closureCaptureHints.enable": true,
@@ -55,8 +55,5 @@
     "evenBetterToml.formatter.arrayAutoExpand": true,
     "evenBetterToml.formatter.arrayAutoCollapse": true,
     "evenBetterToml.taplo.configFile.enabled": true,
-    "evenBetterToml.taplo.configFile.path": "talpo.toml",
-    "rust-analyzer.cargo.extraEnv": {
-        "RUSTFLAGS": "-Clinker=rust-lld.exe"
-    }
+    "evenBetterToml.taplo.configFile.path": "talpo.toml"
 }

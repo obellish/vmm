@@ -219,7 +219,7 @@ fn grow_realloc() {
 
 #[test]
 fn multiple_allocations_and_drops() {
-    let alloc = Stalloc::<16, 4>::new();
+	let alloc = Stalloc::<16, 4>::new();
 
 	let mut v1: Vec<u32, _> = Vec::with_capacity_in(2, &alloc);
 	let v2: Vec<u32, _> = Vec::with_capacity_in(5, &alloc);
@@ -240,7 +240,7 @@ fn multiple_allocations_and_drops() {
 
 #[test]
 fn simple_push() {
-    let alloc = Stalloc::<128, 4>::new();
+	let alloc = Stalloc::<128, 4>::new();
 
 	let mut v: Vec<u32, _> = Vec::new_in(&alloc);
 	for i in 0..128 {
@@ -251,7 +251,7 @@ fn simple_push() {
 
 #[test]
 fn boxes() {
-    let alloc = Stalloc::<128, 4>::new();
+	let alloc = Stalloc::<128, 4>::new();
 
 	for _ in 0..128 {
 		let b = Box::new_in(42, &alloc);
@@ -262,7 +262,7 @@ fn boxes() {
 
 #[test]
 fn self_referential() {
-    let alloc = Stalloc::<256, 16>::new();
+	let alloc = Stalloc::<256, 16>::new();
 
 	let mut boxes = Vec::with_capacity_in(128, &alloc);
 	for _ in 0..128 {
@@ -299,7 +299,7 @@ fn grow_from_1() {
 
 #[test]
 fn grow_and_free() {
-    let alloc = Stalloc::<4, 4>::new();
+	let alloc = Stalloc::<4, 4>::new();
 
 	let mut v1: Vec<u32, _> = Vec::with_capacity_in(1, &alloc);
 	let _v2: Vec<u32, _> = Vec::with_capacity_in(1, &alloc);
@@ -347,7 +347,7 @@ fn vec_and_growing_vec2() {
 
 #[test]
 fn small_alloc() {
-    let alloc = Stalloc::<3, 8>::new();
+	let alloc = Stalloc::<3, 8>::new();
 
 	let a = Box::new_in(0u8, &alloc);
 	let b = Box::new_in(0u16, &alloc);
@@ -362,7 +362,7 @@ fn small_alloc() {
 
 #[test]
 fn large_and_small_alloc() {
-    let alloc = Stalloc::<12, 4>::new();
+	let alloc = Stalloc::<12, 4>::new();
 
 	let a = Box::new_in(0u64, &alloc);
 	let b = Box::new_in(1u128, &alloc);
@@ -388,7 +388,7 @@ fn large_and_small_alloc() {
 
 #[test]
 fn boxes_vec_grow() {
-    let alloc = Stalloc::<12, 4>::new();
+	let alloc = Stalloc::<12, 4>::new();
 
 	let a = Box::new_in(MaybeUninit::<u32>::uninit(), &alloc);
 	let b = Box::new_in(5, &alloc);
@@ -401,7 +401,7 @@ fn boxes_vec_grow() {
 
 #[test]
 fn multiple_shrink() {
-    let alloc = Stalloc::<24, 4>::new();
+	let alloc = Stalloc::<24, 4>::new();
 
 	for i in 0..24 {
 		let mut v: Vec<i32, _> = Vec::with_capacity_in(24 - i, &alloc);
@@ -414,7 +414,7 @@ fn multiple_shrink() {
 
 #[test]
 fn zeroed() {
-    let alloc = Stalloc::<256, 4>::new();
+	let alloc = Stalloc::<256, 4>::new();
 
 	let mut v: Vec<i32, _> = Vec::with_capacity_in(256, &alloc);
 	v.extend_from_slice(&[0; 256]);
@@ -425,11 +425,11 @@ fn zeroed() {
 
 #[test]
 fn vec_capacity() {
-    let alloc = Stalloc::<1, 1024>::new();
+	let alloc = Stalloc::<1, 1024>::new();
 
-    let mut v: Vec<u8, _> = Vec::with_capacity_in(1, &alloc);
+	let mut v: Vec<u8, _> = Vec::with_capacity_in(1, &alloc);
 
-    for i in 0..1024u32 {
-        v.push(i as u8);
-    }
+	for i in 0..1024u32 {
+		v.push(i as u8);
+	}
 }
