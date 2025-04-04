@@ -3,6 +3,6 @@
 mod aabb;
 
 #[doc(inline)]
-pub use glam;
+pub use glam::*;
 
 pub use self::aabb::Aabb;

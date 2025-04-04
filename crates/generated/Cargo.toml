@@ -1,12 +1,12 @@
 lints.workspace = true
 
 [package]
+build = "build/main.rs"
 edition.workspace = true
 license.workspace = true
 name = "vmm_generated"
 rust-version.workspace = true
 version.workspace = true
-build = "build/main.rs"
 
 [dependencies]
 uuid.workspace = true
@@ -20,4 +20,5 @@ proc-macro2.workspace = true
 quote = "1"
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+vmm_alloc = { path = "../alloc" }
 vmm_build_utils = { path = "../build_utils" }

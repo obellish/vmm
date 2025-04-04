@@ -289,6 +289,10 @@ name = "vmm"
 version = "0.1.0"
 
 [[package]]
+name = "vmm_alloc"
+version = "0.1.0"
+
+[[package]]
 name = "vmm_build_utils"
 version = "0.1.0"
 dependencies = [
@@ -308,6 +312,7 @@ dependencies = [
  "serde",
  "serde_json",
  "uuid",
+ "vmm_alloc",
  "vmm_build_utils",
  "vmm_ident",
  "vmm_math",

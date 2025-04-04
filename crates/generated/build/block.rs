@@ -1,20 +1,20 @@
 use std::collections::BTreeSet;
 
 use anyhow::Result;
-use heck::{ToPascalCase as _, ToShoutySnakeCase as _};
+use heck::{ToPascalCase, ToShoutySnakeCase};
 use proc_macro2::TokenStream;
-use quote::{ToTokens as _, quote};
+use quote::{ToTokens, quote};
 use serde::Deserialize;
 use vmm_build_utils::{ident, rerun_if_changed};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 struct TopLevel {
 	blocks: Vec<Block>,
 	shapes: Vec<Shape>,
 	block_entity_types: Vec<BlockEntityKind>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 struct Block {
 	id: u16,
 	item_id: u16,
@@ -27,29 +27,29 @@ struct Block {
 }
 
 impl Block {
-	pub fn min_state_id(&self) -> u16 {
+	pub(crate) fn min_state_id(&self) -> u16 {
 		self.states.iter().map(|s| s.id).min().unwrap()
 	}
 
-	pub fn max_state_id(&self) -> u16 {
+	pub(crate) fn max_state_id(&self) -> u16 {
 		self.states.iter().map(|s| s.id).max().unwrap()
 	}
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 struct BlockEntityKind {
 	id: u32,
 	ident: String,
 	name: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 struct Property {
 	name: String,
 	values: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 struct State {
 	id: u16,
 	luminance: u8,
@@ -60,7 +60,7 @@ struct State {
 	block_entity_type: Option<u32>,
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
+#[derive(Deserialize, Clone, Debug)]
 struct Shape {
 	min_x: f64,
 	min_y: f64,
@@ -109,7 +109,6 @@ pub fn build() -> Result<TokenStream> {
 				}
 				quote!(#max_id).to_tokens(&mut token_stream);
 			}
-
 			quote!(=> BlockKind::#name,).to_tokens(&mut token_stream);
 			token_stream
 		})
@@ -118,16 +117,13 @@ pub fn build() -> Result<TokenStream> {
 	let state_to_luminance_arms = blocks
 		.iter()
 		.flat_map(|b| {
-			b.states
-				.iter()
-				.filter(|s| !matches!(s.luminance, 0))
-				.map(|s| {
-					let id = s.id;
-					let luminance = s.luminance;
-					quote! {
-						#id => #luminance,
-					}
-				})
+			b.states.iter().filter(|s| s.luminance != 0).map(|s| {
+				let id = s.id;
+				let luminance = s.luminance;
+				quote! {
+					#id => #luminance,
+				}
+			})
 		})
 		.collect::<TokenStream>();
 
@@ -167,20 +163,17 @@ pub fn build() -> Result<TokenStream> {
 		})
 		.collect::<TokenStream>();
 
-	let shapes = shapes.iter().copied().map(|s| {
-		let Shape {
-			min_x,
-			max_x,
-			max_y,
-			max_z,
-			min_y,
-			min_z,
-		} = s;
-
+	let shapes = shapes.iter().map(|s| {
+		let min_x = s.min_x;
+		let min_y = s.min_y;
+		let min_z = s.min_z;
+		let max_x = s.max_x;
+		let max_y = s.max_y;
+		let max_z = s.max_z;
 		quote! {
 			Aabb::new_unchecked(
 				DVec3::new(#min_x, #min_y, #min_z),
-				DVec3::new(#max_x, #max_y, #max_z)
+				DVec3::new(#max_x, #max_y, #max_z),
 			)
 		}
 	});
@@ -212,13 +205,13 @@ pub fn build() -> Result<TokenStream> {
 				.map(|p| {
 					let prop_name = ident(p.name.to_pascal_case());
 					let min_state_id = b.min_state_id();
-					let product = b
+					let product: u16 = b
 						.properties
 						.iter()
 						.rev()
 						.take_while(|&other| p.name != other.name)
 						.map(|p| p.values.len() as u16)
-						.product::<u16>();
+						.product();
 
 					let values_count = p.values.len() as u16;
 
@@ -230,25 +223,25 @@ pub fn build() -> Result<TokenStream> {
 							let value_idx = i as u16;
 							let value_name = ident(v.to_pascal_case());
 							quote! {
-								#value_idx => Some(PropValue::#value_name)
+								#value_idx => Some(PropValue::#value_name),
 							}
 						})
 						.collect::<TokenStream>();
 
 					quote! {
 						PropName::#prop_name => match (self.0 - #min_state_id) / #product % #values_count {
-							#arms,
+							#arms
 							_ => unreachable!(),
-						}
+						},
 					}
 				})
 				.collect::<TokenStream>();
 
 			quote! {
 				BlockKind::#block_kind_name => match name {
-					#arms,
+					#arms
 					_ => None,
-				}
+				},
 			}
 		})
 		.collect::<TokenStream>();
@@ -591,7 +584,7 @@ pub fn build() -> Result<TokenStream> {
 	let prop_value_count = prop_values.len();
 
 	Ok(quote! {
-		use ::vmm_math::{Aabb, DVec3};
+		use vmm_math::{Aabb, DVec3};
 
 		#[doc = "Represents the state of a block. This does not include block entity data such as"]
 		#[doc = "the text on a sign, the design on a banner, or the content of a spawner."]

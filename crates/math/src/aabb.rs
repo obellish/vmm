@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub};
 
-use super::glam::DVec3;
+use super::DVec3;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq)]
 pub struct Aabb {
