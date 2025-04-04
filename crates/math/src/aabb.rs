@@ -149,7 +149,7 @@ impl Sub<Aabb> for DVec3 {
 #[cfg(test)]
 mod tests {
 	use super::Aabb;
-	use crate::glam::DVec3;
+	use crate::DVec3;
 
 	#[test]
 	fn ray_intersect_edge_cases() {
