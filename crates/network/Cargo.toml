@@ -1,0 +1,17 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_network"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+bitvec = "1"
+byteorder = "1"
+flate2 = "1"
+hematite-nbt.workspace = true
+serde.workspace = true
+tracing = "0.1"
+vmm_text = { path = "../text" }
