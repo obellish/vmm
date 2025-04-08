@@ -5,7 +5,7 @@
     "rust-analyzer.cargo.features": "all",
     "rust-analyzer.inlayHints.closureCaptureHints.enable": true,
     "rust-analyzer.inlayHints.closureReturnTypeHints.enable": "always",
-    "rust-analyzer.inlayHints.implicitDrops.enable": true,
+    "rust-analyzer.inlayHints.implicitDrops.enable": false,
     "rust-analyzer.inlayHints.discriminantHints.enable": "always",
     "rust-analyzer.inlayHints.expressionAdjustmentHints.enable": "always",
     "rust-analyzer.hover.memoryLayout.alignment": "both",
