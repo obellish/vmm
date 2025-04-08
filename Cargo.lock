@@ -270,6 +270,14 @@ name = "vmm_alloc"
 version = "0.1.0"
 
 [[package]]
+name = "vmm_blocks"
+version = "0.1.0"
+dependencies = [
+ "hematite-nbt",
+ "serde",
+]
+
+[[package]]
 name = "vmm_core"
 version = "0.1.0"
 

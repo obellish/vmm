@@ -10,7 +10,7 @@ version.workspace = true
 [dependencies]
 
 [workspace]
-members = ["crates/alloc", "crates/core", "crates/network", "crates/text", "crates/utils"]
+members = ["crates/alloc", "crates/blocks", "crates/core", "crates/network", "crates/text", "crates/utils"]
 resolver = "3"
 
 [workspace.dependencies]

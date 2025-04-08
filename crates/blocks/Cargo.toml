@@ -1,0 +1,12 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_blocks"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+hematite-nbt.workspace = true
+serde = { workspace = true, features = ["derive"] }
