@@ -10,12 +10,23 @@ version.workspace = true
 [dependencies]
 
 [workspace]
-members = ["crates/alloc", "crates/blocks", "crates/core", "crates/network", "crates/text", "crates/utils"]
+members = [
+    "crates/alloc",
+    "crates/blocks",
+    "crates/core", "crates/derive",
+    "crates/network",
+    "crates/redpiler",
+    "crates/redpiler_graph",
+    "crates/text",
+    "crates/utils"
+]
 resolver = "3"
 
 [workspace.dependencies]
 hematite-nbt = { git = "https://github.com/StackDoubleFlow/hematite_nbt" }
 serde = "1"
+serde_json = "1"
+tracing = "0.1"
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"

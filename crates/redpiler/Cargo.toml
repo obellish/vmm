@@ -3,15 +3,15 @@ lints.workspace = true
 [package]
 edition.workspace = true
 license.workspace = true
-name = "vmm_network"
+name = "vmm_redpiler"
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bitvec = "1"
-byteorder = "1"
-flate2 = "1"
-hematite-nbt.workspace = true
-serde.workspace = true
+vmm_redpiler_graph = { path = "../redpiler_graph" }
+serde_json.workspace = true
 tracing.workspace = true
-vmm_text = { path = "../text" }
+petgraph = "0.8"
+itertools = "0.14"
+rustc-hash = "2"
+parking_lot = "0.12"

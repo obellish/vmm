@@ -10,3 +10,4 @@ version.workspace = true
 [dependencies]
 hematite-nbt.workspace = true
 serde = { workspace = true, features = ["derive"] }
+vmm_derive = { path = "../derive" }

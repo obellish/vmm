@@ -1,5 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 
+extern crate self as vmm_blocks;
+
 pub mod blocks;
 pub mod items;
 
@@ -12,6 +14,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+pub use vmm_derive::BlockProperty;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct BlockPos {
@@ -236,15 +239,32 @@ impl BlockProperty for BlockColorVariant {
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[repr(u32)]
 pub enum BlockDirection {
 	North,
 	South,
-	East,
 	#[default]
 	West,
+	East,
 }
 
 impl BlockDirection {
+	#[must_use]
+	pub const fn from_id(id: u32) -> Option<Self> {
+		Some(match id {
+			0 => Self::North,
+			1 => Self::South,
+			2 => Self::West,
+			3 => Self::East,
+			_ => return None,
+		})
+	}
+
+	#[must_use]
+	pub const fn id(self) -> u32 {
+		self as u32
+	}
+
 	#[must_use]
 	pub const fn rotate_cw(self) -> Self {
 		match self {
