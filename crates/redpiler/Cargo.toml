@@ -13,5 +13,5 @@ serde_json.workspace = true
 tracing.workspace = true
 petgraph = "0.8"
 itertools = "0.14"
-rustc-hash = "2"
+rustc-hash.workspace = true
 parking_lot = "0.12"

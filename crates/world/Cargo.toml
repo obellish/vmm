@@ -1,0 +1,19 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_world"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+hematite-nbt.workspace = true
+rustc-hash.workspace = true
+serde = { workspace = true, features = ["derive"] }
+vmm_blocks = { path = "../blocks" }
+vmm_network = { path = "../network", optional = true }
+
+[features]
+default = ["networking"]
+networking = ["dep:vmm_network"]

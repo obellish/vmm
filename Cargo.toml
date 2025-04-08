@@ -13,17 +13,20 @@ version.workspace = true
 members = [
     "crates/alloc",
     "crates/blocks",
-    "crates/core", "crates/derive",
+    "crates/core",
+    "crates/derive",
     "crates/network",
     "crates/redpiler",
     "crates/redpiler_graph",
     "crates/text",
-    "crates/utils"
+    "crates/utils",
+    "crates/world"
 ]
 resolver = "3"
 
 [workspace.dependencies]
 hematite-nbt = { git = "https://github.com/StackDoubleFlow/hematite_nbt" }
+rustc-hash = "2"
 serde = "1"
 serde_json = "1"
 tracing = "0.1"

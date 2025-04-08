@@ -499,6 +499,17 @@ name = "vmm_utils"
 version = "0.1.0"
 
 [[package]]
+name = "vmm_world"
+version = "0.1.0"
+dependencies = [
+ "hematite-nbt",
+ "rustc-hash",
+ "serde",
+ "vmm_blocks",
+ "vmm_network",
+]
+
+[[package]]
 name = "windows-targets"
 version = "0.52.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
