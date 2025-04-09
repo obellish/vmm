@@ -11,4 +11,4 @@ version.workspace = true
 rustc-hash.workspace = true
 tracing.workspace = true
 vmm_blocks.workspace = true
-vmm_world = { path = "../world" }
+vmm_world.workspace = true

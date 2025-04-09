@@ -8,10 +8,14 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-vmm_redpiler_graph = { path = "../redpiler_graph" }
+itertools = "0.14"
+parking_lot = "0.12"
+petgraph = "0.8"
+rustc-hash.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
-petgraph = "0.8"
-itertools = "0.14"
-rustc-hash.workspace = true
-parking_lot = "0.12"
+vmm_blocks.workspace = true
+vmm_redpiler_graph = { path = "../redpiler_graph" }
+vmm_redstone = { path = "../redstone" }
+vmm_world.workspace = true
+enum_dispatch = "0.3"
