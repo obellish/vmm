@@ -11,7 +11,7 @@ version.workspace = true
 hematite-nbt.workspace = true
 rustc-hash.workspace = true
 serde = { workspace = true, features = ["derive"] }
-vmm_blocks = { path = "../blocks" }
+vmm_blocks.workspace = true
 vmm_network = { path = "../network", optional = true }
 
 [features]

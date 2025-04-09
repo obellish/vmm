@@ -18,6 +18,7 @@ members = [
     "crates/network",
     "crates/redpiler",
     "crates/redpiler_graph",
+    "crates/redstone",
     "crates/text",
     "crates/utils",
     "crates/world"
@@ -30,6 +31,7 @@ rustc-hash = "2"
 serde = "1"
 serde_json = "1"
 tracing = "0.1"
+vmm_blocks = { path = "crates/blocks" }
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"

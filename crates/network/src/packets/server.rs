@@ -1,4 +1,4 @@
-use std::{char::decode_utf16, fmt::Debug};
+use std::fmt::Debug;
 
 use super::{DecodeResult, PacketDecoderExt, PlayerProperty, SlotData};
 

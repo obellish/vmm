@@ -7,7 +7,6 @@ use std::{
 	error::Error as StdError,
 	fmt::{Display, Formatter, Result as FmtResult},
 	io::{self, Cursor, Read, Write},
-	net::TcpStream,
 	sync::{
 		Arc,
 		atomic::{AtomicBool, Ordering},
@@ -15,8 +14,8 @@ use std::{
 };
 
 use byteorder::{BigEndian, ReadBytesExt as _, WriteBytesExt as _};
-use flate2::{Compression, bufread::ZlibDecoder, read, write::ZlibEncoder};
-use serde::{Deserialize, Serialize};
+use flate2::{Compression, bufread::ZlibDecoder, write::ZlibEncoder};
+use serde::Serialize;
 use tracing::{error, trace};
 use vmm_text::TextComponent;
 

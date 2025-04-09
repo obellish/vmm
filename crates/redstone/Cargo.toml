@@ -1,0 +1,14 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_redstone"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+rustc-hash.workspace = true
+tracing.workspace = true
+vmm_blocks.workspace = true
+vmm_world = { path = "../world" }

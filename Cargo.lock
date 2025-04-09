@@ -485,6 +485,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "vmm_redstone"
+version = "0.1.0"
+dependencies = [
+ "rustc-hash",
+ "tracing",
+ "vmm_blocks",
+ "vmm_world",
+]
+
+[[package]]
 name = "vmm_text"
 version = "0.1.0"
 dependencies = [
