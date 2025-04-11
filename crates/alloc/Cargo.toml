@@ -11,3 +11,15 @@ version.workspace = true
 default = ["std"]
 nightly = []
 std = []
+
+[[example]]
+name = "local_alloc"
+required-features = ["nightly"]
+
+[[example]]
+name = "local_string"
+required-features = ["nightly"]
+
+[[example]]
+name = "threaded"
+required-features = ["nightly", "std"]
