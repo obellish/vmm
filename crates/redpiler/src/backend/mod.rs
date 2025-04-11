@@ -6,6 +6,7 @@ use enum_dispatch::enum_dispatch;
 use vmm_blocks::BlockPos;
 use vmm_world::{TickEntry, World};
 
+use self::direct::DirectBackend;
 use super::{CompilerOptions, TaskMonitor, compile_graph::CompileGraph};
 
 #[enum_dispatch]
@@ -35,6 +36,7 @@ pub trait JitBackend {
 	}
 }
 
+#[enum_dispatch(JitBackend)]
 pub enum BackendDispatcher {
 	DirectBackend,
 }

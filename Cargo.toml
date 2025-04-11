@@ -18,7 +18,7 @@ members = [
     "crates/network",
     "crates/redpiler",
     "crates/redpiler_graph",
-    "crates/redstone",
+    "crates/redstone", "crates/save_data",
     "crates/text",
     "crates/utils",
     "crates/world"

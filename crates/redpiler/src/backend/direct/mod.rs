@@ -4,6 +4,7 @@ mod tick;
 mod update;
 
 use std::{
+	borrow::Cow,
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	mem,
 	sync::Arc,
@@ -85,6 +86,70 @@ impl DirectBackend {
 	}
 }
 
+impl Display for DirectBackend {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.write_str("digraph {\n")?;
+
+		for (id, node) in self.nodes.inner().iter().enumerate() {
+			if matches!(node.ty, NodeType::Wire) {
+				continue;
+			}
+
+			let label = match node.ty {
+				NodeType::Repeater { delay, .. } => Cow::Owned(format!("Repeater({delay})")),
+				NodeType::Torch => Cow::Borrowed("Torch"),
+				NodeType::Comparator { mode, .. } => Cow::Owned(format!(
+					"Comparator({})",
+					match mode {
+						ComparatorMode::Compare => "Cmp",
+						ComparatorMode::Subtract => "Sub",
+					}
+				)),
+				NodeType::Lamp => Cow::Borrowed("Lamp"),
+				NodeType::Button => Cow::Borrowed("Button"),
+				NodeType::Lever => Cow::Borrowed("Lever"),
+				NodeType::PressurePlate => Cow::Borrowed("PressurePlate"),
+				NodeType::Trapdoor => Cow::Borrowed("Trapdoor"),
+				NodeType::Wire => Cow::Borrowed("Wire"),
+				NodeType::Constant => Cow::Owned(format!("Constant({})", node.output_power)),
+				NodeType::NoteBlock { .. } => Cow::Borrowed("NoteBlock"),
+			};
+
+			let pos = if let Some((pos, _)) = self.blocks[id] {
+				Cow::Owned(format!("{}, {}, {}", pos.x, pos.y, pos.z))
+			} else {
+				Cow::Borrowed("No Pos")
+			};
+
+			f.write_str("    n")?;
+			Display::fmt(&id, f)?;
+			f.write_str(" [ label = \"")?;
+			f.write_str(&label)?;
+			f.write_str("\\n(")?;
+			f.write_str(&pos)?;
+			f.write_str("\" ];\n")?;
+
+			for link in &node.updates {
+				let out_index = link.node().index();
+				let distance = link.signal_strength();
+				let color = if link.side() { ",color=\"blue\"" } else { "" };
+
+				f.write_str("    n")?;
+				Display::fmt(&id, f)?;
+				f.write_str(" -> n")?;
+				Display::fmt(&out_index, f)?;
+				f.write_str(" [ label = \"")?;
+				Display::fmt(&distance, f)?;
+				f.write_str("\"")?;
+				f.write_str(color)?;
+				f.write_str(" ];\n")?;
+			}
+		}
+
+		f.write_char('}')
+	}
+}
+
 impl JitBackend for DirectBackend {
 	fn inspect(&mut self, pos: BlockPos) {
 		let Some(node_id) = self.pos_map.get(&pos) else {
@@ -93,6 +158,123 @@ impl JitBackend for DirectBackend {
 		};
 
 		debug!("Node {node_id:?}: {:#?}", self.nodes[*node_id]);
+	}
+
+	fn reset<W: World>(&mut self, world: &mut W, io_only: bool) {
+		self.scheduler.reset(world, &self.blocks);
+
+		let nodes = std::mem::take(&mut self.nodes);
+
+		for (i, node) in nodes.into_inner().iter().enumerate() {
+			let Some((pos, block)) = self.blocks[i] else {
+				continue;
+			};
+
+			if matches!(node.ty, NodeType::Comparator { .. }) {
+				let block_entity = BlockEntity::Comparator {
+					output_strength: node.output_power,
+				};
+				world.set_block_entity(pos, block_entity);
+			}
+
+			if io_only && !node.is_io {
+				world.set_block(pos, block);
+			}
+		}
+
+		self.pos_map.clear();
+		self.noteblock_info.clear();
+		self.events.clear();
+	}
+
+	fn on_use_block(&mut self, pos: BlockPos) {
+		let node_id = self.pos_map[&pos];
+		let node = &self.nodes[node_id];
+		match node.ty {
+			NodeType::Button => {
+				if node.powered {
+					return;
+				}
+
+				self.schedule_tick(node_id, 10, TickPriority::Normal);
+				self.set_node(node_id, true, 15);
+			}
+			NodeType::Lever => self.set_node(
+				node_id,
+				!node.powered,
+				bool_to_signal_strength(!node.powered),
+			),
+			_ => warn!("tried to use a {:?} redpiler node", node.ty),
+		}
+	}
+
+	fn set_pressure_plate(&mut self, pos: BlockPos, powered: bool) {
+		let node_id = self.pos_map[&pos];
+		let node = &self.nodes[node_id];
+		if matches!(node.ty, NodeType::PressurePlate) {
+			self.set_node(node_id, powered, bool_to_signal_strength(powered));
+		} else {
+			warn!("tried to set pressure plate state for a {:?}", node.ty);
+		}
+	}
+
+	fn tick(&mut self) {
+		let mut queues = self.scheduler.queues_this_tick();
+
+		for node_id in queues.drain_iter() {
+			self.tick_node(node_id);
+		}
+
+		self.scheduler.end_tick(queues);
+	}
+
+	fn flush<W: World>(&mut self, world: &mut W, io_only: bool) {
+		for event in self.events.drain(..) {
+			match event {
+				Event::NoteBlockPlay { noteblock_id } => {
+					let (pos, instrument, note) = self.noteblock_info[noteblock_id as usize];
+					noteblock::play_note(world, pos, instrument, note);
+				}
+			}
+		}
+
+		for (i, node) in self.nodes.inner_mut().iter_mut().enumerate() {
+			let Some((pos, block)) = &mut self.blocks[i] else {
+				continue;
+			};
+
+			if node.changed && (!io_only || node.is_io) {
+				if let Some(powered) = block_powered_mut(block) {
+					*powered = node.powered;
+				}
+
+				if let Block::RedstoneWire { wire, .. } = block {
+					wire.power = node.output_power;
+				}
+
+				if let Block::RedstoneRepeater { repeater } = block {
+					repeater.locked = node.locked;
+				}
+
+				world.set_block(*pos, *block);
+			}
+
+			node.changed = false;
+		}
+	}
+
+	fn compile(
+		&mut self,
+		graph: CompileGraph,
+		ticks: Vec<TickEntry>,
+		options: CompilerOptions,
+		monitor: Arc<TaskMonitor>,
+	) {
+		self::compile::compile(self, graph, ticks, options, monitor);
+	}
+
+	fn has_pending_ticks(&self) -> bool {
+		self.scheduler.has_pending_ticks()
 	}
 }
 

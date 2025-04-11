@@ -58,12 +58,12 @@ pub enum NodeType {
 	Comparator(ComparatorMode),
 	Lamp,
 	Button,
-	LEver,
+	Lever,
 	PressurePlate,
 	Trapdoor,
 	Wire,
 	Constant,
-	NodeBlock,
+	NoteBlock,
 }
 
 pub fn serialize(nodes: &[Node]) -> Result<Vec<u8>> {

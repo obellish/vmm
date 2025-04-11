@@ -8,6 +8,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+enum_dispatch = "0.3"
 itertools = "0.14"
 parking_lot = "0.12"
 petgraph = "0.8"
@@ -18,4 +19,3 @@ vmm_blocks.workspace = true
 vmm_redpiler_graph = { path = "../redpiler_graph" }
 vmm_redstone = { path = "../redstone" }
 vmm_world.workspace = true
-enum_dispatch = "0.3"

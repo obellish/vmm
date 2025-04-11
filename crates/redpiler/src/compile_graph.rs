@@ -1,4 +1,4 @@
-use petgraph::stable_graph::{NodeIndex, StableGraph};
+use petgraph::stable_graph::StableGraph;
 use vmm_blocks::{
 	BlockPos,
 	blocks::{ComparatorMode, Instrument},
