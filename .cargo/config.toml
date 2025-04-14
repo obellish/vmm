@@ -2,8 +2,8 @@
 rustdocflags = ["--cfg", "docsrs", "--show-type-layout", "-Z", "unstable-options"]
 
 [alias]
-mutate = "mutants --test-tool=nextest -v -V"
-remutate = "mutants --test-tool=nextest -v -V --iterate"
+mutate = "mutants --test-tool=nextest -v -V --all-features"
+remutate = "mutants --test-tool=nextest -v -V --iterate --all-features"
 coverage = "tarpaulin"
 feature-check = "hack check --feature-powerset --no-dev-deps"
 full-doc = "doc --keep-going --all-features -Zrustdoc-map -Zrustdoc-scrape-examples"
