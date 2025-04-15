@@ -8,8 +8,12 @@ extern crate std;
 
 pub mod graph;
 mod graph_impl;
+mod iter_format;
+mod iter_utils;
 pub mod unionfind;
 mod util;
+#[macro_use]
+pub mod visit;
 
 use core::ops::Not;
 
