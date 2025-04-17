@@ -3,6 +3,7 @@ use core::alloc::Allocator;
 use core::{
 	alloc::{GlobalAlloc, Layout},
 	fmt::{Debug, Formatter, Result as FmtResult},
+	marker::PhantomData,
 	ops::Deref,
 	ptr::NonNull,
 };
@@ -74,6 +75,7 @@ where
 		StallocGuard {
 			_guard: unsafe { self.0.lock().unwrap_unchecked() },
 			inner: &self.1,
+			phantom: PhantomData,
 		}
 	}
 
@@ -190,6 +192,7 @@ where
 {
 	_guard: MutexGuard<'a, ()>,
 	inner: &'a UnsafeStalloc<L, B>,
+	phantom: PhantomData<*const ()>,
 }
 
 impl<const L: usize, const B: usize> Deref for StallocGuard<'_, L, B>

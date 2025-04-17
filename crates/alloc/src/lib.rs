@@ -20,7 +20,7 @@ use core::{
 };
 use core::{
 	cell::UnsafeCell,
-	fmt::{Debug, Display, Formatter, Result as FmtResult},
+	fmt::{Debug, Display, Formatter, Result as FmtResult, Write as _},
 	hint::assert_unchecked,
 	mem::MaybeUninit,
 	ptr::NonNull,
@@ -54,7 +54,7 @@ where
 		assert!(B >= 4, "block size must be at least 4 bytes");
 
 		let mut blocks = [Block {
-			bytes: [MaybeUninit::uninit(); B],
+			bytes: const { [MaybeUninit::uninit(); B] },
 		}; L];
 
 		blocks[0].header = Header {
@@ -535,11 +535,16 @@ where
 				Display::fmt(&idx, f)?;
 				f.write_str(": ")?;
 				Display::fmt(&length, f)?;
-				if matches!(length, 1) {
-					f.write_str(" free block")?;
-				} else {
-					f.write_str("free blocks")?;
+				f.write_str(" free block")?;
+
+				if length > 1 {
+					f.write_char('s')?;
 				}
+				// if matches!(length, 1) {
+				// 	f.write_str(" free block")?;
+				// } else {
+				// 	f.write_str(" free blocks")?;
+				// }
 
 				if matches!((*ptr).next, 0) {
 					return Ok(());
