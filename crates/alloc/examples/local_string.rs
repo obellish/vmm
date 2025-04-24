@@ -21,7 +21,7 @@ fn main() {
 			s.deallocate_blocks(NonNull::new_unchecked(message.as_mut_ptr()), 50);
 		}
 
-        mem::forget(message);
+		mem::forget(message);
 	}
 
 	println!("Elapsed: {}ms", start.elapsed().as_millis());
