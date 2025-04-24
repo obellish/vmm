@@ -1,4 +1,6 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
+#![allow(clippy::uninhabited_references)]
+#![expect(unused)]
 
 mod chunk;
 mod compiler;

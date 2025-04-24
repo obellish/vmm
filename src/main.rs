@@ -1,13 +1,16 @@
-use std::{alloc::System, path::PathBuf};
+#![expect(unused)]
+
+use std::{alloc::System, fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::{
 	Section,
 	eyre::{Report, Result},
 };
+use serde::Serialize;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{Chunk, OpCode, Vm};
+use vmm::{Chunk, CompileError, Compiler, OpCode, Scanner, Vm};
 use vmm_alloc::{AllocChain, UnsafeStalloc};
 
 #[global_allocator]
@@ -22,31 +25,28 @@ fn main() -> Result<()> {
 
 	let file_content = read_file(args)?;
 
-	let mut c = Chunk::new();
-	let mut constant = c.push_constant(1.2);
-	c.push(OpCode::Constant(constant), 123);
+	let scanner = Scanner::new(&file_content);
 
-	constant = c.push_constant(3.4);
-	c.push(OpCode::Constant(constant), 123);
+	let compiler = scanner.collect::<Result<Compiler, CompileError>>()?;
 
-	c.push(OpCode::Add, 123);
+	write_state(&compiler, "compiler")?;
 
-	constant = c.push_constant(5.6);
+	let chunk = compiler.compile()?;
 
-	c.push(OpCode::Constant(constant), 123);
+	write_state(&chunk, "chunk")?;
 
-	c.push(OpCode::Divide, 123);
-	c.push(OpCode::Negate, 123);
+	let mut vm = Vm::with_chunk(chunk);
 
-	c.push(OpCode::Return, 123);
+	write_state(&vm, "vm")?;
 
-	let mut vm = Vm::with_chunk(c);
-
-	vm.interpret(file_content)?;
-
-	println!("{vm:?}");
+	vm.interpret()?;
 
 	Ok(())
+}
+
+#[derive(Debug, Parser)]
+struct Args {
+	pub file: PathBuf,
 }
 
 fn install_tracing() {
@@ -63,8 +63,8 @@ fn install_tracing() {
 }
 
 #[tracing::instrument]
-fn read_file(args: Args) -> Result<String, Report> {
-	std::fs::read_to_string(args.file).map_err(|e| {
+fn read_file(args: Args) -> Result<String> {
+	fs::read_to_string(args.file).map_err(|e| {
 		let report: Report = e.into();
 
 		report
@@ -73,7 +73,19 @@ fn read_file(args: Args) -> Result<String, Report> {
 	})
 }
 
-#[derive(Debug, Parser)]
-struct Args {
-	pub file: PathBuf,
+#[tracing::instrument]
+fn write_state<S>(s: &S, file_name: &str) -> Result<()>
+where
+	S: Debug + Serialize,
+{
+	fs::create_dir_all("./out")?;
+
+	fs::write(
+		format!("./out/{file_name}.json"),
+		serde_json::to_string_pretty(s)?,
+	)?;
+
+	println!("{file_name}: {s:?}");
+
+	Ok(())
 }

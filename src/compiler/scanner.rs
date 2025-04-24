@@ -1,19 +1,24 @@
-use serde::{Deserialize, Serialize};
+use logos::{Lexer, Logos, Span, SpannedIter};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Scanner {
-	source: String,
-	current: usize,
-	line: usize,
+use super::{CompileError, Token};
+
+pub struct Scanner<'source> {
+	inner: SpannedIter<'source, Token>,
 }
 
-impl Scanner {
-    #[must_use]
-	pub const fn new(source: String) -> Self {
+impl<'source> Scanner<'source> {
+	#[must_use]
+	pub fn new(content: &'source str) -> Self {
 		Self {
-			source,
-			current: 0,
-			line: 0,
+			inner: Token::lexer(content).spanned(),
 		}
+	}
+}
+
+impl Iterator for Scanner<'_> {
+	type Item = Result<(Token, Span), CompileError>;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		self.inner.next().map(|(res, span)| Ok((res?, span)))
 	}
 }

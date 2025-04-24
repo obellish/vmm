@@ -6,10 +6,9 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use vmm_serde_array::BigArray;
 
 pub use self::stack::Stack;
-use super::{Chunk, Compiler, OpCode, Value};
+use super::{Chunk, CompileError, Compiler, OpCode, Value};
 
 const STACK_MAX: usize = 256;
 
@@ -51,9 +50,7 @@ impl Vm {
 	}
 
 	#[tracing::instrument]
-	pub fn interpret(&mut self, source: String) -> InterpretResult {
-		let compiler = Compiler::new(source);
-
+	pub fn interpret(&mut self) -> InterpretResult {
 		let Some(chunk) = self.current_chunk.take() else {
 			return Err(InterpretError::NoChunkProvided.into());
 		};
@@ -121,17 +118,6 @@ impl Display for RuntimeError {
 }
 
 impl StdError for RuntimeError {}
-
-#[derive(Debug)]
-pub enum CompileError {}
-
-impl Display for CompileError {
-	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-		match *self {}
-	}
-}
-
-impl StdError for CompileError {}
 
 #[derive(Debug)]
 pub enum InterpretError {
