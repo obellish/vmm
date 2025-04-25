@@ -13,7 +13,6 @@ use super::{OpCode, Value};
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Chunk {
 	code: Vec<OpCode>,
-	lines: Vec<usize>,
 	constants: Vec<Value>,
 }
 
@@ -22,14 +21,12 @@ impl Chunk {
 	pub const fn new() -> Self {
 		Self {
 			code: Vec::new(),
-			lines: Vec::new(),
 			constants: Vec::new(),
 		}
 	}
 
-	pub fn push(&mut self, code: OpCode, line: usize) {
+	pub fn push(&mut self, code: OpCode) {
 		self.code.push(code);
-		self.lines.push(line);
 	}
 
 	pub fn push_constant(&mut self, value: Value) -> usize {

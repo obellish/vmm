@@ -22,11 +22,11 @@ impl Stack {
 
 	pub const fn push(&mut self, value: Value) {
 		self.inner[self.pointer] = value;
-		self.pointer += 1;
+		self.pointer = self.pointer.saturating_add(1);
 	}
 
 	pub const fn pop(&mut self) -> Value {
-		self.pointer -= 1;
+		self.pointer = self.pointer.saturating_sub(1);
 		self.inner[self.pointer]
 	}
 }

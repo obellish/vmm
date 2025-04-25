@@ -3,7 +3,6 @@ use std::fmt::{Debug, Formatter, Result as FmtResult, Write as _};
 use super::Chunk;
 use crate::{OpCode, Value};
 
-#[expect(clippy::missing_fields_in_debug)]
 impl Debug for Chunk {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		let mut fmt = f.debug_struct("Chunk");

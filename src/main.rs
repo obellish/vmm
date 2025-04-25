@@ -7,6 +7,7 @@ use color_eyre::{
 	Section,
 	eyre::{Report, Result},
 };
+use ron::ser::PrettyConfig;
 use serde::Serialize;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
@@ -83,6 +84,16 @@ where
 	fs::write(
 		format!("./out/{file_name}.json"),
 		serde_json::to_string_pretty(s)?,
+	)?;
+
+	fs::write(
+		format!("./out/{file_name}.toml"),
+		toml::to_string_pretty(s)?,
+	)?;
+
+	fs::write(
+		format!("./out/{file_name}.ron"),
+		ron::ser::to_string_pretty(s, PrettyConfig::new())?,
 	)?;
 
 	println!("{file_name}: {s:?}");
