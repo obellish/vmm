@@ -1,6 +1,6 @@
-use vmm_serde_array::BigArray;
-use serde::{Deserialize, Serialize};
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use vmm_serde_array::BigArray;
 
 const NUMBER: usize = 127;
 
@@ -8,17 +8,17 @@ const NUMBER: usize = 127;
 #[repr(transparent)]
 #[serde(transparent)]
 struct S {
-    #[serde(with = "BigArray")]
-    arr: [u8; NUMBER]
+	#[serde(with = "BigArray")]
+	arr: [u8; NUMBER],
 }
 
 #[test]
-fn works() -> Result<()>{
-    let s = S {arr: [1; NUMBER]};
-    let v = serde_value::to_value(&s)?;
-    let s_back = v.deserialize_into::<S>()?;
+fn works() -> Result<()> {
+	let s = S { arr: [1; NUMBER] };
+	let v = serde_value::to_value(&s)?;
+	let s_back = v.deserialize_into::<S>()?;
 
-    assert_eq!(&s.arr[..], &s_back.arr[..]);
+	assert_eq!(&s.arr[..], &s_back.arr[..]);
 
-    Ok(())
+	Ok(())
 }

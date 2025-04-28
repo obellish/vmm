@@ -36,13 +36,13 @@ struct D {
 
 #[test]
 fn works() -> Result<()> {
-    let s = S {
-        arr: [SerOnly(1); 64]
-    };
+	let s = S {
+		arr: [SerOnly(1); 64],
+	};
 
-    let v = serde_value::to_value(&s)?;
-    let s_back = v.deserialize_into::<D>()?;
-    assert_eq!(&s.arr[..], &s_back.arr[..]);
+	let v = serde_value::to_value(&s)?;
+	let s_back = v.deserialize_into::<D>()?;
+	assert_eq!(&s.arr[..], &s_back.arr[..]);
 
-    Ok(())
+	Ok(())
 }

@@ -2,22 +2,9 @@
 #![allow(clippy::uninhabited_references)]
 #![expect(unused)]
 
-mod chunk;
-mod compiler;
-mod value;
-mod vm;
+mod instr;
+mod optimizer;
+mod scanner;
+mod unit;
 
-use serde::{Deserialize, Serialize};
-
-pub use self::{chunk::*, compiler::*, value::*, vm::*};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum OpCode {
-	Constant(usize), // pointer to where it lives within the constant array
-	Negate,
-	Return,
-	Add,
-	Subtract,
-	Multiply,
-	Divide,
-}
+pub use self::{instr::*, optimizer::*, scanner::*, unit::*};

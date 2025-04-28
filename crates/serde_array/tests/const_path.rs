@@ -16,13 +16,13 @@ struct S {
 
 #[test]
 fn works() -> Result<()> {
-    let s = S {
-        arr: [1; module::NUMBER]
-    };
+	let s = S {
+		arr: [1; module::NUMBER],
+	};
 
-    let v = serde_value::to_value(&s)?;
-    let s_back = v.deserialize_into::<S>()?;
-    assert_eq!(&s.arr[..], &s_back.arr[..]);
+	let v = serde_value::to_value(&s)?;
+	let s_back = v.deserialize_into::<S>()?;
+	assert_eq!(&s.arr[..], &s_back.arr[..]);
 
-    Ok(())
+	Ok(())
 }

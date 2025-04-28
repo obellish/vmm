@@ -22,12 +22,12 @@ fn works() -> Result<()> {
 		arr3: [3; 42],
 	};
 
-    let v = serde_value::to_value(&s)?;
-    let s_back = v.deserialize_into::<S>()?;
+	let v = serde_value::to_value(&s)?;
+	let s_back = v.deserialize_into::<S>()?;
 
-    assert_eq!(&s.arr1[..], &s_back.arr1[..]);
-    assert_eq!(&s.arr2[..], &s_back.arr2[..]);
-    assert_eq!(&s.arr3[..], &s_back.arr3[..]);
+	assert_eq!(&s.arr1[..], &s_back.arr1[..]);
+	assert_eq!(&s.arr2[..], &s_back.arr2[..]);
+	assert_eq!(&s.arr3[..], &s_back.arr3[..]);
 
 	Ok(())
 }
