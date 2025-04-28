@@ -1,4 +1,4 @@
-use tracing::trace;
+use std::borrow::Cow;
 
 use crate::{Change, Instruction, PeepholePass};
 
@@ -28,5 +28,26 @@ impl PeepholePass for CombineInstrPass {
 			}
 			_ => Change::Ignore,
 		}
+	}
+
+	fn name(&self) -> Cow<'static, str> {
+		Cow::Borrowed("combine instructions")
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::CombineInstrPass;
+	use crate::{ExecutionUnit, Instruction, Pass as _, Program};
+
+	#[test]
+	fn replaces_with_better_instruction() {
+		let instructions = [Instruction::Add(1), Instruction::Add(2)];
+
+		let mut unit = ExecutionUnit::raw(instructions);
+
+		assert!(CombineInstrPass.run_pass(&mut unit));
+
+		assert_eq!(**unit.program(), [Instruction::Add(3)]);
 	}
 }

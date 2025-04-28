@@ -53,7 +53,7 @@ impl Optimizer {
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
 		let starting_instruction_count = self.current_unit.program().len();
 
-		let progress = self.resolve_and_run_passes();
+		let passes = self.resolve_and_run_passes();
 
 		if self.options.verbose {
 			info!(
@@ -62,24 +62,25 @@ impl Optimizer {
 			);
 		}
 
+		let mut progress =false;
+
+		for pass in passes {
+			debug!("running pass {}", pass.name());
+			progress |= pass.run_pass(&mut self.current_unit);
+		}
+
 		progress || starting_instruction_count > self.current_unit.program().len()
 	}
 
-	fn resolve_and_run_passes(&mut self) -> bool {
-		let mut progress = false;
+	fn resolve_and_run_passes(&self) -> Vec<Box<dyn Pass>> {
+		let mut passes = Vec::new();
 
 		if self.options.combine_instructions {
-			debug!("running combine instruction pass");
-			progress |= self.run_pass(CombineInstrPass);
-		} else {
-			warn!("skipping combine instruction pass");
+			let b: Box<dyn Pass> = Box::new(CombineInstrPass);
+			passes.push(b);
 		}
 
-		progress
-	}
-
-	fn run_pass(&mut self, pass: impl Pass) -> bool {
-		pass.run_pass(&mut self.current_unit)
+		passes
 	}
 }
 

@@ -8,6 +8,8 @@ pub use self::parse::*;
 pub enum Instruction {
 	Move(isize),
 	Add(i8),
+	Set(u8),
+	Clear,
 	Write,
 	Read,
 	JumpRight,

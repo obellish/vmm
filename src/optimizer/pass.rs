@@ -1,14 +1,20 @@
+use std::borrow::Cow;
+
 use super::Change;
 use crate::{ExecutionUnit, Instruction};
 
 pub trait Pass {
 	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool;
+
+	fn name(&self) -> Cow<'static, str>;
 }
 
 pub trait PeepholePass {
 	const SIZE: usize;
 
 	fn run_pass(&self, window: &[Instruction]) -> Change;
+
+	fn name(&self) -> Cow<'static, str>;
 }
 
 impl<P: PeepholePass> Pass for P {
@@ -33,5 +39,13 @@ impl<P: PeepholePass> Pass for P {
 		}
 
 		progress
+	}
+
+	fn name(&self) -> Cow<'static, str> {
+		Cow::Owned(format!(
+			"{} with window size of {}",
+			<P as PeepholePass>::name(self),
+			Self::SIZE
+		))
 	}
 }

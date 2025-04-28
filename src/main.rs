@@ -1,8 +1,4 @@
-use std::{
-	fmt::{Debug, Display},
-	fs,
-	path::{Path, PathBuf},
-};
+use std::{fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::Result;
@@ -11,7 +7,7 @@ use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 use vmm::{ExecutionUnit, Optimizer, OptimizerOptions, Scanner, Vm};
 
 fn main() -> Result<()> {
-	install_tracing("logs");
+	install_tracing();
 	color_eyre::install()?;
 
 	let args = Args::parse();
@@ -44,14 +40,14 @@ struct Args {
 	pub file: PathBuf,
 }
 
-fn install_tracing(file: impl Display) {
+fn install_tracing() {
 	fs::create_dir_all("./out").unwrap();
 
 	let log_file = fs::OpenOptions::new()
 		.create(true)
 		.truncate(true)
 		.write(true)
-		.open(format!("./out/{file}.logs"))
+		.open("./out/output.logs")
 		.expect("failed to open file");
 
 	let file_layer = fmt::layer().with_ansi(false).with_writer(log_file);

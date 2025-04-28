@@ -33,26 +33,17 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	pub fn run(mut self) -> Result<(), RuntimeError> {
-		// for instr in mem::take(self.unit.program_mut()).iter().copied() {
-		// 	match instr {
-		// 		Instruction::Add(i) => *self.unit.tape_mut().current_cell_mut() = self.unit.tape().current_cell().wrapping_add(i as u8),
-		// 		Instruction::Move(i) => {
-		// 			if i > 0 {
-		// 				self.unit.tape_mut().increment_pointer(i.unsigned_abs());
-		// 			} else {
-		// 				self.unit.tape_mut().decrement_pointer(i.unsigned_abs());
-		// 			}
-		// 		}
-		// 		Instruction::Read => self.read_char()?,
-		// 		Instruction::Write => self.write_char()?,
-		// 		_ => {}
-		// 	}
-		// }
 		'program: loop {
 			match *self.current_instruction() {
 				Instruction::Add(i) => {
 					*self.unit.tape_mut().current_cell_mut() =
 						self.unit.tape().current_cell().wrapping_add(i as u8);
+				}
+				Instruction::Set(i) => {
+					*self.unit.tape_mut().current_cell_mut() = i;
+				}
+				Instruction::Clear => {
+					*self.unit.tape_mut().current_cell_mut() = 0;
 				}
 				Instruction::Move(i) => {
 					if i > 0 {

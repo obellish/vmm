@@ -39,7 +39,7 @@ impl OptimizerOptions {
 		}
 	}
 
-    #[must_use]
+	#[must_use]
 	pub const fn and_verbose(mut self, verbose: bool) -> Self {
 		Self { verbose, ..self }
 	}
