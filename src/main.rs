@@ -4,7 +4,7 @@ use clap::Parser;
 use color_eyre::eyre::Result;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{ExecutionUnit, Optimizer, OptimizerOptions, Scanner, Vm};
+use vmm::{ExecutionUnit, Optimizer, Program, Scanner, Vm};
 
 fn main() -> Result<()> {
 	install_tracing();
@@ -21,8 +21,11 @@ fn main() -> Result<()> {
 
 	let execution_unit = Scanner::new(&filtered_data).collect::<ExecutionUnit>();
 
-	let optimized =
-		Optimizer::new(execution_unit, OptimizerOptions::o3().and_verbose(true)).optimize()?;
+	serialize_unit(&execution_unit, false)?;
+
+	let optimized = Optimizer::new(execution_unit, true).optimize()?;
+
+	serialize_unit(&optimized, true)?;
 
 	let vm = if optimized.program().needs_input() {
 		Vm::stdio(optimized).into_dyn()
@@ -47,7 +50,7 @@ fn install_tracing() {
 		.create(true)
 		.truncate(true)
 		.write(true)
-		.open("./out/output.logs")
+		.open("./out/output.log")
 		.expect("failed to open file");
 
 	let file_layer = fmt::layer().with_ansi(false).with_writer(log_file);
@@ -60,4 +63,20 @@ fn install_tracing() {
 		.with(fmt_layer)
 		.with(ErrorLayer::default())
 		.init();
+}
+
+fn serialize_unit(p: &ExecutionUnit, optimized: bool) -> Result<()> {
+	fs::write(
+		format!(
+			"./out/{}.json",
+			if optimized {
+				"optimized"
+			} else {
+				"unoptimized"
+			}
+		),
+		serde_json::to_string_pretty(p)?,
+	)?;
+
+	Ok(())
 }

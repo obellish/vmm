@@ -1,32 +1,32 @@
 mod change;
-mod options;
 mod pass;
 
 use std::{
 	error::Error as StdError,
 	fmt::{Display, Formatter, Result as FmtResult},
 	mem,
+	sync::LazyLock,
 };
 
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
 
-pub use self::{change::*, options::*, pass::*};
+pub use self::{change::*, pass::*};
 #[allow(clippy::wildcard_imports)]
 use crate::{ExecutionUnit, Program, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
 	current_unit: ExecutionUnit,
-	options: OptimizerOptions,
+	verbose: bool,
 }
 
 impl Optimizer {
 	#[must_use]
-	pub const fn new(current_unit: ExecutionUnit, options: OptimizerOptions) -> Self {
+	pub const fn new(current_unit: ExecutionUnit, verbose: bool) -> Self {
 		Self {
 			current_unit,
-			options,
+			verbose,
 		}
 	}
 
@@ -53,34 +53,28 @@ impl Optimizer {
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
 		let starting_instruction_count = self.current_unit.program().len();
 
-		let passes = self.resolve_and_run_passes();
+		let passes: &[Box<dyn Pass>] = &[
+			Box::new(CombineInstrPass::<2>),
+			Box::new(CombineInstrPass::<3>),
+			Box::new(RemoveEmptyLoopsPass),
+			Box::new(SetUntouchedCells),
+		];
 
-		if self.options.verbose {
-			info!(
-				"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
-				self.current_unit.program().len()
-			);
-		}
-
-		let mut progress =false;
+		let mut progress = false;
 
 		for pass in passes {
 			debug!("running pass {}", pass.name());
 			progress |= pass.run_pass(&mut self.current_unit);
 		}
 
-		progress || starting_instruction_count > self.current_unit.program().len()
-	}
-
-	fn resolve_and_run_passes(&self) -> Vec<Box<dyn Pass>> {
-		let mut passes = Vec::new();
-
-		if self.options.combine_instructions {
-			let b: Box<dyn Pass> = Box::new(CombineInstrPass);
-			passes.push(b);
+		if self.verbose {
+			info!(
+				"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
+				self.current_unit.program().len()
+			);
 		}
 
-		passes
+		progress || starting_instruction_count > self.current_unit.program().len()
 	}
 }
 

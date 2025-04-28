@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub use self::parse::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum Instruction {
 	Move(isize),
 	Add(i8),

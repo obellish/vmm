@@ -669,6 +669,7 @@ dependencies = [
  "color-eyre",
  "logos",
  "serde",
+ "serde_json",
  "tracing",
  "tracing-error",
  "tracing-subscriber",

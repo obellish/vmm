@@ -25,6 +25,8 @@ impl<P: PeepholePass> Pass for P {
 		while unit.program().len() >= P::SIZE && i < unit.program().len() - (P::SIZE - 1) {
 			let window = &unit.program()[i..(P::SIZE + i)];
 
+			assert_eq!(window.len(), P::SIZE);
+
 			let change = P::run_pass(self, window);
 
 			let (changed, removed) = change.apply(unit.program_mut().as_raw(), i, P::SIZE);
