@@ -1,3 +1,7 @@
+mod change;
+mod options;
+mod pass;
+
 use std::{
 	error::Error as StdError,
 	fmt::{Display, Formatter, Result as FmtResult},
@@ -5,28 +9,39 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
+use tracing::{debug, info, warn};
 
-use super::ExecutionUnit;
-use crate::Program;
+pub use self::{change::*, options::*, pass::*};
+#[allow(clippy::wildcard_imports)]
+use crate::{ExecutionUnit, Program, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
 	current_unit: ExecutionUnit,
+	options: OptimizerOptions,
 }
 
 impl Optimizer {
 	#[must_use]
-	pub const fn new(current_unit: ExecutionUnit) -> Self {
-		Self { current_unit }
+	pub const fn new(current_unit: ExecutionUnit, options: OptimizerOptions) -> Self {
+		Self {
+			current_unit,
+			options,
+		}
 	}
 
 	pub fn optimize(&mut self) -> Result<ExecutionUnit, OptimizerError> {
-		if self.current_unit.has_started() {
-			return Err(OptimizerError::AlreadyStarted);
-		}
-
 		if self.current_unit.program().is_optimized() {
 			return Ok(mem::take(&mut self.current_unit));
+		}
+
+		let mut counter = 1;
+
+		let mut progress = self.optimize_inner(counter);
+
+		while progress {
+			counter += 1;
+			progress = self.optimize_inner(counter);
 		}
 
 		Ok(ExecutionUnit::optimized(
@@ -34,18 +49,46 @@ impl Optimizer {
 			self.current_unit.tape().clone(),
 		))
 	}
+
+	fn optimize_inner(&mut self, iteration: usize) -> bool {
+		let starting_instruction_count = self.current_unit.program().len();
+
+		let progress = self.resolve_and_run_passes();
+
+		if self.options.verbose {
+			info!(
+				"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
+				self.current_unit.program().len()
+			);
+		}
+
+		progress || starting_instruction_count > self.current_unit.program().len()
+	}
+
+	fn resolve_and_run_passes(&mut self) -> bool {
+		let mut progress = false;
+
+		if self.options.combine_instructions {
+			debug!("running combine instruction pass");
+			progress |= self.run_pass(CombineInstrPass);
+		} else {
+			warn!("skipping combine instruction pass");
+		}
+
+		progress
+	}
+
+	fn run_pass(&mut self, pass: impl Pass) -> bool {
+		pass.run_pass(&mut self.current_unit)
+	}
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum OptimizerError {
-	AlreadyStarted,
-}
+pub enum OptimizerError {}
 
 impl Display for OptimizerError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-		match self {
-			Self::AlreadyStarted => f.write_str("execution unit has already started"),
-		}
+		match *self {}
 	}
 }
 

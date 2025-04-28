@@ -12,7 +12,6 @@ use super::Instruction;
 pub struct ExecutionUnit {
 	program: Program,
 	tape: Tape,
-	has_started: bool,
 }
 
 impl ExecutionUnit {
@@ -20,7 +19,6 @@ impl ExecutionUnit {
 		Self {
 			program: instructions.into_iter().collect(),
 			tape: Tape::new(),
-			has_started: false,
 		}
 	}
 
@@ -31,7 +29,6 @@ impl ExecutionUnit {
 		Self {
 			program: Program::Optimized(instructions.into_iter().collect()),
 			tape,
-			has_started: false,
 		}
 	}
 
@@ -45,28 +42,12 @@ impl ExecutionUnit {
 	}
 
 	#[must_use]
-	pub const fn has_started(&self) -> bool {
-		self.has_started
-	}
-
-	#[must_use]
 	pub const fn tape(&self) -> &Tape {
 		&self.tape
 	}
 
 	pub const fn tape_mut(&mut self) -> &mut Tape {
 		&mut self.tape
-	}
-
-	pub fn run(&mut self) {
-		self.has_started = true;
-
-		mem::take(&mut self.program)
-			.iter()
-			.copied()
-			.for_each(|instr| {
-				// noop
-			});
 	}
 }
 

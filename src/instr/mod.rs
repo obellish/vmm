@@ -14,6 +14,14 @@ pub enum Instruction {
 	JumpLeft,
 }
 
+#[expect(clippy::trivially_copy_pass_by_ref)]
+impl Instruction {
+	#[must_use]
+	pub const fn needs_input(&self) -> bool {
+		matches!(self, Self::Read)
+	}
+}
+
 impl From<ParsedInstruction> for Instruction {
 	fn from(value: ParsedInstruction) -> Self {
 		match value {

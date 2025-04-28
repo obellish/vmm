@@ -19,6 +19,25 @@ impl Program {
 	pub const fn is_optimized(&self) -> bool {
 		matches!(self, Self::Optimized(_))
 	}
+
+	pub fn as_raw(&mut self) -> &mut Vec<Instruction> {
+		match self {
+			Self::Raw(ops) => ops,
+			Self::Optimized(ops) => {
+				*self = Self::Raw(ops.to_vec());
+
+				match self {
+					Self::Raw(ops) => ops,
+					Self::Optimized(_) => unreachable!(),
+				}
+			}
+		}
+	}
+
+	#[must_use]
+	pub fn needs_input(&self) -> bool  {
+		self.iter().any(Instruction::needs_input)
+	}
 }
 
 impl Debug for Program {

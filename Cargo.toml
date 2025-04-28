@@ -14,7 +14,7 @@ logos = "0.15.0"
 serde = { workspace = true, features = ["derive"], default-features = true }
 tracing = "0.1"
 tracing-error = "0.2.1"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
 vmm_alloc = { path = "crates/alloc", features = ["nightly"] }
 vmm_serde_array = { path = "crates/serde_array" }
 

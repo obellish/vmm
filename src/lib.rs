@@ -4,7 +4,10 @@
 
 mod instr;
 mod optimizer;
+pub mod passes;
 mod scanner;
 mod unit;
+mod util;
+mod vm;
 
-pub use self::{instr::*, optimizer::*, scanner::*, unit::*};
+pub use self::{instr::*, optimizer::*, scanner::*, unit::*, vm::*};

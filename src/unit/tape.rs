@@ -22,12 +22,28 @@ impl Tape {
 	}
 
 	#[must_use]
-	pub fn current_cell(&self) -> &u8 {
-		unsafe { self.cells.get_unchecked(self.pointer) }
+	pub fn current_cell(&self) -> u8 {
+		unsafe { *self.cells.get_unchecked(self.pointer) }
 	}
 
 	pub fn current_cell_mut(&mut self) -> &mut u8 {
 		unsafe { self.cells.get_unchecked_mut(self.pointer) }
+	}
+
+	pub const fn increment_pointer(&mut self, amount: usize) {
+		self.pointer += amount;
+
+		if self.pointer >= TAPE_SIZE {
+			self.pointer -= TAPE_SIZE;
+		}
+	}
+
+	pub const fn decrement_pointer(&mut self, amount: usize) {
+		self.pointer = if self.pointer.wrapping_sub(amount) >= TAPE_SIZE {
+			TAPE_SIZE - amount
+		} else {
+			self.pointer - amount
+		}
 	}
 }
 
