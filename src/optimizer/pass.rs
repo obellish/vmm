@@ -12,7 +12,7 @@ pub trait Pass {
 pub trait PeepholePass {
 	const SIZE: usize;
 
-	fn run_pass(&self, window: &[Instruction]) -> Change;
+	fn run_pass(&self, window: &[Instruction]) -> Option<Change>;
 
 	fn name(&self) -> Cow<'static, str>;
 }
@@ -29,7 +29,9 @@ impl<P: PeepholePass> Pass for P {
 
 			let change = P::run_pass(self, window);
 
-			let (changed, removed) = change.apply(unit.program_mut().as_raw(), i, P::SIZE);
+			let (changed, removed) = change
+				.map(|c| c.apply(unit.program_mut().as_raw(), i, P::SIZE))
+				.unwrap_or_default();
 
 			i -= removed;
 

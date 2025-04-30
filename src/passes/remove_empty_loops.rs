@@ -8,11 +8,11 @@ pub struct RemoveEmptyLoopsPass;
 impl PeepholePass for RemoveEmptyLoopsPass {
 	const SIZE: usize = 2;
 
-	fn run_pass(&self, window: &[Instruction]) -> Change {
+	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
 		if window == [Instruction::JumpRight, Instruction::JumpLeft] {
-			Change::Remove
+			Some(Change::Remove)
 		} else {
-			Change::Ignore
+			None
 		}
 	}
 

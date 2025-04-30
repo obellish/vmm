@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use tracing::trace;
+
 use crate::{Change, ExecutionUnit, Instruction, Pass};
 
 #[derive(Debug)]
@@ -14,7 +16,11 @@ impl Pass for SetUntouchedCells {
                 panic!("checked for add, got something else");
             };
 
-            *unit.tape_mut().current_cell_mut() = value as u8;
+            let value = value as u8;
+
+            trace!("setting cell 0 to {value}");
+
+            *unit.tape_mut().current_cell_mut() = value;
         }
 
         false

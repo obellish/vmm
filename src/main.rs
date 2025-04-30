@@ -4,7 +4,7 @@ use clap::Parser;
 use color_eyre::eyre::Result;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{ExecutionUnit, Optimizer, Program, Scanner, Vm};
+use vmm::{ExecutionUnit, Optimizer, Scanner, Vm};
 
 fn main() -> Result<()> {
 	install_tracing();
@@ -55,7 +55,7 @@ fn install_tracing() {
 
 	let file_layer = fmt::layer().with_ansi(false).with_writer(log_file);
 
-	let filter_layer = EnvFilter::new("debug");
+	let filter_layer = EnvFilter::new("info");
 	let fmt_layer = fmt::layer().with_target(false).with_filter(filter_layer);
 
 	tracing_subscriber::registry()

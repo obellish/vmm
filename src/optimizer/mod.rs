@@ -53,11 +53,12 @@ impl Optimizer {
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
 		let starting_instruction_count = self.current_unit.program().len();
 
-		let passes: &[Box<dyn Pass>] = &[
-			Box::new(CombineInstrPass::<2>),
-			Box::new(CombineInstrPass::<3>),
-			Box::new(RemoveEmptyLoopsPass),
-			Box::new(SetUntouchedCells),
+		let passes: &[&dyn Pass] = &[
+			&CombineZeroLoopInstrPass,
+			&CombineAddInstrPass,
+			&CombineMoveInstrPass,
+			&RemoveEmptyLoopsPass,
+			&SetUntouchedCells,
 		];
 
 		let mut progress = false;
