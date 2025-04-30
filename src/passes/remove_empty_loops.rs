@@ -10,7 +10,7 @@ impl PeepholePass for RemoveEmptyLoopsPass {
 
 	const SIZE: usize = 2;
 
-	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
+	fn run_pass(&mut self, window: &[Instruction], (): ()) -> Option<Change> {
 		if window == [Instruction::JumpRight, Instruction::JumpLeft] {
 			Some(Change::Remove)
 		} else {

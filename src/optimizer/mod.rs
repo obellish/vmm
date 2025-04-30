@@ -67,15 +67,15 @@ impl Optimizer {
 			Some(analyzer.analyze())
 		};
 
-		self.run_pass(CombineZeroLoopInstrPass, (), &mut progress);
-		self.run_pass(CombineAddInstrPass, (), &mut progress);
-		self.run_pass(CombineMoveInstrPass, (), &mut progress);
-		self.run_pass(RemoveEmptyLoopsPass, (), &mut progress);
 		self.run_pass(
 			SetCells,
 			self.current_analysis_results.clone().unwrap(),
 			&mut progress,
 		);
+		self.run_pass(CombineZeroLoopInstrPass, (), &mut progress);
+		self.run_pass(CombineAddInstrPass, (), &mut progress);
+		self.run_pass(CombineMoveInstrPass, (), &mut progress);
+		self.run_pass(RemoveEmptyLoopsPass, (), &mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
@@ -91,7 +91,7 @@ impl Optimizer {
 		P: Debug + Pass<State = S>,
 	{
 		debug!("running pass {}", pass.name());
-		*progress |= pass.run_pass(&mut self.current_unit);
+		*progress |= pass.run_pass(&mut self.current_unit, state);
 	}
 }
 

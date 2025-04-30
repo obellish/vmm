@@ -10,7 +10,7 @@ impl PeepholePass for CombineZeroLoopInstrPass {
 
 	const SIZE: usize = 3;
 
-	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
+	fn run_pass(&mut self, window: &[Instruction], (): ()) -> Option<Change> {
 		if matches!(
 			(window[0], window[1], window[2]),
 			(

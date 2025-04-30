@@ -1,4 +1,7 @@
-use std::fmt::{Debug, Formatter, Result as FmtResult};
+use std::{
+	fmt::{Debug, Formatter, Result as FmtResult},
+	ops::{Index, IndexMut},
+};
 
 use serde::{Deserialize, Serialize};
 use vmm_serde_array::BigArray;
@@ -22,8 +25,8 @@ impl Tape {
 	}
 
 	#[must_use]
-	pub fn current_cell(&self) -> u8 {
-		unsafe { *self.cells.get_unchecked(self.pointer) }
+	pub fn current_cell(&self) -> &u8 {
+		unsafe { self.cells.get_unchecked(self.pointer) }
 	}
 
 	pub fn current_cell_mut(&mut self) -> &mut u8 {
@@ -70,5 +73,19 @@ impl Debug for Tape {
 impl Default for Tape {
 	fn default() -> Self {
 		Self::new()
+	}
+}
+
+impl Index<usize> for Tape {
+	type Output = u8;
+
+	fn index(&self, index: usize) -> &Self::Output {
+		self.cells.index(index)
+	}
+}
+
+impl IndexMut<usize> for Tape {
+	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+		self.cells.index_mut(index)
 	}
 }

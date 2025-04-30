@@ -2,7 +2,10 @@ use std::borrow::Cow;
 
 use tracing::trace;
 
-use crate::{AnalysisResults, Change, ExecutionUnit, Instruction, Pass};
+use crate::{
+	AnalysisResults, CellAccess, CellAccessType, Change, ExecutionUnit, Instruction, Pass,
+	TAPE_SIZE,
+};
 
 // Currently only runs on the beginning cell, but can be expanded once cell analysis is introduced.
 #[derive(Debug)]
@@ -11,22 +14,20 @@ pub struct SetCells;
 impl Pass for SetCells {
 	type State = AnalysisResults;
 
-	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool {
-		// if matches!(unit.program().first(), Some(&Instruction::Add(_))) {
-		// 	let instr = unit.program_mut().as_raw().remove(0);
+	fn run_pass(&mut self, unit: &mut ExecutionUnit, state: AnalysisResults) -> bool {
+		let mut progress = false;
 
-		// 	let Instruction::Add(value) = instr else {
-		// 		panic!("checked for add, got something else");
-		// 	};
+		for (i, cell) in state.cells.iter().cloned().enumerate() {
+			if let CellAccessType::Set(v) = cell.kind {
+				unit.program_mut().as_raw().remove(cell.instruction_index);
 
-		// 	let value = value as u8;
+				unit.tape_mut()[i] += v;
 
-		// 	trace!("setting cell 0 to {value}");
+				progress |= true;
+			}
+		}
 
-		// 	*unit.tape_mut().current_cell_mut() = value;
-		// }
-
-		false
+		progress
 	}
 
 	fn name(&self) -> std::borrow::Cow<'static, str> {

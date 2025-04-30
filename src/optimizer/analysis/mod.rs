@@ -1,6 +1,10 @@
 mod cell_access;
 
-use std::{array, borrow::Cow};
+use std::{
+	array,
+	borrow::Cow,
+	fmt::{Debug, Formatter, Result as FmtResult},
+};
 
 use serde::{Deserialize, Serialize};
 use tracing::trace;
@@ -29,11 +33,10 @@ impl<'a> Analyzer<'a> {
 	pub fn analyze(mut self) -> AnalysisResults {
 		if let Some(Instruction::Add(n)) = self.unit.program().first().copied() {
 			trace!("setting cell 0 to {}", n as u8);
-			// self.cells[0] = CellAccess::Set(n as u8);
-			self.cells[0] = if let CellAccess::Set(i) = self.cells[0] {
-				CellAccess::Set(i + n as u8)
+			self.cells[0] = if let CellAccessType::Set(i) = self.cells[0].kind {
+				CellAccess::set(i + n as u8, 0)
 			} else {
-				CellAccess::Set(n as u8)
+				CellAccess::set(n as u8, 0)
 			};
 		}
 
@@ -43,8 +46,22 @@ impl<'a> Analyzer<'a> {
 	}
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AnalysisResults {
 	#[serde(with = "BigArray")]
-	cells: [CellAccess; TAPE_SIZE],
+	pub cells: [CellAccess; TAPE_SIZE],
+}
+
+impl Debug for AnalysisResults {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		let mut state = f.debug_list();
+		let cells = self
+			.cells
+			.iter()
+			.filter(|c| c.kind != CellAccessType::Unused);
+
+		state.entries(cells);
+
+		state.finish()
+	}
 }

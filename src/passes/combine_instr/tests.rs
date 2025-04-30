@@ -11,12 +11,17 @@ fn combine_instructions<P, const SIZE: usize>(
 	expected: Option<Instruction>,
 ) where
 	P: Debug + PeepholePass,
+	P::State: Default,
 {
 	assert_eq!(P::SIZE, SIZE);
 
 	let mut unit = ExecutionUnit::raw(instructions);
 
-	assert!(<P as Pass>::run_pass(&mut pass, &mut unit));
+	assert!(<P as Pass>::run_pass(
+		&mut pass,
+		&mut unit,
+		Default::default()
+	));
 
 	assert_eq!(**unit.program(), expected.into_iter().collect::<Vec<_>>());
 }

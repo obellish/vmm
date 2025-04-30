@@ -6,17 +6,17 @@ use crate::{ExecutionUnit, Instruction};
 pub trait Pass {
 	type State;
 
-	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool;
+	fn run_pass(&mut self, unit: &mut ExecutionUnit, state: Self::State) -> bool;
 
 	fn name(&self) -> Cow<'static, str>;
 }
 
 pub trait PeepholePass {
-	type State;
+	type State: Clone;
 
 	const SIZE: usize;
 
-	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
+	fn run_pass(&mut self, window: &[Instruction], state: Self::State) -> Option<Change>;
 
 	fn name(&self) -> Cow<'static, str>;
 }
@@ -27,7 +27,7 @@ where
 {
 	type State = P::State;
 
-	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool {
+	fn run_pass(&mut self, unit: &mut ExecutionUnit, state: Self::State) -> bool {
 		let mut i = 0;
 		let mut progress = false;
 
@@ -36,7 +36,7 @@ where
 
 			assert_eq!(window.len(), P::SIZE);
 
-			let change = P::run_pass(self, window);
+			let change = P::run_pass(self, window, state.clone());
 
 			let (changed, removed) = change
 				.map(|c| c.apply(unit.program_mut().as_raw(), i, P::SIZE))

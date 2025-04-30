@@ -142,7 +142,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	fn write_char(&mut self) -> Result<(), RuntimeError> {
-		let ch = self.unit.tape().current_cell();
+		let ch = *self.unit.tape().current_cell();
 
 		if ch.is_ascii() {
 			self.output.write_all(&[ch])?;
