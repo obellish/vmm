@@ -18,16 +18,12 @@ use crate::{ExecutionUnit, Program, passes::*};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
 	current_unit: ExecutionUnit,
-	verbose: bool,
 }
 
 impl Optimizer {
 	#[must_use]
-	pub const fn new(current_unit: ExecutionUnit, verbose: bool) -> Self {
-		Self {
-			current_unit,
-			verbose,
-		}
+	pub const fn new(current_unit: ExecutionUnit) -> Self {
+		Self { current_unit }
 	}
 
 	pub fn optimize(&mut self) -> Result<ExecutionUnit, OptimizerError> {
@@ -68,12 +64,10 @@ impl Optimizer {
 			progress |= pass.run_pass(&mut self.current_unit);
 		}
 
-		if self.verbose {
-			info!(
-				"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
-				self.current_unit.program().len()
-			);
-		}
+		info!(
+			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
+			self.current_unit.program().len()
+		);
 
 		progress || starting_instruction_count > self.current_unit.program().len()
 	}

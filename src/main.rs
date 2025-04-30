@@ -23,7 +23,7 @@ fn main() -> Result<()> {
 
 	serialize_unit(&execution_unit, false)?;
 
-	let optimized = Optimizer::new(execution_unit, true).optimize()?;
+	let optimized = Optimizer::new(execution_unit).optimize()?;
 
 	serialize_unit(&optimized, true)?;
 

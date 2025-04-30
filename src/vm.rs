@@ -103,7 +103,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 						}
 					}
 				}
-				ref i => panic!("{i:?} not implemented yet")
+				ref i => panic!("{i:?} not implemented yet"),
 			}
 
 			self.counter += 1;

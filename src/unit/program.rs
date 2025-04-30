@@ -35,7 +35,7 @@ impl Program {
 	}
 
 	#[must_use]
-	pub fn needs_input(&self) -> bool  {
+	pub fn needs_input(&self) -> bool {
 		self.iter().any(Instruction::needs_input)
 	}
 }
