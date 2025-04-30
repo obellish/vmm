@@ -10,7 +10,6 @@ version.workspace = true
 [dependencies]
 clap = { version = "4.5.37", features = ["derive"] }
 color-eyre = { version = "0.6.3", features = ["capture-spantrace"] }
-dlhn = "0.1.7"
 logos = "0.15.0"
 serde = { workspace = true, features = ["derive"], default-features = true }
 serde_json = "1.0.140"
