@@ -45,14 +45,7 @@ impl Optimizer {
 			progress = self.optimize_inner(counter);
 		}
 
-		let res = ExecutionUnit::optimized(
-			self.current_unit.program().iter().copied(),
-			self.current_unit.tape().clone(),
-		);
-
-		mem::take(&mut self.current_unit);
-
-		Ok(res)
+		Ok(ExecutionUnit::optimized(self.current_unit.program().iter().copied()))
 	}
 
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
@@ -64,6 +57,7 @@ impl Optimizer {
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(CombineZeroLoopInstrPass, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
+		self.run_pass(SetUntouchedCells, &mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",

@@ -24,11 +24,10 @@ impl ExecutionUnit {
 
 	pub(crate) fn optimized(
 		instructions: impl IntoIterator<Item = Instruction>,
-		tape: Tape,
 	) -> Self {
 		Self {
 			program: Program::Optimized(instructions.into_iter().collect()),
-			tape,
+			tape: Tape::new(),
 		}
 	}
 

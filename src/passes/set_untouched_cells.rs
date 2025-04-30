@@ -11,7 +11,7 @@ pub struct SetUntouchedCells;
 impl Pass for SetUntouchedCells {
 	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool {
 		if let Some(Instruction::Add(i)) = unit.program().first() {
-			unit.program_mut().as_raw()[0] = Instruction::Set(*i as u8);
+			Change::ReplaceOne(Instruction::Set(*i as u8)).apply(unit.program_mut().as_raw(), 0, 1);
 
 			true
 		} else {
