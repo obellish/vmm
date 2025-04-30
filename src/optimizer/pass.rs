@@ -4,12 +4,16 @@ use super::Change;
 use crate::{ExecutionUnit, Instruction};
 
 pub trait Pass {
+	type State;
+
 	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool;
 
 	fn name(&self) -> Cow<'static, str>;
 }
 
 pub trait PeepholePass {
+	type State;
+
 	const SIZE: usize;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
@@ -21,6 +25,8 @@ impl<P> Pass for P
 where
 	P: Debug + PeepholePass,
 {
+	type State = P::State;
+
 	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool {
 		let mut i = 0;
 		let mut progress = false;

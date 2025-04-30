@@ -2,6 +2,7 @@ use std::{fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::Result;
+use serde::Serialize;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 use vmm::{ExecutionUnit, Optimizer, Scanner, Vm};
@@ -21,11 +22,13 @@ fn main() -> Result<()> {
 
 	let execution_unit = Scanner::new(&filtered_data).collect::<ExecutionUnit>();
 
-	serialize_unit(&execution_unit, false)?;
+	serialize_and_write(&execution_unit, "unoptimized_program")?;
 
-	let optimized = Optimizer::new(execution_unit).optimize()?;
+	let mut optimizer = Optimizer::new(execution_unit);
 
-	serialize_unit(&optimized, true)?;
+	let optimized = optimizer.optimize()?;
+
+	serialize_and_write(&optimized, "optimized_program")?;
 
 	let vm = if optimized.program().needs_input() {
 		Vm::stdio(optimized).into_dyn()
@@ -65,16 +68,9 @@ fn install_tracing() {
 		.init();
 }
 
-fn serialize_unit(p: &ExecutionUnit, optimized: bool) -> Result<()> {
+fn serialize_and_write<S: Serialize>(p: &S, name: &str) -> Result<()> {
 	fs::write(
-		format!(
-			"./out/{}.json",
-			if optimized {
-				"optimized"
-			} else {
-				"unoptimized"
-			}
-		),
+		format!("./out/{name}.json"),
 		serde_json::to_string_pretty(p)?,
 	)?;
 

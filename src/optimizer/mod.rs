@@ -1,3 +1,4 @@
+mod analysis;
 mod change;
 mod pass;
 
@@ -11,19 +12,23 @@ use std::{
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, warn};
 
-pub use self::{change::*, pass::*};
+pub use self::{analysis::*, change::*, pass::*};
 #[allow(clippy::wildcard_imports)]
 use crate::{ExecutionUnit, Program, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
 	current_unit: ExecutionUnit,
+	current_analysis_results: Option<AnalysisResults>,
 }
 
 impl Optimizer {
 	#[must_use]
 	pub const fn new(current_unit: ExecutionUnit) -> Self {
-		Self { current_unit }
+		Self {
+			current_unit,
+			current_analysis_results: None,
+		}
 	}
 
 	pub fn optimize(&mut self) -> Result<ExecutionUnit, OptimizerError> {
@@ -40,10 +45,14 @@ impl Optimizer {
 			progress = self.optimize_inner(counter);
 		}
 
-		Ok(ExecutionUnit::optimized(
+		let res = ExecutionUnit::optimized(
 			self.current_unit.program().iter().copied(),
 			self.current_unit.tape().clone(),
-		))
+		);
+
+		mem::take(&mut self.current_unit);
+
+		Ok(res)
 	}
 
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
@@ -51,11 +60,22 @@ impl Optimizer {
 
 		let mut progress = false;
 
-		self.run_pass(CombineZeroLoopInstrPass, &mut progress);
-		self.run_pass(CombineAddInstrPass, &mut progress);
-		self.run_pass(CombineMoveInstrPass, &mut progress);
-		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
-		self.run_pass(SetUntouchedCells, &mut progress);
+		self.current_analysis_results = {
+			debug!("running cell analysis");
+			let analyzer = Analyzer::new(&self.current_unit);
+
+			Some(analyzer.analyze())
+		};
+
+		self.run_pass(CombineZeroLoopInstrPass, (), &mut progress);
+		self.run_pass(CombineAddInstrPass, (), &mut progress);
+		self.run_pass(CombineMoveInstrPass, (), &mut progress);
+		self.run_pass(RemoveEmptyLoopsPass, (), &mut progress);
+		self.run_pass(
+			SetCells,
+			self.current_analysis_results.clone().unwrap(),
+			&mut progress,
+		);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
@@ -66,9 +86,9 @@ impl Optimizer {
 	}
 
 	#[tracing::instrument(skip(self))]
-	fn run_pass<P>(&mut self, mut pass: P, progress: &mut bool)
+	fn run_pass<P, S: Debug>(&mut self, mut pass: P, state: S, progress: &mut bool)
 	where
-		P: Debug + Pass,
+		P: Debug + Pass<State = S>,
 	{
 		debug!("running pass {}", pass.name());
 		*progress |= pass.run_pass(&mut self.current_unit);

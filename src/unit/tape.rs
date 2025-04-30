@@ -3,7 +3,7 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 use serde::{Deserialize, Serialize};
 use vmm_serde_array::BigArray;
 
-const TAPE_SIZE: usize = 1000;
+pub const TAPE_SIZE: usize = 1000;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {

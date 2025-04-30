@@ -1,4 +1,5 @@
 use std::{
+	borrow::Borrow,
 	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Deref, DerefMut},
 	slice,

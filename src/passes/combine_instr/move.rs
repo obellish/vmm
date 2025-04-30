@@ -6,6 +6,8 @@ use crate::{Change, Instruction, PeepholePass};
 pub struct CombineMoveInstrPass;
 
 impl PeepholePass for CombineMoveInstrPass {
+	type State = ();
+
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
