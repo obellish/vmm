@@ -22,9 +22,7 @@ impl ExecutionUnit {
 		}
 	}
 
-	pub(crate) fn optimized(
-		instructions: impl IntoIterator<Item = Instruction>,
-	) -> Self {
+	pub(crate) fn optimized(instructions: impl IntoIterator<Item = Instruction>) -> Self {
 		Self {
 			program: Program::Optimized(instructions.into_iter().collect()),
 			tape: Tape::new(),

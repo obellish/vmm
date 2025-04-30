@@ -30,13 +30,23 @@ fn main() -> Result<()> {
 
 	serialize_and_write(&optimized, "optimized_program")?;
 
-	let vm = if optimized.program().needs_input() {
-		Vm::stdio(optimized).into_dyn()
+	let profiler = if optimized.program().needs_input() {
+		let mut vm = Vm::stdio(optimized).and_profile();
+
+		vm.run()?;
+
+		vm.profiler()
 	} else {
-		Vm::stdio(optimized).with_input(std::io::empty()).into_dyn()
+		let mut vm = Vm::stdio(optimized)
+			.with_input(std::io::empty())
+			.and_profile();
+
+		vm.run()?;
+
+		vm.profiler()
 	};
 
-	vm.run()?;
+	serialize_and_write(&profiler, "profiler")?;
 
 	Ok(())
 }

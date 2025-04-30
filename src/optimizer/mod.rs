@@ -1,4 +1,3 @@
-mod analysis;
 mod change;
 mod pass;
 
@@ -6,29 +5,24 @@ use std::{
 	error::Error as StdError,
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	mem,
-	sync::LazyLock,
 };
 
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info, warn};
+use tracing::info;
 
-pub use self::{analysis::*, change::*, pass::*};
+pub use self::{change::*, pass::*};
 #[allow(clippy::wildcard_imports)]
-use crate::{ExecutionUnit, Program, passes::*};
+use crate::{ExecutionUnit, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
 	current_unit: ExecutionUnit,
-	current_analysis_results: Option<AnalysisResults>,
 }
 
 impl Optimizer {
 	#[must_use]
 	pub const fn new(current_unit: ExecutionUnit) -> Self {
-		Self {
-			current_unit,
-			current_analysis_results: None,
-		}
+		Self { current_unit }
 	}
 
 	pub fn optimize(&mut self) -> Result<ExecutionUnit, OptimizerError> {
@@ -45,7 +39,9 @@ impl Optimizer {
 			progress = self.optimize_inner(counter);
 		}
 
-		Ok(ExecutionUnit::optimized(self.current_unit.program().iter().copied()))
+		Ok(ExecutionUnit::optimized(
+			self.current_unit.program().iter().copied(),
+		))
 	}
 
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
@@ -56,8 +52,8 @@ impl Optimizer {
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(CombineZeroLoopInstrPass, &mut progress);
-		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
 		self.run_pass(SetUntouchedCells, &mut progress);
+		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
@@ -80,7 +76,7 @@ impl Optimizer {
 pub enum OptimizerError {}
 
 impl Display for OptimizerError {
-	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+	fn fmt(&self, _f: &mut Formatter<'_>) -> FmtResult {
 		match *self {}
 	}
 }

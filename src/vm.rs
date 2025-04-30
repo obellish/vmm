@@ -2,10 +2,10 @@ use std::{
 	error::Error as StdError,
 	fmt::{Display, Formatter, Result as FmtResult},
 	io::{Error as IoError, ErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
-	mem,
 };
 
 use super::{ExecutionUnit, Instruction};
+use crate::Profiler;
 
 pub struct Vm<R = Stdin, W = Stdout>
 where
@@ -16,6 +16,7 @@ where
 	input: R,
 	output: W,
 	counter: usize,
+	profiler: Option<Profiler>,
 }
 
 impl<R: Read, W: Write> Vm<R, W> {
@@ -25,16 +26,33 @@ impl<R: Read, W: Write> Vm<R, W> {
 			input,
 			output,
 			counter: 0,
+			profiler: None,
 		}
+	}
+
+	#[must_use]
+	pub const fn and_profile(mut self) -> Self {
+		self.profiler = Some(Profiler::new());
+		self
+	}
+
+	pub fn profiler(&self) -> Profiler {
+		self.profiler.clone().unwrap_or_default()
 	}
 
 	pub fn into_dyn(self) -> Vm<Box<dyn Read>, Box<dyn Write>> {
 		Vm::new(self.unit, Box::new(self.input), Box::new(self.output))
 	}
 
-	pub fn run(mut self) -> Result<(), RuntimeError> {
+	pub fn run(&mut self) -> Result<(), RuntimeError> {
 		'program: loop {
-			match *self.current_instruction() {
+			let current_instruction = *self.current_instruction();
+
+			if let Some(profiler) = &mut self.profiler {
+				profiler.handle(current_instruction);
+			}
+
+			match current_instruction {
 				Instruction::Add(i) => {
 					*self.unit.tape_mut().current_cell_mut() =
 						self.unit.tape().current_cell().wrapping_add(i as u8);
