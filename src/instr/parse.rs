@@ -19,6 +19,4 @@ pub enum ParsedInstruction {
 	JumpLeft,
 	#[token("[")]
 	JumpRight,
-	#[regex("\\[[-\\+]\\]")]
-	Clear,
 }
