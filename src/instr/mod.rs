@@ -36,6 +36,7 @@ impl From<ParsedInstruction> for Instruction {
 			ParsedInstruction::MoveRight => Self::Move(1),
 			ParsedInstruction::Decrement => Self::Add(-1),
 			ParsedInstruction::Increment => Self::Add(1),
+			ParsedInstruction::Clear => Self::Clear
 		}
 	}
 }

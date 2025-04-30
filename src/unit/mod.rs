@@ -11,6 +11,7 @@ use super::Instruction;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExecutionUnit {
 	program: Program,
+	#[serde(skip)]
 	tape: Tape,
 }
 
