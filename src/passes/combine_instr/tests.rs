@@ -7,27 +7,12 @@ fn combine_instructions<P: PeepholePass, const SIZE: usize>(
 	pass: P,
 	instructions: [Instruction; SIZE],
 	expected: Option<Instruction>,
-<<<<<<< HEAD
-) where
-	P: Debug + PeepholePass,
-	P::State: Default,
-{
-=======
 ) {
->>>>>>> parent of fea49c6 (more tracing and mutable passes)
 	assert_eq!(P::SIZE, SIZE);
 
 	let mut unit = ExecutionUnit::raw(instructions);
 
-<<<<<<< HEAD
-	assert!(<P as Pass>::run_pass(
-		&mut pass,
-		&mut unit,
-		Default::default()
-	));
-=======
 	assert!(<P as Pass>::run_pass(&pass, &mut unit));
->>>>>>> parent of fea49c6 (more tracing and mutable passes)
 
 	assert_eq!(**unit.program(), expected.into_iter().collect::<Vec<_>>());
 }

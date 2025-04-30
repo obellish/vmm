@@ -10,21 +10,13 @@ pub struct SetUntouchedCells;
 
 impl Pass for SetUntouchedCells {
 	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool {
-		if matches!(unit.program().first(), Some(&Instruction::Add(_))) {
-			let instr = unit.program_mut().as_raw().remove(0);
+		if let Some(Instruction::Add(i)) = unit.program().first() {
+			unit.program_mut().as_raw()[0] = Instruction::Set(*i as u8);
 
-			let Instruction::Add(value) = instr else {
-				panic!("checked for add, got something else");
-			};
-
-			let value = value as u8;
-
-			trace!("setting cell 0 to {value}");
-
-			*unit.tape_mut().current_cell_mut() = value;
+			true
+		} else {
+			false
 		}
-
-		false
 	}
 
 	fn name(&self) -> std::borrow::Cow<'static, str> {

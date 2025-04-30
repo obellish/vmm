@@ -10,12 +10,8 @@ impl PeepholePass for CombineMoveInstrPass {
 
 	const SIZE: usize = 2;
 
-<<<<<<< HEAD
-	fn run_pass(&mut self, window: &[Instruction], (): ()) -> Option<Change> {
-=======
 	#[tracing::instrument]
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
->>>>>>> parent of fea49c6 (more tracing and mutable passes)
 		if let (Instruction::Move(i1), Instruction::Move(i2)) = (window[0], window[1]) {
 			if i1 == -i2 {
 				Some(Change::Remove)
