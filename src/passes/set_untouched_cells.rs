@@ -9,7 +9,7 @@ use crate::{Change, ExecutionUnit, Instruction, Pass};
 pub struct SetUntouchedCells;
 
 impl Pass for SetUntouchedCells {
-	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool {
+	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool {
 		if matches!(unit.program().first(), Some(&Instruction::Add(_))) {
 			let instr = unit.program_mut().as_raw().remove(0);
 

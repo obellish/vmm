@@ -3,7 +3,7 @@ mod pass;
 
 use std::{
 	error::Error as StdError,
-	fmt::{Display, Formatter, Result as FmtResult},
+	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	mem,
 	sync::LazyLock,
 };
@@ -49,20 +49,13 @@ impl Optimizer {
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
 		let starting_instruction_count = self.current_unit.program().len();
 
-		let passes: &[&dyn Pass] = &[
-			&CombineZeroLoopInstrPass,
-			&CombineAddInstrPass,
-			&CombineMoveInstrPass,
-			&RemoveEmptyLoopsPass,
-			&SetUntouchedCells,
-		];
-
 		let mut progress = false;
 
-		for pass in passes {
-			debug!("running pass {}", pass.name());
-			progress |= pass.run_pass(&mut self.current_unit);
-		}
+		self.run_pass(CombineZeroLoopInstrPass, &mut progress);
+		self.run_pass(CombineAddInstrPass, &mut progress);
+		self.run_pass(CombineMoveInstrPass, &mut progress);
+		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
+		self.run_pass(SetUntouchedCells, &mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
@@ -70,6 +63,15 @@ impl Optimizer {
 		);
 
 		progress || starting_instruction_count > self.current_unit.program().len()
+	}
+
+	#[tracing::instrument(skip(self))]
+	fn run_pass<P>(&mut self, mut pass: P, progress: &mut bool)
+	where
+		P: Debug + Pass,
+	{
+		debug!("running pass {}", pass.name());
+		*progress |= pass.run_pass(&mut self.current_unit);
 	}
 }
 

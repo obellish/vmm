@@ -1,10 +1,10 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, fmt::Debug};
 
 use super::Change;
 use crate::{ExecutionUnit, Instruction};
 
 pub trait Pass {
-	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool;
+	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool;
 
 	fn name(&self) -> Cow<'static, str>;
 }
@@ -12,13 +12,16 @@ pub trait Pass {
 pub trait PeepholePass {
 	const SIZE: usize;
 
-	fn run_pass(&self, window: &[Instruction]) -> Option<Change>;
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
 
 	fn name(&self) -> Cow<'static, str>;
 }
 
-impl<P: PeepholePass> Pass for P {
-	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool {
+impl<P> Pass for P
+where
+	P: Debug + PeepholePass,
+{
+	fn run_pass(&mut self, unit: &mut ExecutionUnit) -> bool {
 		let mut i = 0;
 		let mut progress = false;
 
