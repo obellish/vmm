@@ -13,7 +13,7 @@ impl PeepholePass for CombineZeroLoopInstrPass {
 			(window[0], window[1], window[2]),
 			(
 				Instruction::JumpRight,
-				Instruction::Add(-1),
+				Instruction::Add(_),
 				Instruction::JumpLeft
 			)
 		) {
