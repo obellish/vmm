@@ -4,7 +4,7 @@ mod pass;
 
 use std::{
 	error::Error as StdError,
-	fmt::{Debug, Display, Formatter, Result as FmtResult},
+	fmt::{Display, Formatter, Result as FmtResult},
 	mem,
 	sync::LazyLock,
 };
@@ -58,8 +58,17 @@ impl Optimizer {
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
 		let starting_instruction_count = self.current_unit.program().len();
 
+		let passes: &[&dyn Pass] = &[
+			&CombineZeroLoopInstrPass,
+			&CombineAddInstrPass,
+			&CombineMoveInstrPass,
+			&RemoveEmptyLoopsPass,
+			&SetUntouchedCells,
+		];
+
 		let mut progress = false;
 
+<<<<<<< HEAD
 		self.current_analysis_results = {
 			debug!("running cell analysis");
 			let analyzer = Analyzer::new(&self.current_unit);
@@ -76,6 +85,12 @@ impl Optimizer {
 		self.run_pass(CombineAddInstrPass, (), &mut progress);
 		self.run_pass(CombineMoveInstrPass, (), &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, (), &mut progress);
+=======
+		for pass in passes {
+			debug!("running pass {}", pass.name());
+			progress |= pass.run_pass(&mut self.current_unit);
+		}
+>>>>>>> parent of fea49c6 (more tracing and mutable passes)
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
@@ -84,6 +99,7 @@ impl Optimizer {
 
 		progress || starting_instruction_count > self.current_unit.program().len()
 	}
+<<<<<<< HEAD
 
 	#[tracing::instrument(skip(self))]
 	fn run_pass<P, S: Debug>(&mut self, mut pass: P, state: S, progress: &mut bool)
@@ -93,6 +109,8 @@ impl Optimizer {
 		debug!("running pass {}", pass.name());
 		*progress |= pass.run_pass(&mut self.current_unit, state);
 	}
+=======
+>>>>>>> parent of fea49c6 (more tracing and mutable passes)
 }
 
 #[derive(Debug, PartialEq, Eq)]

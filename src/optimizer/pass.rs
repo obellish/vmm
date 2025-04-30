@@ -1,12 +1,16 @@
-use std::{borrow::Cow, fmt::Debug};
+use std::borrow::Cow;
 
 use super::Change;
 use crate::{ExecutionUnit, Instruction};
 
 pub trait Pass {
+<<<<<<< HEAD
 	type State;
 
 	fn run_pass(&mut self, unit: &mut ExecutionUnit, state: Self::State) -> bool;
+=======
+	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool;
+>>>>>>> parent of fea49c6 (more tracing and mutable passes)
 
 	fn name(&self) -> Cow<'static, str>;
 }
@@ -16,11 +20,16 @@ pub trait PeepholePass {
 
 	const SIZE: usize;
 
+<<<<<<< HEAD
 	fn run_pass(&mut self, window: &[Instruction], state: Self::State) -> Option<Change>;
+=======
+	fn run_pass(&self, window: &[Instruction]) -> Option<Change>;
+>>>>>>> parent of fea49c6 (more tracing and mutable passes)
 
 	fn name(&self) -> Cow<'static, str>;
 }
 
+<<<<<<< HEAD
 impl<P> Pass for P
 where
 	P: Debug + PeepholePass,
@@ -28,6 +37,10 @@ where
 	type State = P::State;
 
 	fn run_pass(&mut self, unit: &mut ExecutionUnit, state: Self::State) -> bool {
+=======
+impl<P: PeepholePass> Pass for P {
+	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool {
+>>>>>>> parent of fea49c6 (more tracing and mutable passes)
 		let mut i = 0;
 		let mut progress = false;
 
