@@ -2,16 +2,16 @@ use std::borrow::Cow;
 
 use tracing::trace;
 
-use crate::{Change, ExecutionUnit, Instruction, Pass};
+use crate::{Change, ExecutionUnit, Instruction, Pass, Program};
 
 // Currently only runs on the beginning cell, but can be expanded once cell analysis is introduced.
 #[derive(Debug)]
 pub struct SetUntouchedCells;
 
 impl Pass for SetUntouchedCells {
-	fn run_pass(&self, unit: &mut ExecutionUnit) -> bool {
-		if let Some(Instruction::Add(i)) = unit.program().first() {
-			Change::ReplaceOne(Instruction::Set(*i as u8)).apply(unit.program_mut().as_raw(), 0, 1);
+	fn run_pass(&self, unit: &mut Program) -> bool {
+		if let Some(Instruction::Add(i)) = unit.first() {
+			Change::ReplaceOne(Instruction::Set(*i as u8)).apply(unit.as_raw(), 0, 1);
 
 			true
 		} else {

@@ -5,7 +5,7 @@ use color_eyre::eyre::Result;
 use serde::Serialize;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{ExecutionUnit, Optimizer, Scanner, Vm};
+use vmm::{Optimizer, Program, Scanner, Vm};
 
 fn main() -> Result<()> {
 	install_tracing();
@@ -20,15 +20,15 @@ fn main() -> Result<()> {
 		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
 		.collect::<String>();
 
-	let execution_unit = Scanner::new(&filtered_data).collect::<ExecutionUnit>();
+	let unoptimized = Scanner::new(&filtered_data).collect::<Program>();
 
-	serialize_and_write(&execution_unit, "unoptimized_program")?;
+	serialize_and_write(&unoptimized, "unoptimized_program")?;
 
-	let mut optimizer = Optimizer::new(execution_unit);
+	let mut optimizer = Optimizer::new(unoptimized);
 
 	let optimized = optimizer.optimize()?;
 
-	serialize_and_write(&optimized, "optimized_program")?;
+	serialize_and_write(optimized.program(), "optimized_program")?;
 
 	let profiler = if optimized.program().needs_input() {
 		let mut vm = Vm::stdio(optimized).and_profile();
@@ -82,6 +82,11 @@ fn serialize_and_write<S: Serialize>(p: &S, name: &str) -> Result<()> {
 	fs::write(
 		format!("./out/{name}.json"),
 		serde_json::to_string_pretty(p)?,
+	)?;
+
+	fs::write(
+		format!("./out/{name}.ron"),
+		ron::ser::to_string_pretty(p, ron::ser::PrettyConfig::new())?,
 	)?;
 
 	Ok(())

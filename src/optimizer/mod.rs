@@ -11,23 +11,28 @@ use serde::{Deserialize, Serialize};
 use tracing::info;
 
 pub use self::{change::*, pass::*};
+use crate::Program;
 #[allow(clippy::wildcard_imports)]
 use crate::{ExecutionUnit, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
-	current_unit: ExecutionUnit,
+	program: Program,
 }
 
 impl Optimizer {
 	#[must_use]
-	pub const fn new(current_unit: ExecutionUnit) -> Self {
-		Self { current_unit }
+	pub const fn new(current_unit: Program) -> Self {
+		Self {
+			program: current_unit,
+		}
 	}
 
 	pub fn optimize(&mut self) -> Result<ExecutionUnit, OptimizerError> {
-		if self.current_unit.program().is_optimized() {
-			return Ok(mem::take(&mut self.current_unit));
+		if self.program.is_optimized() {
+			return Ok(ExecutionUnit::optimized(
+				mem::take(&mut self.program).iter().copied(),
+			));
 		}
 
 		let mut counter = 1;
@@ -40,12 +45,12 @@ impl Optimizer {
 		}
 
 		Ok(ExecutionUnit::optimized(
-			self.current_unit.program().iter().copied(),
+			mem::take(&mut self.program).iter().copied(),
 		))
 	}
 
 	fn optimize_inner(&mut self, iteration: usize) -> bool {
-		let starting_instruction_count = self.current_unit.program().len();
+		let starting_instruction_count = self.program.len();
 
 		let mut progress = false;
 
@@ -57,10 +62,10 @@ impl Optimizer {
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
-			self.current_unit.program().len()
+			self.program.len()
 		);
 
-		progress || starting_instruction_count > self.current_unit.program().len()
+		progress || starting_instruction_count > self.program.len()
 	}
 
 	#[tracing::instrument(skip(self))]
@@ -68,7 +73,7 @@ impl Optimizer {
 	where
 		P: Debug + Pass,
 	{
-		*progress |= pass.run_pass(&mut self.current_unit);
+		*progress |= pass.run_pass(&mut self.program);
 	}
 }
 

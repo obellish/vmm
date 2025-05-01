@@ -12,7 +12,7 @@ fn combine_instructions<P: PeepholePass, const SIZE: usize>(
 
 	let mut unit = ExecutionUnit::raw(instructions);
 
-	assert!(<P as Pass>::run_pass(&pass, &mut unit));
+	assert!(<P as Pass>::run_pass(&pass, unit.program_mut()));
 
 	assert_eq!(**unit.program(), expected.into_iter().collect::<Vec<_>>());
 }
