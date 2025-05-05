@@ -13,7 +13,7 @@ impl PeepholePass for CombineAddInstrPass {
 			if i1 == -i2 {
 				Some(Change::Remove)
 			} else {
-				Some(Change::ReplaceOne(Instruction::Add(i1 + i2)))
+				Some(Change::ReplaceOne(Instruction::Add(i1.saturating_add(i2))))
 			}
 		} else {
 			None

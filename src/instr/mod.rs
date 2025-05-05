@@ -32,16 +32,28 @@ impl Display for Instruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
 			Self::Add(i) => {
-				if *i > 0 {
-					for _ in 0..(*i) {
-						f.write_char('+')?;
-					}
-				} else {
-					for _ in 0..(-*i) {
-						f.write_char('-')?;
-					}
+				let c = if *i > 0 { '+' } else { '-' };
+
+				for _ in 0..i.unsigned_abs() {
+					f.write_char(c)?;
 				}
 			}
+			Self::Move(i) => {
+				let c = if *i > 0 { '>' } else { '<' };
+				for _ in 0..i.unsigned_abs() {
+					f.write_char(c)?;
+				}
+			}
+			Self::JumpToZero(i) => {
+				f.write_char('[')?;
+				let c = if *i > 0 {'>'} else {'<'};
+				for _ in 0..i.unsigned_abs() {
+					f.write_char(c)?;
+				}
+				f.write_char(']')?;
+			}
+			Self::Read => f.write_char(',')?,
+			Self::Write => f.write_char('.')?,
 			Self::Set(i) => {
 				for _ in 0..(*i) {
 					f.write_char('+')?;
@@ -49,6 +61,7 @@ impl Display for Instruction {
 			}
 			Self::JumpRight => f.write_char('[')?,
 			Self::JumpLeft => f.write_char(']')?,
+			Self::Clear => f.write_str("[-]")?,
 			_ => f.write_char('*')?,
 		}
 
