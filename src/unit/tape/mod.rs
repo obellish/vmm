@@ -1,3 +1,5 @@
+mod ptr;
+
 use std::{
 	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Index, IndexMut},
@@ -6,13 +8,15 @@ use std::{
 use serde::{Deserialize, Serialize};
 use vmm_serde_array::BigArray;
 
+pub use self::ptr::TapePointer;
+
 pub const TAPE_SIZE: usize = 1000;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {
 	#[serde(with = "BigArray")]
 	cells: [u8; TAPE_SIZE],
-	pointer: usize,
+	pointer: TapePointer,
 }
 
 impl Tape {
@@ -20,33 +24,26 @@ impl Tape {
 	pub const fn new() -> Self {
 		Self {
 			cells: [0; TAPE_SIZE],
-			pointer: 0,
+			pointer: TapePointer::new(),
 		}
 	}
 
 	#[must_use]
 	pub fn current_cell(&self) -> &u8 {
-		unsafe { self.cells.get_unchecked(self.pointer) }
+		unsafe { self.cells.get_unchecked(self.pointer.value()) }
 	}
 
 	pub fn current_cell_mut(&mut self) -> &mut u8 {
-		unsafe { self.cells.get_unchecked_mut(self.pointer) }
+		unsafe { self.cells.get_unchecked_mut(self.pointer.value()) }
 	}
 
-	pub const fn increment_pointer(&mut self, amount: usize) {
-		self.pointer += amount;
-
-		if self.pointer >= TAPE_SIZE {
-			self.pointer -= TAPE_SIZE;
-		}
+	#[must_use]
+	pub const fn pointer(&self) -> &TapePointer {
+		&self.pointer
 	}
 
-	pub const fn decrement_pointer(&mut self, amount: usize) {
-		self.pointer = if self.pointer.wrapping_sub(amount) >= TAPE_SIZE {
-			TAPE_SIZE - amount
-		} else {
-			self.pointer - amount
-		}
+	pub const fn pointer_mut(&mut self) -> &mut TapePointer {
+		&mut self.pointer
 	}
 }
 

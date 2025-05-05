@@ -17,7 +17,7 @@ impl PeepholePass for CombineZeroLoopInstrPass {
 				Instruction::JumpLeft
 			)
 		) {
-			Some(Change::ReplaceOne(Instruction::Clear))
+			Some(Change::ReplaceOne(Instruction::Set(0)))
 		} else {
 			None
 		}

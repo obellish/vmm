@@ -62,6 +62,6 @@ fn combine_zero_loops_instructions() {
 			Instruction::Add(-1),
 			Instruction::JumpLeft,
 		],
-		Some(Instruction::Clear),
+		Some(Instruction::Set(0)),
 	);
 }

@@ -6,8 +6,8 @@ use std::{
 
 use tracing::warn;
 
-use super::{ExecutionUnit, Instruction};
-use crate::Profiler;
+use super::{ExecutionUnit, Instruction, Profiler, Tape};
+use crate::TapePointer;
 
 pub struct Vm<R = Stdin, W = Stdout>
 where
@@ -19,6 +19,7 @@ where
 	output: W,
 	counter: usize,
 	profiler: Option<Profiler>,
+	jump_addrs: Vec<usize>,
 }
 
 impl<R: Read, W: Write> Vm<R, W> {
@@ -29,6 +30,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 			output,
 			counter: 0,
 			profiler: None,
+			jump_addrs: Vec::new()
 		}
 	}
 
@@ -54,87 +56,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 				profiler.handle(current_instruction);
 			}
 
-			match current_instruction {
-				Instruction::Add(i) => {
-					*self.unit.tape_mut().current_cell_mut() =
-						self.unit.tape().current_cell().wrapping_add(i as u8);
-				}
-				Instruction::Set(i) => {
-					*self.unit.tape_mut().current_cell_mut() = i;
-				}
-				Instruction::Clear => {
-					*self.unit.tape_mut().current_cell_mut() = 0;
-				}
-				Instruction::Move(i) => {
-					if i > 0 {
-						self.unit.tape_mut().increment_pointer(i.unsigned_abs());
-					} else {
-						self.unit.tape_mut().decrement_pointer(i.unsigned_abs());
-					}
-				}
-				Instruction::Read => self.read_char()?,
-				Instruction::Write => self.write_char()?,
-				Instruction::JumpLeft => {
-					if !matches!(self.unit.tape().current_cell(), 0) {
-						let mut deep = 1;
-
-						loop {
-							if matches!(self.counter, 0) {
-								break 'program;
-							}
-
-							self.counter -= 1;
-
-							if matches!(self.current_instruction(), Instruction::JumpLeft) {
-								deep += 1;
-							}
-
-							if matches!(self.current_instruction(), Instruction::JumpRight) {
-								deep -= 1;
-							}
-
-							if matches!(deep, 0) {
-								break;
-							}
-						}
-					}
-				}
-				Instruction::JumpRight => {
-					if matches!(self.unit.tape().current_cell(), 0) {
-						let mut deep = 1;
-
-						loop {
-							if self.counter + 1 == self.unit.program().len() {
-								break 'program;
-							}
-
-							self.counter += 1;
-							if matches!(self.current_instruction(), Instruction::JumpRight) {
-								deep += 1;
-							}
-
-							if matches!(self.current_instruction(), Instruction::JumpLeft) {
-								deep -= 1;
-							}
-
-							if matches!(deep, 0) {
-								break;
-							}
-						}
-					}
-				}
-				Instruction::JumpToZero(i) => {
-					let backwards = i < 0;
-					while *self.unit.tape().current_cell() != 0 {
-						if backwards {
-							self.unit.tape_mut().decrement_pointer(i.unsigned_abs());
-						} else {
-							self.unit.tape_mut().increment_pointer(i.unsigned_abs());
-						}
-					}
-				}
-				ref i => warn!("{i:?} not implemented yet"),
-			}
+			self.execute_instruction(current_instruction)?;
 
 			self.counter += 1;
 
@@ -187,6 +109,60 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 	fn current_instruction(&self) -> &Instruction {
 		unsafe { self.unit.program().get_unchecked(self.counter) }
+	}
+
+	fn execute_instruction(&mut self, instr: Instruction) -> Result<(), RuntimeError> {
+		match instr {
+			Instruction::Add(i) => {
+				*self.current_cell_mut() = self.current_cell().wrapping_add(i as u8);
+			}
+			Instruction::Set(i) => *self.current_cell_mut() = i,
+			Instruction::Move(i) if i > 0 => *self.pointer_mut() += i.unsigned_abs(),
+			Instruction::Move(i) => *self.pointer_mut() -= i.unsigned_abs(),
+			Instruction::Read => self.read_char()?,
+			Instruction::Write => self.write_char()?,
+			Instruction::JumpToZero(i) => {
+				let backwards = i < 0;
+				while !matches!(self.current_cell(), 0) {
+					if backwards {
+						*self.pointer_mut() -= i.unsigned_abs();
+					} else {
+						*self.pointer_mut() += i.unsigned_abs();
+					}
+				}
+			}
+			Instruction::JumpLeft => {
+				self.jump_addr = self.counter;
+
+			}
+			_ => {} // i => warn!("instruction {i:?} not implemented"),
+		}
+
+		Ok(())
+	}
+
+	const fn tape(&self) -> &Tape {
+		self.unit.tape()
+	}
+
+	const fn tape_mut(&mut self) -> &mut Tape {
+		self.unit.tape_mut()
+	}
+
+	fn current_cell(&self) -> &u8 {
+		self.tape().current_cell()
+	}
+
+	fn current_cell_mut(&mut self) -> &mut u8 {
+		self.tape_mut().current_cell_mut()
+	}
+
+	const fn pointer(&self) -> &TapePointer {
+		self.tape().pointer()
+	}
+
+	const fn pointer_mut(&mut self) -> &mut TapePointer {
+		self.tape_mut().pointer_mut()
 	}
 }
 

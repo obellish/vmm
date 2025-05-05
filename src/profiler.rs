@@ -10,7 +10,6 @@ pub struct Profiler {
 	pub jl: u64,
 	pub inp: u64,
 	pub out: u64,
-	pub clr: u64,
 	pub set: u64,
 	pub muz: u64,
 }
@@ -25,7 +24,6 @@ impl Profiler {
 			jr: 0,
 			inp: 0,
 			out: 0,
-			clr: 0,
 			set: 0,
 			muz: 0,
 		}
@@ -35,7 +33,6 @@ impl Profiler {
 		match instruction {
 			Instruction::Set(_) => self.set += 1,
 			Instruction::Add(_) => self.add += 1,
-			Instruction::Clear => self.clr += 1,
 			Instruction::JumpLeft => self.jl += 1,
 			Instruction::JumpRight => self.jr += 1,
 			Instruction::Move(_) => self.mov += 1,

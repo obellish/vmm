@@ -13,7 +13,6 @@ pub enum Instruction {
 	Add(i8),
 	Set(u8),
 	JumpToZero(isize),
-	Clear,
 	Write,
 	Read,
 	JumpRight,
@@ -55,13 +54,19 @@ impl Display for Instruction {
 			Self::Read => f.write_char(',')?,
 			Self::Write => f.write_char('.')?,
 			Self::Set(i) => {
-				for _ in 0..(*i) {
-					f.write_char('+')?;
+				// for _ in 0..(*i) {
+				// 	f.write_char('+')?;
+				// }
+				if matches!(*i, 0 ) {
+					f.write_str("[-]")?;
+				} else {
+					for _ in 0..(*i) {
+						f.write_char('+')?;
+					}
 				}
 			}
 			Self::JumpRight => f.write_char('[')?,
 			Self::JumpLeft => f.write_char(']')?,
-			Self::Clear => f.write_str("[-]")?,
 			_ => f.write_char('*')?,
 		}
 
