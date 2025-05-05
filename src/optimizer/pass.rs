@@ -10,8 +10,6 @@ pub trait Pass {
 }
 
 pub trait PeepholePass {
-	type State: Clone;
-
 	const SIZE: usize;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change>;
@@ -48,10 +46,6 @@ impl<P: PeepholePass> Pass for P {
 	}
 
 	fn name(&self) -> Cow<'static, str> {
-		Cow::Owned(format!(
-			"{} with window size of {}",
-			<P as PeepholePass>::name(self),
-			Self::SIZE
-		))
+		<P as PeepholePass>::name(self)
 	}
 }

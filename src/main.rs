@@ -5,7 +5,7 @@ use color_eyre::eyre::Result;
 use serde::Serialize;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{Optimizer, Program, Scanner, Vm};
+use vmm::{Instruction, Optimizer, Program, Scanner, Vm};
 
 fn main() -> Result<()> {
 	install_tracing();
@@ -24,11 +24,15 @@ fn main() -> Result<()> {
 
 	serialize_and_write(&unoptimized, "unoptimized_program")?;
 
+	write_program(&unoptimized, "unoptimized")?;
+
 	let mut optimizer = Optimizer::new(unoptimized);
 
 	let optimized = optimizer.optimize()?;
 
 	serialize_and_write(optimized.program(), "optimized_program")?;
+
+	write_program(optimized.program(), "optimized")?;
 
 	let profiler = if optimized.program().needs_input() {
 		let mut vm = Vm::stdio(optimized).and_profile();
@@ -87,6 +91,15 @@ fn serialize_and_write<S: Serialize>(p: &S, name: &str) -> Result<()> {
 	fs::write(
 		format!("./out/{name}.ron"),
 		ron::ser::to_string_pretty(p, ron::ser::PrettyConfig::new())?,
+	)?;
+
+	Ok(())
+}
+
+fn write_program(p: &[Instruction], name: &str) -> Result<()> {
+	fs::write(
+		format!("./out/{name}.bf"),
+		p.iter().map(ToString::to_string).collect::<String>(),
 	)?;
 
 	Ok(())

@@ -6,8 +6,6 @@ use crate::{Change, Instruction, PeepholePass};
 pub struct RemoveEmptyLoopsPass;
 
 impl PeepholePass for RemoveEmptyLoopsPass {
-	type State = ();
-
 	const SIZE: usize = 2;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {

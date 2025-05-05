@@ -4,6 +4,8 @@ use std::{
 	io::{Error as IoError, ErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
 };
 
+use tracing::warn;
+
 use super::{ExecutionUnit, Instruction};
 use crate::Profiler;
 
@@ -121,7 +123,17 @@ impl<R: Read, W: Write> Vm<R, W> {
 						}
 					}
 				}
-				ref i => panic!("{i:?} not implemented yet"),
+				Instruction::JumpToZero(i) => {
+					let backwards = i < 0;
+					while *self.unit.tape().current_cell() != 0 {
+						if backwards {
+							self.unit.tape_mut().decrement_pointer(i.unsigned_abs());
+						} else {
+							self.unit.tape_mut().increment_pointer(i.unsigned_abs());
+						}
+					}
+				}
+				ref i => warn!("{i:?} not implemented yet"),
 			}
 
 			self.counter += 1;

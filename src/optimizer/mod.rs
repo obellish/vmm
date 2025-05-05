@@ -8,7 +8,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tracing::info;
+use tracing::{Level, debug, debug_span, info, span};
 
 pub use self::{change::*, pass::*};
 use crate::Program;
@@ -54,11 +54,14 @@ impl Optimizer {
 
 		let mut progress = false;
 
+		self.run_pass(InstrScanPass, &mut progress);
+
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(CombineZeroLoopInstrPass, &mut progress);
 		self.run_pass(SetUntouchedCells, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
+		self.run_pass(SearchForZeroPass, &mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
@@ -73,6 +76,8 @@ impl Optimizer {
 	where
 		P: Debug + Pass,
 	{
+		debug!("running pass {}", pass.name());
+
 		*progress |= pass.run_pass(&mut self.program);
 	}
 }

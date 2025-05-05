@@ -6,11 +6,8 @@ use crate::{Change, Instruction, PeepholePass};
 pub struct CombineAddInstrPass;
 
 impl PeepholePass for CombineAddInstrPass {
-	type State = ();
-
 	const SIZE: usize = 2;
 
-	#[tracing::instrument]
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
 		if let (Instruction::Add(i1), Instruction::Add(i2)) = (window[0], window[1]) {
 			if i1 == -i2 {

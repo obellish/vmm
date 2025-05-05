@@ -12,6 +12,7 @@ pub struct Profiler {
 	pub out: u64,
 	pub clr: u64,
 	pub set: u64,
+	pub muz: u64,
 }
 
 impl Profiler {
@@ -26,6 +27,7 @@ impl Profiler {
 			out: 0,
 			clr: 0,
 			set: 0,
+			muz: 0,
 		}
 	}
 
@@ -39,6 +41,7 @@ impl Profiler {
 			Instruction::Move(_) => self.mov += 1,
 			Instruction::Read => self.inp += 1,
 			Instruction::Write => self.out += 1,
+			Instruction::JumpToZero {..} => self.muz += 1,
 		}
 	}
 }

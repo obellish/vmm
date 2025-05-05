@@ -6,8 +6,6 @@ use crate::{Change, Instruction, PeepholePass};
 pub struct CombineMoveInstrPass;
 
 impl PeepholePass for CombineMoveInstrPass {
-	type State = ();
-
 	const SIZE: usize = 2;
 
 	#[tracing::instrument]

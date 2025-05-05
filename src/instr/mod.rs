@@ -1,5 +1,7 @@
 mod parse;
 
+use std::fmt::{Display, Formatter, Result as FmtResult, Write as _};
+
 use serde::{Deserialize, Serialize};
 
 pub use self::parse::*;
@@ -10,6 +12,7 @@ pub enum Instruction {
 	Move(isize),
 	Add(i8),
 	Set(u8),
+	JumpToZero(isize),
 	Clear,
 	Write,
 	Read,
@@ -22,6 +25,34 @@ impl Instruction {
 	#[must_use]
 	pub const fn needs_input(&self) -> bool {
 		matches!(self, Self::Read)
+	}
+}
+
+impl Display for Instruction {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		match self {
+			Self::Add(i) => {
+				if *i > 0 {
+					for _ in 0..(*i) {
+						f.write_char('+')?;
+					}
+				} else {
+					for _ in 0..(-*i) {
+						f.write_char('-')?;
+					}
+				}
+			}
+			Self::Set(i) => {
+				for _ in 0..(*i) {
+					f.write_char('+')?;
+				}
+			}
+			Self::JumpRight => f.write_char('[')?,
+			Self::JumpLeft => f.write_char(']')?,
+			_ => f.write_char('*')?,
+		}
+
+		Ok(())
 	}
 }
 
