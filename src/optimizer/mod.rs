@@ -60,7 +60,7 @@ impl Optimizer {
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(SetUntouchedCells, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
-		self.run_pass(SearchForZeroPass, &mut progress);
+		self.run_pass(SetZeroPass, &mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
