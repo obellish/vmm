@@ -12,6 +12,7 @@ pub struct Profiler {
 	pub out: u64,
 	pub set: u64,
 	pub muz: u64,
+	pub unknown: u64,
 }
 
 impl Profiler {
@@ -26,19 +27,19 @@ impl Profiler {
 			out: 0,
 			set: 0,
 			muz: 0,
+			unknown: 0,
 		}
 	}
 
-	pub const fn handle(&mut self, instruction: Instruction) {
+	pub const fn handle(&mut self, instruction: &Instruction) {
 		match instruction {
 			Instruction::Set(_) => self.set += 1,
 			Instruction::Add(_) => self.add += 1,
-			Instruction::JumpLeft => self.jl += 1,
-			Instruction::JumpRight => self.jr += 1,
 			Instruction::Move(_) => self.mov += 1,
 			Instruction::Read => self.inp += 1,
 			Instruction::Write => self.out += 1,
-			Instruction::JumpToZero {..} => self.muz += 1,
+			Instruction::JumpToZero { .. } => self.muz += 1,
+			_ => self.unknown += 1,
 		}
 	}
 }

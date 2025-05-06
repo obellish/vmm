@@ -11,9 +11,9 @@ use serde::{Deserialize, Serialize};
 use tracing::{Level, debug, debug_span, info, span};
 
 pub use self::{change::*, pass::*};
-use crate::Program;
 #[allow(clippy::wildcard_imports)]
 use crate::{ExecutionUnit, passes::*};
+use crate::{Instruction, Program};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
@@ -31,7 +31,7 @@ impl Optimizer {
 	pub fn optimize(&mut self) -> Result<ExecutionUnit, OptimizerError> {
 		if self.program.is_optimized() {
 			return Ok(ExecutionUnit::optimized(
-				mem::take(&mut self.program).iter().copied(),
+				mem::take(&mut self.program).iter().cloned(),
 			));
 		}
 
@@ -45,7 +45,7 @@ impl Optimizer {
 		}
 
 		Ok(ExecutionUnit::optimized(
-			mem::take(&mut self.program).iter().copied(),
+			mem::take(&mut self.program).iter().cloned(),
 		))
 	}
 
@@ -58,7 +58,6 @@ impl Optimizer {
 
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
-		self.run_pass(CombineZeroLoopInstrPass, &mut progress);
 		self.run_pass(SetUntouchedCells, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
 		self.run_pass(SearchForZeroPass, &mut progress);
@@ -74,11 +73,20 @@ impl Optimizer {
 	#[tracing::instrument(skip(self))]
 	fn run_pass<P>(&mut self, pass: P, progress: &mut bool)
 	where
-		P: Debug + Pass,
+		P: Clone + Debug + Pass,
 	{
-		debug!("running pass {}", pass.name());
+		run_pass_on_vec(pass, self.program.as_raw(), progress);
+		// debug!("running pass {}", pass.name());
 
-		*progress |= pass.run_pass(&mut self.program);
+		// *progress |= pass.run_pass(self.program.as_raw());
+
+		// if pass.should_run_on_loop() {
+		// 	for instr in self.program.as_raw() {
+		// 		if let Instruction::Loop(i) = instr {
+		// 			*progress |= pass.run_pass(i);
+		// 		}
+		// 	}
+		// }
 	}
 }
 
@@ -92,3 +100,20 @@ impl Display for OptimizerError {
 }
 
 impl StdError for OptimizerError {}
+
+fn run_pass_on_vec<P>(pass: P, v: &mut Vec<Instruction>, progress: &mut bool)
+where
+	P: Clone + Pass,
+{
+	debug!("running pass {} on vec of length {}", pass.name(), v.len());
+
+	*progress |= pass.run_pass(v);
+
+	if pass.should_run_on_loop() {
+		for instr in v {
+			if let Instruction::Loop(i) = instr {
+				run_pass_on_vec(pass.clone(), i, progress);
+			}
+		}
+	}
+}

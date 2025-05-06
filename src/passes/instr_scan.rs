@@ -4,19 +4,18 @@ use tracing::debug;
 
 use crate::{Change, Instruction, PeepholePass};
 
-#[derive(Debug
-)]
+#[derive(Debug, Clone, Copy)]
 pub struct InstrScanPass;
 
 impl PeepholePass for InstrScanPass {
-    const SIZE: usize = 6;
+	const SIZE: usize = 6;
 
-    fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
-        debug!("{window:?}");
-        None
-    }
+	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
+		debug!("{window:?}");
+		None
+	}
 
-    fn name(&self) -> Cow<'static, str> {
-        Cow::Borrowed("scan instructions for patterns")
-    }
+	fn name(&self) -> Cow<'static, str> {
+		Cow::Borrowed("scan instructions for patterns")
+	}
 }

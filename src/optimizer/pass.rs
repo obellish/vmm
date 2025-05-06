@@ -4,9 +4,13 @@ use super::Change;
 use crate::{ExecutionUnit, Instruction, Program};
 
 pub trait Pass {
-	fn run_pass(&self, unit: &mut Program) -> bool;
+	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool;
 
 	fn name(&self) -> Cow<'static, str>;
+
+	fn should_run_on_loop(&self) -> bool {
+		true
+	}
 }
 
 pub trait PeepholePass {
@@ -15,10 +19,14 @@ pub trait PeepholePass {
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change>;
 
 	fn name(&self) -> Cow<'static, str>;
+
+	fn should_run_on_loop(&self) -> bool {
+		true
+	}
 }
 
 impl<P: PeepholePass> Pass for P {
-	fn run_pass(&self, unit: &mut Program) -> bool {
+	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool {
 		let mut i = 0;
 		let mut progress = false;
 
@@ -30,7 +38,7 @@ impl<P: PeepholePass> Pass for P {
 			let change = P::run_pass(self, window);
 
 			let (changed, removed) = change
-				.map(|c| c.apply(unit.as_raw(), i, P::SIZE))
+				.map(|c| c.apply(unit, i, P::SIZE))
 				.unwrap_or_default();
 
 			i -= removed;
@@ -47,5 +55,9 @@ impl<P: PeepholePass> Pass for P {
 
 	fn name(&self) -> Cow<'static, str> {
 		<P as PeepholePass>::name(self)
+	}
+
+	fn should_run_on_loop(&self) -> bool {
+		<P as PeepholePass>::should_run_on_loop(self)
 	}
 }

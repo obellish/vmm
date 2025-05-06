@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 pub use self::parse::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
 	Move(isize),
@@ -15,11 +15,9 @@ pub enum Instruction {
 	JumpToZero(isize),
 	Write,
 	Read,
-	JumpRight,
-	JumpLeft,
+	Loop(Vec<Self>),
 }
 
-#[expect(clippy::trivially_copy_pass_by_ref)]
 impl Instruction {
 	#[must_use]
 	pub const fn needs_input(&self) -> bool {
@@ -45,7 +43,7 @@ impl Display for Instruction {
 			}
 			Self::JumpToZero(i) => {
 				f.write_char('[')?;
-				let c = if *i > 0 {'>'} else {'<'};
+				let c = if *i > 0 { '>' } else { '<' };
 				for _ in 0..i.unsigned_abs() {
 					f.write_char(c)?;
 				}
@@ -54,10 +52,7 @@ impl Display for Instruction {
 			Self::Read => f.write_char(',')?,
 			Self::Write => f.write_char('.')?,
 			Self::Set(i) => {
-				// for _ in 0..(*i) {
-				// 	f.write_char('+')?;
-				// }
-				if matches!(*i, 0 ) {
+				if matches!(*i, 0) {
 					f.write_str("[-]")?;
 				} else {
 					for _ in 0..(*i) {
@@ -65,26 +60,16 @@ impl Display for Instruction {
 					}
 				}
 			}
-			Self::JumpRight => f.write_char('[')?,
-			Self::JumpLeft => f.write_char(']')?,
+			Self::Loop(instructions) => {
+				f.write_char('[')?;
+				for instr in instructions {
+					Display::fmt(&instr, f)?;
+				}
+				f.write_char(']')?;
+			}
 			_ => f.write_char('*')?,
 		}
 
 		Ok(())
-	}
-}
-
-impl From<ParsedInstruction> for Instruction {
-	fn from(value: ParsedInstruction) -> Self {
-		match value {
-			ParsedInstruction::Input => Self::Read,
-			ParsedInstruction::Output => Self::Write,
-			ParsedInstruction::JumpLeft => Self::JumpLeft,
-			ParsedInstruction::JumpRight => Self::JumpRight,
-			ParsedInstruction::MoveLeft => Self::Move(-1),
-			ParsedInstruction::MoveRight => Self::Move(1),
-			ParsedInstruction::Decrement => Self::Add(-1),
-			ParsedInstruction::Increment => Self::Add(1),
-		}
 	}
 }

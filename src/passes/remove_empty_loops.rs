@@ -2,14 +2,14 @@ use std::borrow::Cow;
 
 use crate::{Change, Instruction, PeepholePass};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct RemoveEmptyLoopsPass;
 
 impl PeepholePass for RemoveEmptyLoopsPass {
-	const SIZE: usize = 2;
+	const SIZE: usize = 1;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
-		if window == [Instruction::JumpRight, Instruction::JumpLeft] {
+		if window[0] == Instruction::Loop(Vec::new()) {
 			Some(Change::Remove)
 		} else {
 			None

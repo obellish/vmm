@@ -6,8 +6,7 @@ use std::{
 
 use tracing::warn;
 
-use super::{ExecutionUnit, Instruction, Profiler, Tape};
-use crate::TapePointer;
+use super::{ExecutionUnit, Instruction, Profiler, Program, Tape, TapePointer};
 
 pub struct Vm<R = Stdin, W = Stdout>
 where
@@ -30,7 +29,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 			output,
 			counter: 0,
 			profiler: None,
-			jump_addrs: Vec::new()
+			jump_addrs: Vec::new(),
 		}
 	}
 
@@ -50,19 +49,19 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 	pub fn run(&mut self) -> Result<(), RuntimeError> {
 		'program: loop {
-			let current_instruction = *self.current_instruction();
+			if self.program().len() == self.counter {
+				break 'program;
+			}
+
+			let current_instruction = self.current_instruction().clone();
 
 			if let Some(profiler) = &mut self.profiler {
-				profiler.handle(current_instruction);
+				profiler.handle(&current_instruction);
 			}
 
 			self.execute_instruction(current_instruction)?;
 
 			self.counter += 1;
-
-			if self.unit.program().len() == self.counter {
-				break 'program;
-			}
 		}
 
 		Ok(())
@@ -131,14 +130,21 @@ impl<R: Read, W: Write> Vm<R, W> {
 					}
 				}
 			}
-			Instruction::JumpLeft => {
-				self.jump_addr = self.counter;
-
+			Instruction::Loop(instructions) => {
+				while !matches!(self.current_cell(), 0) {
+					for instr in instructions.clone() {
+						self.execute_instruction(instr)?;
+					}
+				}
 			}
 			_ => {} // i => warn!("instruction {i:?} not implemented"),
 		}
 
 		Ok(())
+	}
+
+	const fn program(&self) -> &Program {
+		self.unit.program()
 	}
 
 	const fn tape(&self) -> &Tape {

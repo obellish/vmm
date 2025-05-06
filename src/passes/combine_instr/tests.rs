@@ -1,6 +1,6 @@
 use crate::{
 	ExecutionUnit, Instruction, Pass, PeepholePass, Program,
-	passes::{CombineAddInstrPass, CombineMoveInstrPass, CombineZeroLoopInstrPass},
+	passes::{CombineAddInstrPass, CombineMoveInstrPass},
 };
 
 fn combine_instructions<P: PeepholePass, const SIZE: usize>(
@@ -12,7 +12,7 @@ fn combine_instructions<P: PeepholePass, const SIZE: usize>(
 
 	let mut unit = ExecutionUnit::raw(instructions);
 
-	assert!(<P as Pass>::run_pass(&pass, unit.program_mut()));
+	assert!(<P as Pass>::run_pass(&pass, unit.program_mut().as_raw()));
 
 	assert_eq!(**unit.program(), expected.into_iter().collect::<Vec<_>>());
 }
@@ -50,18 +50,5 @@ fn remove_move_instructions() {
 		CombineMoveInstrPass,
 		[Instruction::Move(-2), Instruction::Move(2)],
 		None,
-	);
-}
-
-#[test]
-fn combine_zero_loops_instructions() {
-	combine_instructions(
-		CombineZeroLoopInstrPass,
-		[
-			Instruction::JumpRight,
-			Instruction::Add(-1),
-			Instruction::JumpLeft,
-		],
-		Some(Instruction::Set(0)),
 	);
 }

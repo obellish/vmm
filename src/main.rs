@@ -20,7 +20,7 @@ fn main() -> Result<()> {
 		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
 		.collect::<String>();
 
-	let unoptimized = Scanner::new(&filtered_data).collect::<Program>();
+	let unoptimized = Scanner::new(&filtered_data).scan()?.collect::<Program>();
 
 	serialize_and_write(&unoptimized, "unoptimized_program")?;
 

@@ -2,7 +2,7 @@ use logos::Logos;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Logos)]
-pub enum ParsedInstruction {
+pub enum OpCode {
 	#[token("<")]
 	MoveLeft,
 	#[token(">")]
