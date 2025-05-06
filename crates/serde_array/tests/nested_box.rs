@@ -1,6 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use vmm_serde_array::Array;
+use serde_array::Array;
 
 #[derive(Serialize, Deserialize)]
 #[repr(transparent)]

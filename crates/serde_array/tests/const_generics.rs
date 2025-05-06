@@ -2,7 +2,7 @@ use std::{cell::RefCell, collections::HashSet};
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use vmm_serde_array::BigArray;
+use serde_array::BigArray;
 
 thread_local! {
 	static DROPPED: RefCell<Vec<u32>> = const { RefCell::new(Vec::new()) };

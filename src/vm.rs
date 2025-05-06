@@ -7,7 +7,6 @@ use std::{
 use tracing::warn;
 
 use super::{ExecutionUnit, Instruction, Profiler, Program, Tape, TapePointer};
-use crate::SimdInstruction;
 
 pub struct Vm<R = Stdin, W = Stdout>
 where
@@ -17,7 +16,6 @@ where
 	unit: ExecutionUnit,
 	input: R,
 	output: W,
-	counter: usize,
 	profiler: Option<Profiler>,
 	jump_addrs: Vec<usize>,
 }
@@ -28,7 +26,6 @@ impl<R: Read, W: Write> Vm<R, W> {
 			unit,
 			input,
 			output,
-			counter: 0,
 			profiler: None,
 			jump_addrs: Vec::new(),
 		}
@@ -49,16 +46,8 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	pub fn run(&mut self) -> Result<(), RuntimeError> {
-		'program: loop {
-			let current_instruction = self.current_instruction().clone();
-
-			self.execute_instruction(&current_instruction)?;
-
-			self.counter += 1;
-
-			if <[Instruction]>::len(self.program()) == self.counter {
-				break 'program;
-			}
+		for instr in &std::mem::take(self.program_mut()) {
+			self.execute_instruction(instr)?;
 		}
 
 		Ok(())
@@ -103,9 +92,9 @@ impl<R: Read, W: Write> Vm<R, W> {
 		Ok(())
 	}
 
-	fn current_instruction(&self) -> &Instruction {
-		&self.program()[self.counter]
-	}
+	// fn current_instruction(&self) -> &Instruction {
+	// 	&self.program()[self.counter]
+	// }
 
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
@@ -132,33 +121,29 @@ impl<R: Read, W: Write> Vm<R, W> {
 				}
 			}
 			Instruction::Loop(instructions) => {
+				let mut iterations = 0usize;
+				tracing::trace!(
+					"entering loop at cell = {:?}, value = {}",
+					self.pointer(),
+					self.current_cell()
+				);
 				while !matches!(self.current_cell(), 0) {
+					iterations += 1;
+
+					assert!(
+						(iterations <= 100_000),
+						"loop exceeded 100k iterations at cell {:?}",
+						self.pointer(),
+					);
+
 					for instr in instructions {
 						self.execute_instruction(instr)?;
 					}
+
+					tracing::trace!("current cell value: {}", self.current_cell());
 				}
 			}
-			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
 			_ => {}
-		}
-
-		Ok(())
-	}
-
-	#[expect(clippy::trivially_copy_pass_by_ref)]
-	fn execute_simd_instruction(&mut self, instr: &SimdInstruction) -> Result<(), RuntimeError> {
-		match instr {
-			SimdInstruction::Set { len, value } => {
-				let current_ptr = self.pointer().value();
-
-				let cells_to_modify = &mut self.tape_mut()[current_ptr..current_ptr + len];
-
-				for cell in  cells_to_modify {
-					*cell = *value;
-				}
-
-				*self.pointer_mut() += *len;
-			}
 		}
 
 		Ok(())
@@ -166,6 +151,10 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 	const fn program(&self) -> &Program {
 		self.unit.program()
+	}
+
+	const fn program_mut(&mut self) -> &mut Program {
+		self.unit.program_mut()
 	}
 
 	const fn tape(&self) -> &Tape {
@@ -176,11 +165,11 @@ impl<R: Read, W: Write> Vm<R, W> {
 		self.unit.tape_mut()
 	}
 
-	fn current_cell(&self) -> &u8 {
+	const fn current_cell(&self) -> &u8 {
 		self.tape().current_cell()
 	}
 
-	fn current_cell_mut(&mut self) -> &mut u8 {
+	const fn current_cell_mut(&mut self) -> &mut u8 {
 		self.tape_mut().current_cell_mut()
 	}
 

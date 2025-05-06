@@ -3,7 +3,7 @@ lints.workspace = true
 [package]
 edition.workspace = true
 license.workspace = true
-name = "vmm_serde_array"
+name = "serde_array"
 rust-version.workspace = true
 version.workspace = true
 

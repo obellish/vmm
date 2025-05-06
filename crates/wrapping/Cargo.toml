@@ -6,3 +6,7 @@ license.workspace = true
 name = "vmm_wrapping"
 rust-version.workspace = true
 version.workspace = true
+
+[dependencies]
+serde = { workspace = true, default-features = false }
+serde_array.workspace = true

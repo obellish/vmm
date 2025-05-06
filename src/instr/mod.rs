@@ -1,11 +1,10 @@
 mod parse;
-mod simd;
 
 use std::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
 use serde::{Deserialize, Serialize};
 
-pub use self::{parse::*, simd::*};
+pub use self::parse::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -17,7 +16,6 @@ pub enum Instruction {
 	Write,
 	Read,
 	Loop(Vec<Self>),
-	Simd(SimdInstruction),
 }
 
 impl Instruction {
@@ -28,15 +26,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_set(&self) -> bool {
-		matches!(self, Self::Set(_) | Self::Simd(SimdInstruction::Set { .. }))
+		matches!(self, Self::Set(_))
 	}
 
 	#[must_use]
 	pub const fn is_clear(&self) -> bool {
-		matches!(
-			self,
-			Self::Set(0) | Self::Simd(SimdInstruction::Set { value: 0, .. })
-		)
+		matches!(self, Self::Set(0))
 	}
 
 	#[must_use]
@@ -95,7 +90,6 @@ impl Display for Instruction {
 				}
 				f.write_char(']')?;
 			}
-			Self::Simd(s) => Display::fmt(&s, f)?,
 			_ => f.write_char('*')?,
 		}
 

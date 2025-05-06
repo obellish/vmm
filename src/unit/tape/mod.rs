@@ -7,11 +7,12 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use vmm_serde_array::BigArray;
+use serde_array::BigArray;
+use vmm_wrapping::WrappingArray;
 
 pub use self::ptr::TapePointer;
 
-pub const TAPE_SIZE: usize = 5000;
+pub const TAPE_SIZE: usize = 1000;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {
@@ -30,12 +31,13 @@ impl Tape {
 	}
 
 	#[must_use]
-	pub fn current_cell(&self) -> &u8 {
-		unsafe { self.cells.get_unchecked(self.pointer.value()) }
+	pub const fn current_cell(&self) -> &u8 {
+		&self.cells[self.pointer.value()]
 	}
 
-	pub fn current_cell_mut(&mut self) -> &mut u8 {
-		unsafe { self.cells.get_unchecked_mut(self.pointer.value()) }
+	pub const fn current_cell_mut(&mut self) -> &mut u8 {
+		let ptr = self.pointer.value();
+		&mut self.cells[ptr]
 	}
 
 	#[must_use]
@@ -45,6 +47,17 @@ impl Tape {
 
 	pub const fn pointer_mut(&mut self) -> &mut TapePointer {
 		&mut self.pointer
+	}
+
+	#[expect(clippy::missing_const_for_fn)]
+	#[must_use]
+	pub fn as_slice(&self) -> &[u8] {
+		&self.cells
+	}
+
+	#[expect(clippy::missing_const_for_fn)]
+	pub fn as_mut_slice(&mut self) -> &mut [u8] {
+		&mut self.cells
 	}
 }
 
@@ -74,22 +87,16 @@ impl Default for Tape {
 	}
 }
 
-impl<I> Index<I> for Tape
-where
-	I: SliceIndex<[u8]>,
-{
-	type Output = I::Output;
+impl Index<usize> for Tape {
+	type Output = u8;
 
-	fn index(&self, index: I) -> &Self::Output {
+	fn index(&self, index: usize) -> &Self::Output {
 		self.cells.index(index)
 	}
 }
 
-impl<I> IndexMut<I> for Tape
-where
-	I: SliceIndex<[u8]>,
-{
-	fn index_mut(&mut self, index: I) -> &mut Self::Output {
+impl IndexMut<usize> for Tape {
+	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
 		self.cells.index_mut(index)
 	}
 }

@@ -19,6 +19,14 @@ impl TapePointer {
 	pub const fn value(self) -> usize {
 		self.0
 	}
+
+	pub const fn set(&mut self, mut value: usize) {
+		while value >= TAPE_SIZE {
+			value -= TAPE_SIZE;
+		}
+
+		self.0 = value;
+	}
 }
 
 impl Default for TapePointer {

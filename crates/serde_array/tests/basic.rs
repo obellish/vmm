@@ -1,6 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use vmm_serde_array::BigArray;
+use serde_array::BigArray;
 
 #[derive(Serialize, Deserialize)]
 struct S {
