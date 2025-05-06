@@ -689,6 +689,7 @@ dependencies = [
  "tracing-subscriber",
  "vmm_alloc",
  "vmm_serde_array",
+ "vmm_wrapping",
 ]
 
 [[package]]
