@@ -3,8 +3,9 @@ mod instr_scan;
 mod remove_empty_loops;
 mod search_for_zero;
 mod set_untouched_cells;
+mod simd;
 
 pub use self::{
 	combine_instr::*, instr_scan::*, remove_empty_loops::*, search_for_zero::*,
-	set_untouched_cells::*,
+	set_untouched_cells::*, simd::*,
 };

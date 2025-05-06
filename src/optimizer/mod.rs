@@ -60,6 +60,8 @@ impl Optimizer {
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
 		self.run_pass(SetZeroPass, &mut progress);
 
+		self.run_pass(BasicSimdClearTransformPass, &mut progress);
+
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
 			self.program.len()
@@ -92,7 +94,7 @@ fn run_pass_on_vec<P>(pass: P, v: &mut Vec<Instruction>, progress: &mut bool)
 where
 	P: Clone + Pass,
 {
-	debug!("running {} pass on vec of length {}", pass.name(), v.len());
+	debug!("running pass on vec of length {}", v.len());
 
 	*progress |= pass.run_pass(v);
 

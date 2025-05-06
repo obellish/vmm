@@ -3,6 +3,7 @@ mod ptr;
 use std::{
 	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Index, IndexMut},
+	slice::SliceIndex,
 };
 
 use serde::{Deserialize, Serialize};
@@ -10,7 +11,7 @@ use vmm_serde_array::BigArray;
 
 pub use self::ptr::TapePointer;
 
-pub const TAPE_SIZE: usize = 1000;
+pub const TAPE_SIZE: usize = 5000;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {
@@ -73,16 +74,22 @@ impl Default for Tape {
 	}
 }
 
-impl Index<usize> for Tape {
-	type Output = u8;
+impl<I> Index<I> for Tape
+where
+	I: SliceIndex<[u8]>,
+{
+	type Output = I::Output;
 
-	fn index(&self, index: usize) -> &Self::Output {
+	fn index(&self, index: I) -> &Self::Output {
 		self.cells.index(index)
 	}
 }
 
-impl IndexMut<usize> for Tape {
-	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+impl<I> IndexMut<I> for Tape
+where
+	I: SliceIndex<[u8]>,
+{
+	fn index_mut(&mut self, index: I) -> &mut Self::Output {
 		self.cells.index_mut(index)
 	}
 }

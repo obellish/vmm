@@ -7,6 +7,7 @@ use std::{
 use tracing::warn;
 
 use super::{ExecutionUnit, Instruction, Profiler, Program, Tape, TapePointer};
+use crate::SimdInstruction;
 
 pub struct Vm<R = Stdin, W = Stdout>
 where
@@ -137,7 +138,27 @@ impl<R: Read, W: Write> Vm<R, W> {
 					}
 				}
 			}
+			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
 			_ => {}
+		}
+
+		Ok(())
+	}
+
+	#[expect(clippy::trivially_copy_pass_by_ref)]
+	fn execute_simd_instruction(&mut self, instr: &SimdInstruction) -> Result<(), RuntimeError> {
+		match instr {
+			SimdInstruction::Set { len, value } => {
+				let current_ptr = self.pointer().value();
+
+				let cells_to_modify = &mut self.tape_mut()[current_ptr..current_ptr + len];
+
+				for cell in  cells_to_modify {
+					*cell = *value;
+				}
+
+				*self.pointer_mut() += *len;
+			}
 		}
 
 		Ok(())

@@ -1,10 +1,11 @@
 mod parse;
+mod simd;
 
 use std::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
 use serde::{Deserialize, Serialize};
 
-pub use self::parse::*;
+pub use self::{parse::*, simd::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -16,12 +17,26 @@ pub enum Instruction {
 	Write,
 	Read,
 	Loop(Vec<Self>),
+	Simd(SimdInstruction),
 }
 
 impl Instruction {
 	#[must_use]
 	pub const fn needs_input(&self) -> bool {
 		matches!(self, Self::Read)
+	}
+
+	#[must_use]
+	pub const fn is_set(&self) -> bool {
+		matches!(self, Self::Set(_) | Self::Simd(SimdInstruction::Set { .. }))
+	}
+
+	#[must_use]
+	pub const fn is_clear(&self) -> bool {
+		matches!(
+			self,
+			Self::Set(0) | Self::Simd(SimdInstruction::Set { value: 0, .. })
+		)
 	}
 
 	#[must_use]
@@ -67,13 +82,10 @@ impl Display for Instruction {
 			}
 			Self::Read => f.write_char(',')?,
 			Self::Write => f.write_char('.')?,
+			Self::Set(0) => f.write_str("[-]")?,
 			Self::Set(i) => {
-				if matches!(*i, 0) {
-					f.write_str("[-]")?;
-				} else {
-					for _ in 0..(*i) {
-						f.write_char('+')?;
-					}
+				for _ in 0..(*i) {
+					f.write_char('+')?;
 				}
 			}
 			Self::Loop(instructions) => {
@@ -83,6 +95,7 @@ impl Display for Instruction {
 				}
 				f.write_char(']')?;
 			}
+			Self::Simd(s) => Display::fmt(&s, f)?,
 			_ => f.write_char('*')?,
 		}
 

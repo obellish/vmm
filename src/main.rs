@@ -3,6 +3,7 @@ use std::{fmt::Debug, fs, path::PathBuf};
 use clap::Parser;
 use color_eyre::eyre::Result;
 use serde::Serialize;
+use tracing::warn;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 use vmm::{Instruction, Optimizer, Program, Scanner, Vm};
@@ -26,13 +27,17 @@ fn main() -> Result<()> {
 
 	write_program(&unoptimized, "unoptimized")?;
 
-	let mut optimizer = Optimizer::new(unoptimized);
+	let mut optimizer = Optimizer::new(unoptimized.clone());
 
 	let optimized = optimizer.optimize()?;
 
 	serialize_and_write(optimized.program(), "optimized_program")?;
 
 	write_program(optimized.program(), "optimized")?;
+
+	if program_to_string(&unoptimized) != program_to_string(optimized.program()) {
+		warn!("program instructions do not match, semantics may be different");
+	}
 
 	let profiler = if optimized.program().needs_input() {
 		let mut vm = Vm::stdio(optimized).and_profile();
@@ -97,10 +102,11 @@ fn serialize_and_write<S: Serialize>(p: &S, name: &str) -> Result<()> {
 }
 
 fn write_program(p: &[Instruction], name: &str) -> Result<()> {
-	fs::write(
-		format!("./out/{name}.bf"),
-		p.iter().map(ToString::to_string).collect::<String>(),
-	)?;
+	fs::write(format!("./out/{name}.bf"), program_to_string(p))?;
 
 	Ok(())
+}
+
+fn program_to_string(p: &[Instruction]) -> String {
+	p.iter().map(ToString::to_string).collect::<String>()
 }
