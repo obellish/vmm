@@ -9,13 +9,14 @@ pub use self::parse::*;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
-	Move(isize),
+	MovePtr(isize),
 	Add(i8),
 	Set(u8),
 	FindZero(isize),
 	Write,
 	Read,
 	Loop(Vec<Self>),
+	MoveValue { offset: isize, len: usize },
 }
 
 impl Instruction {
@@ -29,7 +30,7 @@ impl Instruction {
 		match self {
 			Self::Loop(l) => l.len(),
 			Self::Add(i) => i.unsigned_abs() as usize,
-			Self::Move(i) => i.unsigned_abs(),
+			Self::MovePtr(i) => i.unsigned_abs(),
 			Self::Set(i) => *i as usize,
 			_ => 1,
 		}
@@ -51,7 +52,7 @@ impl Display for Instruction {
 					f.write_char(c)?;
 				}
 			}
-			Self::Move(i) => {
+			Self::MovePtr(i) => {
 				let c = if *i > 0 { '>' } else { '<' };
 				for _ in 0..i.unsigned_abs() {
 					f.write_char(c)?;

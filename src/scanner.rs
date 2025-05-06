@@ -62,8 +62,8 @@ fn parse(
 				OpCode::Decrement => Some(Instruction::Add(-1)),
 				OpCode::Input => Some(Instruction::Read),
 				OpCode::Output => Some(Instruction::Write),
-				OpCode::MoveRight => Some(Instruction::Move(1)),
-				OpCode::MoveLeft => Some(Instruction::Move(-1)),
+				OpCode::MoveRight => Some(Instruction::MovePtr(1)),
+				OpCode::MoveLeft => Some(Instruction::MovePtr(-1)),
 				OpCode::JumpRight => {
 					loop_start = i;
 					loop_stack += 1;

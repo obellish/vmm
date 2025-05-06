@@ -116,8 +116,8 @@ impl<R: Read, W: Write> Vm<R, W> {
 				*self.current_cell_mut() = self.current_cell().wrapping_add(*i as u8);
 			}
 			Instruction::Set(i) => *self.current_cell_mut() = *i,
-			Instruction::Move(i) if *i > 0 => *self.pointer_mut() += i.unsigned_abs(),
-			Instruction::Move(i) => *self.pointer_mut() -= i.unsigned_abs(),
+			Instruction::MovePtr(i) if *i > 0 => *self.pointer_mut() += i.unsigned_abs(),
+			Instruction::MovePtr(i) => *self.pointer_mut() -= i.unsigned_abs(),
 			Instruction::Read => self.read_char()?,
 			Instruction::Write => self.write_char()?,
 			Instruction::FindZero(i) => {

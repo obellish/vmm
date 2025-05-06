@@ -39,8 +39,8 @@ fn remove_add_instructions() {
 fn combine_move_instructions() {
 	combine_instructions(
 		CombineMoveInstrPass,
-		[Instruction::Move(3), Instruction::Move(2)],
-		Some(Instruction::Move(5)),
+		[Instruction::MovePtr(3), Instruction::MovePtr(2)],
+		Some(Instruction::MovePtr(5)),
 	);
 }
 
@@ -48,7 +48,7 @@ fn combine_move_instructions() {
 fn remove_move_instructions() {
 	combine_instructions(
 		CombineMoveInstrPass,
-		[Instruction::Move(-2), Instruction::Move(2)],
+		[Instruction::MovePtr(-2), Instruction::MovePtr(2)],
 		None,
 	);
 }

@@ -10,11 +10,11 @@ impl PeepholePass for CombineMoveInstrPass {
 
 	#[tracing::instrument]
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
-		if let [Instruction::Move(i1), Instruction::Move(i2)] = window {
+		if let [Instruction::MovePtr(i1), Instruction::MovePtr(i2)] = window {
 			if *i1 == -*i2 {
 				Some(Change::Remove)
 			} else {
-				Some(Change::ReplaceOne(Instruction::Move(
+				Some(Change::ReplaceOne(Instruction::MovePtr(
 					i1.saturating_add(*i2),
 				)))
 			}
