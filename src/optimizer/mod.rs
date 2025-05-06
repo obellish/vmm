@@ -54,10 +54,11 @@ impl Optimizer {
 
 		let mut progress = false;
 
-		self.run_pass(InstrScanPass, &mut progress);
+		// self.run_pass(InstrScanPass, &mut progress);
 
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
+		self.run_pass(SearchForZeroPass, &mut progress);
 		self.run_pass(SetUntouchedCells, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
 		self.run_pass(SetZeroPass, &mut progress);
@@ -76,17 +77,6 @@ impl Optimizer {
 		P: Clone + Debug + Pass,
 	{
 		run_pass_on_vec(pass, self.program.as_raw(), progress);
-		// debug!("running pass {}", pass.name());
-
-		// *progress |= pass.run_pass(self.program.as_raw());
-
-		// if pass.should_run_on_loop() {
-		// 	for instr in self.program.as_raw() {
-		// 		if let Instruction::Loop(i) = instr {
-		// 			*progress |= pass.run_pass(i);
-		// 		}
-		// 	}
-		// }
 	}
 }
 

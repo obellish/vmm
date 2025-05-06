@@ -39,6 +39,15 @@ impl Program {
 	pub fn needs_input(&self) -> bool {
 		self.iter().any(Instruction::needs_input)
 	}
+
+	pub fn len(&self) -> usize {
+		self.iter().map(Instruction::len).sum()
+	}
+
+	#[must_use]
+	pub fn is_empty(&self) -> bool {
+		matches!(self.len(), 0)
+	}
 }
 
 impl Debug for Program {

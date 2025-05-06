@@ -49,19 +49,19 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 	pub fn run(&mut self) -> Result<(), RuntimeError> {
 		'program: loop {
-			if self.program().len() == self.counter {
-				break 'program;
-			}
-
 			let current_instruction = self.current_instruction().clone();
 
 			if let Some(profiler) = &mut self.profiler {
 				profiler.handle(&current_instruction);
 			}
 
-			self.execute_instruction(current_instruction)?;
+			self.execute_instruction(&current_instruction)?;
 
 			self.counter += 1;
+
+			if <[Instruction]>::len(self.program()) == self.counter {
+				break 'program;
+			}
 		}
 
 		Ok(())
@@ -107,21 +107,22 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	fn current_instruction(&self) -> &Instruction {
-		unsafe { self.unit.program().get_unchecked(self.counter) }
+		// unsafe { self.unit.program().get_unchecked(self.counter) }
+		&self.program()[self.counter]
 	}
 
-	fn execute_instruction(&mut self, instr: Instruction) -> Result<(), RuntimeError> {
+	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		match instr {
 			Instruction::Add(i) => {
-				*self.current_cell_mut() = self.current_cell().wrapping_add(i as u8);
+				*self.current_cell_mut() = self.current_cell().wrapping_add(*i as u8);
 			}
-			Instruction::Set(i) => *self.current_cell_mut() = i,
-			Instruction::Move(i) if i > 0 => *self.pointer_mut() += i.unsigned_abs(),
+			Instruction::Set(i) => *self.current_cell_mut() = *i,
+			Instruction::Move(i) if *i > 0 => *self.pointer_mut() += i.unsigned_abs(),
 			Instruction::Move(i) => *self.pointer_mut() -= i.unsigned_abs(),
 			Instruction::Read => self.read_char()?,
 			Instruction::Write => self.write_char()?,
 			Instruction::JumpToZero(i) => {
-				let backwards = i < 0;
+				let backwards = *i < 0;
 				while !matches!(self.current_cell(), 0) {
 					if backwards {
 						*self.pointer_mut() -= i.unsigned_abs();
@@ -132,7 +133,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 			}
 			Instruction::Loop(instructions) => {
 				while !matches!(self.current_cell(), 0) {
-					for instr in instructions.clone() {
+					for instr in instructions {
 						self.execute_instruction(instr)?;
 					}
 				}

@@ -23,6 +23,19 @@ impl Instruction {
 	pub const fn needs_input(&self) -> bool {
 		matches!(self, Self::Read)
 	}
+
+	#[must_use]
+	pub fn len(&self) -> usize {
+		match self {
+			Self::Loop(l) => l.len(),
+			_ => 1,
+		}
+	}
+
+	#[must_use]
+	pub fn is_empty(&self) -> bool {
+		matches!(self.len(), 0)
+	}
 }
 
 impl Display for Instruction {

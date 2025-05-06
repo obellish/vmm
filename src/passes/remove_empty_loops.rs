@@ -9,7 +9,7 @@ impl PeepholePass for RemoveEmptyLoopsPass {
 	const SIZE: usize = 1;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
-		if window[0] == Instruction::Loop(Vec::new()) {
+		if window.first()?.is_empty() {
 			Some(Change::Remove)
 		} else {
 			None
