@@ -6,9 +6,9 @@ mod instr;
 mod optimizer;
 pub mod passes;
 mod profiler;
-mod scanner;
 mod program;
+mod scanner;
 mod util;
 mod vm;
 
-pub use self::{instr::*, optimizer::*, profiler::*, scanner::*, program::*, vm::*};
+pub use self::{instr::*, optimizer::*, profiler::*, program::*, scanner::*, vm::*};
