@@ -4,8 +4,6 @@ use std::{
 	io::{Error as IoError, ErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
 };
 
-use tracing::warn;
-
 use super::{Instruction, Profiler, Program, Tape, TapePointer};
 
 pub struct Vm<R = Stdin, W = Stdout>
@@ -17,7 +15,6 @@ where
 	input: R,
 	output: W,
 	profiler: Option<Profiler>,
-	jump_addrs: Vec<usize>,
 	tape: Tape,
 }
 
@@ -28,7 +25,6 @@ impl<R: Read, W: Write> Vm<R, W> {
 			input,
 			output,
 			profiler: None,
-			jump_addrs: Vec::new(),
 			tape: Tape::new(),
 		}
 	}

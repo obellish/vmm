@@ -699,20 +699,11 @@ dependencies = [
  "tracing-error",
  "tracing-subscriber",
  "vmm_alloc",
- "vmm_wrapping",
 ]
 
 [[package]]
 name = "vmm_alloc"
 version = "0.1.0"
-
-[[package]]
-name = "vmm_wrapping"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_array",
-]
 
 [[package]]
 name = "winapi"

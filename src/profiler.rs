@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::Instruction;
+use super::Instruction;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Profiler {

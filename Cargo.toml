@@ -19,14 +19,13 @@ tracing = "0.1"
 tracing-error = "0.2.1"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
 vmm_alloc = { path = "crates/alloc", features = ["nightly"] }
-vmm_wrapping = { path = "crates/wrapping" }
 
 [features]
 debug = ["logos/debug"]
 default = []
 
 [workspace]
-members = ["crates/alloc", "crates/serde_array", "crates/wrapping"]
+members = ["crates/alloc", "crates/serde_array"]
 resolver = "3"
 
 [workspace.dependencies]

@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use super::Change;
-use crate::{Instruction, Program};
+use crate::Instruction;
 
 pub trait Pass: Debug {
 	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool;

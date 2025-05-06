@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Clone, Copy)]

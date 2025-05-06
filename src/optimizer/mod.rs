@@ -8,10 +8,9 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tracing::{Level, debug, debug_span, info, span};
+use tracing::{debug, info};
 
 pub use self::{change::*, pass::*};
-use crate::program;
 #[allow(clippy::wildcard_imports)]
 use crate::{Instruction, Program, passes::*};
 

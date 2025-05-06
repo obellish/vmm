@@ -1,6 +1,4 @@
-use std::borrow::Cow;
-
-use crate::{Change, Instruction, LoopPass, PeepholePass};
+use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Clone, Copy)]
 pub struct RemoveEmptyLoopsPass;

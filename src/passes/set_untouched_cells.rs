@@ -1,8 +1,4 @@
-use std::borrow::Cow;
-
-use tracing::trace;
-
-use crate::{Change, Instruction, Pass, Program};
+use crate::{Change, Instruction, Pass};
 
 // Currently only runs on the beginning cell, but can be expanded once cell analysis is introduced.
 #[derive(Debug, Clone, Copy)]

@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Clone, Copy)]

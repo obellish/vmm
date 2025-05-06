@@ -1,6 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![allow(clippy::uninhabited_references)]
 #![expect(unused)]
+#![warn(unused_imports)]
 
 mod instr;
 mod optimizer;

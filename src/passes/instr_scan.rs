@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use tracing::debug;
 
 use crate::{Change, Instruction, PeepholePass};

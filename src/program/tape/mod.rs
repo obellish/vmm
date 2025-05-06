@@ -3,12 +3,10 @@ mod ptr;
 use std::{
 	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Index, IndexMut},
-	slice::SliceIndex,
 };
 
 use serde::{Deserialize, Serialize};
 use serde_array::BigArray;
-use vmm_wrapping::WrappingArray;
 
 pub use self::ptr::TapePointer;
 

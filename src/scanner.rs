@@ -1,7 +1,6 @@
 use std::{
 	error::Error as StdError,
 	fmt::{Display, Formatter, Result as FmtResult},
-	iter::Scan,
 };
 
 use logos::{Lexer, Logos};
