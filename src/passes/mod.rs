@@ -1,11 +1,11 @@
 mod combine_instr;
 mod instr_scan;
 mod remove_empty_loops;
-mod search_for_zero;
+mod find_zero;
 mod set_untouched_cells;
 mod set_zero;
 
 pub use self::{
-	combine_instr::*, instr_scan::*, remove_empty_loops::*, search_for_zero::*,
+	combine_instr::*, instr_scan::*, remove_empty_loops::*, find_zero::*,
 	set_untouched_cells::*, set_zero::*,
 };

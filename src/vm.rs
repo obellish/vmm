@@ -105,22 +105,27 @@ impl<R: Read, W: Write> Vm<R, W> {
 			Instruction::Read => self.read_char()?,
 			Instruction::Write => self.write_char()?,
 			Instruction::FindZero(i) => {
+				// let backwards = *i < 0;
+				// while !matches!(self.cell(), 0) {
+				// 	if backwards {
+				// 		*self.pointer_mut() -= i.unsigned_abs();
+				// 	} else {
+				// 		*self.pointer_mut() += i.unsigned_abs();
+				// 	}
+				// }
 				let backwards = *i < 0;
+				let step = i.unsigned_abs();
+
 				while !matches!(self.cell(), 0) {
 					if backwards {
-						*self.pointer_mut() -= i.unsigned_abs();
+						*self.pointer_mut() -= step;
 					} else {
-						*self.pointer_mut() += i.unsigned_abs();
+						*self.pointer_mut() += step;
 					}
 				}
 			}
 			Instruction::Loop(instructions) => {
 				let mut iterations = 0usize;
-				tracing::trace!(
-					"entering loop at cell = {:?}, value = {}",
-					self.pointer(),
-					self.cell()
-				);
 				while !matches!(self.cell(), 0) {
 					iterations += 1;
 
@@ -133,8 +138,6 @@ impl<R: Read, W: Write> Vm<R, W> {
 					for instr in instructions {
 						self.execute_instruction(instr)?;
 					}
-
-					tracing::trace!("current cell value: {}", self.cell());
 				}
 			}
 			_ => {}
