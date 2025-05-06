@@ -100,28 +100,12 @@ impl<R: Read, W: Write> Vm<R, W> {
 				*self.cell_mut() = self.cell().wrapping_add(*i as u8);
 			}
 			Instruction::Set(i) => *self.cell_mut() = *i,
-			Instruction::MovePtr(i) if *i > 0 => *self.pointer_mut() += i.unsigned_abs(),
-			Instruction::MovePtr(i) => *self.pointer_mut() -= i.unsigned_abs(),
+			Instruction::MovePtr(i) => *self.pointer_mut() += *i,
 			Instruction::Read => self.read_char()?,
 			Instruction::Write => self.write_char()?,
 			Instruction::FindZero(i) => {
-				// let backwards = *i < 0;
-				// while !matches!(self.cell(), 0) {
-				// 	if backwards {
-				// 		*self.pointer_mut() -= i.unsigned_abs();
-				// 	} else {
-				// 		*self.pointer_mut() += i.unsigned_abs();
-				// 	}
-				// }
-				let backwards = *i < 0;
-				let step = i.unsigned_abs();
-
 				while !matches!(self.cell(), 0) {
-					if backwards {
-						*self.pointer_mut() -= step;
-					} else {
-						*self.pointer_mut() += step;
-					}
+					*self.pointer_mut() += *i;
 				}
 			}
 			Instruction::Loop(instructions) => {

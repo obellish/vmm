@@ -10,7 +10,7 @@ use serde_array::BigArray;
 
 pub use self::ptr::TapePointer;
 
-pub const TAPE_SIZE: usize = 1000;
+pub const TAPE_SIZE: usize = 500;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {
@@ -30,13 +30,10 @@ impl Tape {
 
 	#[must_use]
 	pub fn current_cell(&self) -> &u8 {
-		// &self.cells[self.pointer.value()]
 		unsafe { self.cells.get_unchecked(self.pointer.value()) }
 	}
 
 	pub fn current_cell_mut(&mut self) -> &mut u8 {
-		// let ptr = self.pointer.value();
-		// &mut self.cells[ptr]
 		unsafe { self.cells.get_unchecked_mut(self.pointer.value()) }
 	}
 

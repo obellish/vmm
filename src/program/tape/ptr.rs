@@ -29,12 +29,6 @@ impl TapePointer {
 	}
 }
 
-impl Default for TapePointer {
-	fn default() -> Self {
-		Self::new()
-	}
-}
-
 impl Add<usize> for TapePointer {
 	type Output = Self;
 
@@ -55,6 +49,30 @@ impl AddAssign<usize> for TapePointer {
 	}
 }
 
+impl Add<isize> for TapePointer {
+	type Output = Self;
+
+	fn add(self, rhs: isize) -> Self::Output {
+		if rhs < 0 {
+			self - rhs.unsigned_abs()
+		} else {
+			self + rhs.unsigned_abs()
+		}
+	}
+}
+
+impl AddAssign<isize> for TapePointer {
+	fn add_assign(&mut self, rhs: isize) {
+		*self = *self + rhs;
+	}
+}
+
+impl Default for TapePointer {
+	fn default() -> Self {
+		Self::new()
+	}
+}
+
 impl Sub<usize> for TapePointer {
 	type Output = Self;
 
@@ -69,6 +87,20 @@ impl Sub<usize> for TapePointer {
 
 impl SubAssign<usize> for TapePointer {
 	fn sub_assign(&mut self, rhs: usize) {
+		*self = *self - rhs;
+	}
+}
+
+impl Sub<isize> for TapePointer {
+	type Output = Self;
+
+	fn sub(self, rhs: isize) -> Self::Output {
+		self + -rhs
+	}
+}
+
+impl SubAssign<isize> for TapePointer {
+	fn sub_assign(&mut self, rhs: isize) {
 		*self = *self - rhs;
 	}
 }

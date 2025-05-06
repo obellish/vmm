@@ -1,3 +1,4 @@
+mod analysis;
 mod change;
 mod pass;
 
@@ -10,7 +11,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info};
 
-pub use self::{change::*, pass::*};
+pub use self::{analysis::*, change::*, pass::*};
 #[allow(clippy::wildcard_imports)]
 use crate::{Instruction, Program, passes::*};
 
@@ -60,6 +61,16 @@ impl Optimizer {
 		let starting_instruction_count = self.program.len();
 
 		let mut progress = false;
+
+		let initial_analysis = {
+			let mut analyzer = CellAnalyzer::new();
+
+			analyzer.analyze(&self.program);
+
+			analyzer
+		};
+
+		println!("{initial_analysis:?}");
 
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
