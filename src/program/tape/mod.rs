@@ -29,13 +29,15 @@ impl Tape {
 	}
 
 	#[must_use]
-	pub const fn current_cell(&self) -> &u8 {
-		&self.cells[self.pointer.value()]
+	pub fn current_cell(&self) -> &u8 {
+		// &self.cells[self.pointer.value()]
+		unsafe { self.cells.get_unchecked(self.pointer.value()) }
 	}
 
-	pub const fn current_cell_mut(&mut self) -> &mut u8 {
-		let ptr = self.pointer.value();
-		&mut self.cells[ptr]
+	pub fn current_cell_mut(&mut self) -> &mut u8 {
+		// let ptr = self.pointer.value();
+		// &mut self.cells[ptr]
+		unsafe { self.cells.get_unchecked_mut(self.pointer.value()) }
 	}
 
 	#[must_use]

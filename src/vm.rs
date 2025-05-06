@@ -71,7 +71,6 @@ impl<R: Read, W: Write> Vm<R, W> {
 			}
 		}
 
-		// *self.tape_mut().current_cell_mut() = buf[0];
 		*self.cell_mut() = buf[0];
 
 		Ok(())
@@ -160,11 +159,11 @@ impl<R: Read, W: Write> Vm<R, W> {
 		&mut self.tape
 	}
 
-	const fn cell(&self) -> &u8 {
+	fn cell(&self) -> &u8 {
 		self.tape().current_cell()
 	}
 
-	const fn cell_mut(&mut self) -> &mut u8 {
+	fn cell_mut(&mut self) -> &mut u8 {
 		self.tape_mut().current_cell_mut()
 	}
 
