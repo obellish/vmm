@@ -22,8 +22,4 @@ impl PeepholePass for CombineMoveInstrPass {
 			None
 		}
 	}
-
-	fn name(&self) -> Cow<'static, str> {
-		Cow::Borrowed("combine move instructions")
-	}
 }

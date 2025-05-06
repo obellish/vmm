@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Clone, Copy)]
@@ -18,9 +16,5 @@ impl PeepholePass for CombineAddInstrPass {
 		} else {
 			None
 		}
-	}
-
-	fn name(&self) -> Cow<'static, str> {
-		Cow::Borrowed("combine add instructions")
 	}
 }

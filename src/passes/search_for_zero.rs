@@ -13,8 +13,4 @@ impl LoopPass for SearchForZeroPass {
 			None
 		}
 	}
-
-	fn name(&self) -> Cow<'static, str> {
-		Cow::Borrowed("search for zero")
-	}
 }

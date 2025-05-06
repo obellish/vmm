@@ -13,8 +13,4 @@ impl LoopPass for SetZeroPass {
 			None
 		}
 	}
-
-	fn name(&self) -> Cow<'static, str> {
-		Cow::Borrowed("set zero")
-	}
 }

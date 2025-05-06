@@ -14,8 +14,4 @@ impl PeepholePass for InstrScanPass {
 		debug!("{window:?}");
 		None
 	}
-
-	fn name(&self) -> Cow<'static, str> {
-		Cow::Borrowed("scan instructions for patterns")
-	}
 }

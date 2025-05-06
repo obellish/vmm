@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use tracing::{Level, debug, debug_span, info, span};
 
 pub use self::{change::*, pass::*};
+use crate::program;
 #[allow(clippy::wildcard_imports)]
 use crate::{Instruction, Program, passes::*};
 
@@ -29,9 +30,6 @@ impl Optimizer {
 
 	pub fn optimize(&mut self) -> Result<Program, OptimizerError> {
 		if self.program.is_optimized() {
-			// return Ok(ExecutionUnit::optimized(
-			// 	mem::take(&mut self.program).iter().cloned(),
-			// ));
 			return Ok(Program::Optimized(
 				mem::take(&mut self.program)
 					.iter()
@@ -67,6 +65,7 @@ impl Optimizer {
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(SetZeroPass, &mut progress);
+		self.run_pass(CombineSetInstrPass, &mut progress);
 		self.run_pass(SearchForZeroPass, &mut progress);
 		self.run_pass(SetUntouchedCells, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);

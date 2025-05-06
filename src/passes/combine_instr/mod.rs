@@ -1,7 +1,7 @@
 mod add;
 mod r#move;
-mod set_zero;
+mod set;
 #[cfg(test)]
 mod tests;
 
-pub use self::{add::*, r#move::*, set_zero::*};
+pub use self::{add::*, r#move::*, set::*};

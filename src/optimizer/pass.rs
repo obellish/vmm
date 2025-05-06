@@ -1,19 +1,20 @@
-use std::borrow::Cow;
+use std::fmt::Debug;
 
 use super::Change;
 use crate::{Instruction, Program};
 
-pub trait Pass {
+pub trait Pass: Debug {
 	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool;
-
-	fn name(&self) -> Cow<'static, str>;
 
 	fn should_run_on_loop(&self) -> bool {
 		true
 	}
 }
 
-impl<P: PeepholePass> Pass for P {
+impl<P> Pass for P
+where
+	P: Debug + PeepholePass,
+{
 	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool {
 		let mut i = 0;
 		let mut progress = false;
@@ -41,10 +42,6 @@ impl<P: PeepholePass> Pass for P {
 		progress
 	}
 
-	fn name(&self) -> Cow<'static, str> {
-		<P as PeepholePass>::name(self)
-	}
-
 	fn should_run_on_loop(&self) -> bool {
 		<P as PeepholePass>::should_run_on_loop(self)
 	}
@@ -55,14 +52,15 @@ pub trait PeepholePass {
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change>;
 
-	fn name(&self) -> Cow<'static, str>;
-
 	fn should_run_on_loop(&self) -> bool {
 		true
 	}
 }
 
-impl<P: LoopPass> PeepholePass for P {
+impl<P> PeepholePass for P
+where
+	P: Debug + LoopPass,
+{
 	const SIZE: usize = 1;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
@@ -73,10 +71,6 @@ impl<P: LoopPass> PeepholePass for P {
 		}
 	}
 
-	fn name(&self) -> Cow<'static, str> {
-		<P as LoopPass>::name(self)
-	}
-
 	fn should_run_on_loop(&self) -> bool {
 		true
 	}
@@ -84,6 +78,4 @@ impl<P: LoopPass> PeepholePass for P {
 
 pub trait LoopPass {
 	fn run_pass(&self, loop_values: &[Instruction]) -> Option<Change>;
-
-	fn name(&self) -> Cow<'static, str>;
 }

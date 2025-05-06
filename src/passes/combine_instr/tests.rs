@@ -1,13 +1,17 @@
+use std::fmt::Debug;
+
 use crate::{
 	Instruction, Pass, PeepholePass, Program,
 	passes::{CombineAddInstrPass, CombineMoveInstrPass},
 };
 
-fn combine_instructions<P: PeepholePass, const SIZE: usize>(
+fn combine_instructions<P, const SIZE: usize>(
 	pass: P,
 	instructions: [Instruction; SIZE],
 	expected: Option<Instruction>,
-) {
+) where
+	P: Debug + PeepholePass,
+{
 	assert_eq!(P::SIZE, SIZE);
 
 	// let mut unit = ExecutionUnit::raw(instructions);

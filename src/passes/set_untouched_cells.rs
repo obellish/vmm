@@ -19,10 +19,6 @@ impl Pass for SetUntouchedCells {
 		}
 	}
 
-	fn name(&self) -> Cow<'static, str> {
-		Cow::Borrowed("set untouched cells")
-	}
-
 	fn should_run_on_loop(&self) -> bool {
 		false
 	}
