@@ -6,28 +6,30 @@ use std::{
 
 use tracing::warn;
 
-use super::{ExecutionUnit, Instruction, Profiler, Program, Tape, TapePointer};
+use super::{Instruction, Profiler, Program, Tape, TapePointer};
 
 pub struct Vm<R = Stdin, W = Stdout>
 where
 	R: Read + 'static,
 	W: Write + 'static,
 {
-	unit: ExecutionUnit,
+	program: Program,
 	input: R,
 	output: W,
 	profiler: Option<Profiler>,
 	jump_addrs: Vec<usize>,
+	tape: Tape,
 }
 
 impl<R: Read, W: Write> Vm<R, W> {
-	pub const fn new(unit: ExecutionUnit, input: R, output: W) -> Self {
+	pub const fn new(program: Program, input: R, output: W) -> Self {
 		Self {
-			unit,
+			program,
 			input,
 			output,
 			profiler: None,
 			jump_addrs: Vec::new(),
+			tape: Tape::new(),
 		}
 	}
 
@@ -42,7 +44,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	pub fn into_dyn(self) -> Vm<Box<dyn Read>, Box<dyn Write>> {
-		Vm::new(self.unit, Box::new(self.input), Box::new(self.output))
+		Vm::new(self.program, Box::new(self.input), Box::new(self.output))
 	}
 
 	pub fn run(&mut self) -> Result<(), RuntimeError> {
@@ -54,15 +56,15 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	pub fn with_input<RR: Read>(self, input: RR) -> Vm<RR, W> {
-		Vm::new(self.unit, input, self.output)
+		Vm::new(self.program, input, self.output)
 	}
 
 	pub fn with_output<WW: Write>(self, output: WW) -> Vm<R, WW> {
-		Vm::new(self.unit, self.input, output)
+		Vm::new(self.program, self.input, output)
 	}
 
 	pub fn with_io<RR: Read, WW: Write>(self, input: RR, output: WW) -> Vm<RR, WW> {
-		Vm::new(self.unit, input, output)
+		Vm::new(self.program, input, output)
 	}
 
 	fn read_char(&mut self) -> Result<(), RuntimeError> {
@@ -73,13 +75,14 @@ impl<R: Read, W: Write> Vm<R, W> {
 			}
 		}
 
-		*self.unit.tape_mut().current_cell_mut() = buf[0];
+		// *self.tape_mut().current_cell_mut() = buf[0];
+		*self.cell_mut() = buf[0];
 
 		Ok(())
 	}
 
 	fn write_char(&mut self) -> Result<(), RuntimeError> {
-		let ch = *self.unit.tape().current_cell();
+		let ch = *self.cell();
 
 		if ch.is_ascii() {
 			self.output.write_all(&[ch])?;
@@ -92,10 +95,6 @@ impl<R: Read, W: Write> Vm<R, W> {
 		Ok(())
 	}
 
-	// fn current_instruction(&self) -> &Instruction {
-	// 	&self.program()[self.counter]
-	// }
-
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -103,16 +102,16 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 		match instr {
 			Instruction::Add(i) => {
-				*self.current_cell_mut() = self.current_cell().wrapping_add(*i as u8);
+				*self.cell_mut() = self.cell().wrapping_add(*i as u8);
 			}
-			Instruction::Set(i) => *self.current_cell_mut() = *i,
+			Instruction::Set(i) => *self.cell_mut() = *i,
 			Instruction::MovePtr(i) if *i > 0 => *self.pointer_mut() += i.unsigned_abs(),
 			Instruction::MovePtr(i) => *self.pointer_mut() -= i.unsigned_abs(),
 			Instruction::Read => self.read_char()?,
 			Instruction::Write => self.write_char()?,
 			Instruction::FindZero(i) => {
 				let backwards = *i < 0;
-				while !matches!(self.current_cell(), 0) {
+				while !matches!(self.cell(), 0) {
 					if backwards {
 						*self.pointer_mut() -= i.unsigned_abs();
 					} else {
@@ -125,9 +124,9 @@ impl<R: Read, W: Write> Vm<R, W> {
 				tracing::trace!(
 					"entering loop at cell = {:?}, value = {}",
 					self.pointer(),
-					self.current_cell()
+					self.cell()
 				);
-				while !matches!(self.current_cell(), 0) {
+				while !matches!(self.cell(), 0) {
 					iterations += 1;
 
 					assert!(
@@ -140,7 +139,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 						self.execute_instruction(instr)?;
 					}
 
-					tracing::trace!("current cell value: {}", self.current_cell());
+					tracing::trace!("current cell value: {}", self.cell());
 				}
 			}
 			_ => {}
@@ -150,26 +149,26 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	const fn program(&self) -> &Program {
-		self.unit.program()
+		&self.program
 	}
 
 	const fn program_mut(&mut self) -> &mut Program {
-		self.unit.program_mut()
+		&mut self.program
 	}
 
 	const fn tape(&self) -> &Tape {
-		self.unit.tape()
+		&self.tape
 	}
 
 	const fn tape_mut(&mut self) -> &mut Tape {
-		self.unit.tape_mut()
+		&mut self.tape
 	}
 
-	const fn current_cell(&self) -> &u8 {
+	const fn cell(&self) -> &u8 {
 		self.tape().current_cell()
 	}
 
-	const fn current_cell_mut(&mut self) -> &mut u8 {
+	const fn cell_mut(&mut self) -> &mut u8 {
 		self.tape_mut().current_cell_mut()
 	}
 
@@ -184,8 +183,8 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 impl Vm<Stdin, Stdout> {
 	#[must_use]
-	pub fn stdio(unit: ExecutionUnit) -> Self {
-		Self::new(unit, stdin(), stdout())
+	pub fn stdio(program: Program) -> Self {
+		Self::new(program, stdin(), stdout())
 	}
 }
 

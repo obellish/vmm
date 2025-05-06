@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use super::Change;
-use crate::{ExecutionUnit, Instruction, Program};
+use crate::{Instruction, Program};
 
 pub trait Pass {
 	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool;

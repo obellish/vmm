@@ -31,15 +31,15 @@ fn main() -> Result<()> {
 
 	let optimized = optimizer.optimize()?;
 
-	serialize_and_write(optimized.program(), "optimized_program")?;
+	serialize_and_write(&optimized, "optimized_program")?;
 
-	write_program(optimized.program(), "optimized")?;
+	write_program(&optimized, "optimized")?;
 
-	if program_to_string(&unoptimized) != program_to_string(optimized.program()) {
+	if program_to_string(&unoptimized) != program_to_string(&optimized) {
 		warn!("program instructions do not match, semantics may be different");
 	}
 
-	let profiler = if optimized.program().needs_input() {
+	let profiler = if optimized.needs_input() {
 		let mut vm = Vm::stdio(optimized).and_profile();
 
 		vm.run()?;

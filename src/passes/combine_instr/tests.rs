@@ -1,5 +1,5 @@
 use crate::{
-	ExecutionUnit, Instruction, Pass, PeepholePass, Program,
+	Instruction, Pass, PeepholePass, Program,
 	passes::{CombineAddInstrPass, CombineMoveInstrPass},
 };
 
@@ -10,11 +10,15 @@ fn combine_instructions<P: PeepholePass, const SIZE: usize>(
 ) {
 	assert_eq!(P::SIZE, SIZE);
 
-	let mut unit = ExecutionUnit::raw(instructions);
+	// let mut unit = ExecutionUnit::raw(instructions);
 
-	assert!(<P as Pass>::run_pass(&pass, unit.program_mut().as_raw()));
+	let mut program = Program::Raw(instructions.to_vec());
 
-	assert_eq!(**unit.program(), expected.into_iter().collect::<Vec<_>>());
+	// assert!(<P as Pass>::run_pass(&pass, unit.program_mut().as_raw()));
+
+	assert!(<P as Pass>::run_pass(&pass, program.as_raw()));
+
+	assert_eq!(&*program, expected.into_iter().collect::<Vec<_>>());
 }
 
 #[test]

@@ -12,7 +12,7 @@ use tracing::{Level, debug, debug_span, info, span};
 
 pub use self::{change::*, pass::*};
 #[allow(clippy::wildcard_imports)]
-use crate::{ExecutionUnit, Instruction, Program, passes::*};
+use crate::{Instruction, Program, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
@@ -27,10 +27,17 @@ impl Optimizer {
 		}
 	}
 
-	pub fn optimize(&mut self) -> Result<ExecutionUnit, OptimizerError> {
+	pub fn optimize(&mut self) -> Result<Program, OptimizerError> {
 		if self.program.is_optimized() {
-			return Ok(ExecutionUnit::optimized(
-				mem::take(&mut self.program).iter().cloned(),
+			// return Ok(ExecutionUnit::optimized(
+			// 	mem::take(&mut self.program).iter().cloned(),
+			// ));
+			return Ok(Program::Optimized(
+				mem::take(&mut self.program)
+					.iter()
+					.cloned()
+					.collect::<Vec<_>>()
+					.into_boxed_slice(),
 			));
 		}
 
@@ -43,8 +50,12 @@ impl Optimizer {
 			progress = self.optimize_inner(counter);
 		}
 
-		Ok(ExecutionUnit::optimized(
-			mem::take(&mut self.program).iter().cloned(),
+		Ok(Program::Optimized(
+			mem::take(&mut self.program)
+				.iter()
+				.cloned()
+				.collect::<Vec<_>>()
+				.into_boxed_slice(),
 		))
 	}
 

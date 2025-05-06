@@ -1,3 +1,5 @@
+mod tape;
+
 use std::{
 	borrow::Borrow,
 	fmt::{Debug, Formatter, Result as FmtResult},
@@ -7,7 +9,8 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::Instruction;
+pub use self::tape::*;
+use super::Instruction;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Program {

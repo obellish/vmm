@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use tracing::trace;
 
-use crate::{Change, ExecutionUnit, Instruction, Pass, Program};
+use crate::{Change, Instruction, Pass, Program};
 
 // Currently only runs on the beginning cell, but can be expanded once cell analysis is introduced.
 #[derive(Debug, Clone, Copy)]
@@ -19,7 +19,7 @@ impl Pass for SetUntouchedCells {
 		}
 	}
 
-	fn name(&self) -> std::borrow::Cow<'static, str> {
+	fn name(&self) -> Cow<'static, str> {
 		Cow::Borrowed("set untouched cells")
 	}
 
