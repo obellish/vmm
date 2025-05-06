@@ -62,16 +62,6 @@ impl Optimizer {
 
 		let mut progress = false;
 
-		let initial_analysis = {
-			let mut analyzer = CellAnalyzer::new();
-
-			analyzer.analyze(&self.program);
-
-			analyzer
-		};
-
-		println!("{initial_analysis:?}");
-
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(SetZeroPass, &mut progress);
