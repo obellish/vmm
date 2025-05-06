@@ -1,11 +1,8 @@
+lints.workspace = true
+
 [package]
-name = "vmm_wrapping"
 edition.workspace = true
 license.workspace = true
+name = "vmm_wrapping"
 rust-version.workspace = true
 version.workspace = true
-
-[dependencies]
-
-[lints]
-workspace = true
