@@ -16,7 +16,6 @@ pub enum Instruction {
 	Write,
 	Read,
 	Loop(Vec<Self>),
-	MoveValue { offset: isize, len: usize },
 }
 
 impl Instruction {

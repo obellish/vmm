@@ -53,8 +53,6 @@ impl Optimizer {
 
 		let mut progress = false;
 
-		// self.run_pass(InstrScanPass, &mut progress);
-
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(SearchForZeroPass, &mut progress);
