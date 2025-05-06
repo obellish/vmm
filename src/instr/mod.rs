@@ -12,10 +12,11 @@ pub enum Instruction {
 	Move(isize),
 	Add(i8),
 	Set(u8),
-	JumpToZero(isize),
+	FindZero(isize),
 	Write,
 	Read,
 	Loop(Vec<Self>),
+	JumpToCell(usize),
 }
 
 impl Instruction {
@@ -28,6 +29,9 @@ impl Instruction {
 	pub fn len(&self) -> usize {
 		match self {
 			Self::Loop(l) => l.len(),
+			Self::Add(i) => i.unsigned_abs() as usize,
+			Self::Move(i) => i.unsigned_abs(),
+			Self::Set(i) => *i as usize,
 			_ => 1,
 		}
 	}
@@ -54,7 +58,7 @@ impl Display for Instruction {
 					f.write_char(c)?;
 				}
 			}
-			Self::JumpToZero(i) => {
+			Self::FindZero(i) => {
 				f.write_char('[')?;
 				let c = if *i > 0 { '>' } else { '<' };
 				for _ in 0..i.unsigned_abs() {

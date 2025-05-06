@@ -38,7 +38,7 @@ impl Profiler {
 			Instruction::Move(_) => self.mov += 1,
 			Instruction::Read => self.inp += 1,
 			Instruction::Write => self.out += 1,
-			Instruction::JumpToZero { .. } => self.muz += 1,
+			Instruction::FindZero { .. } => self.muz += 1,
 			_ => self.unknown += 1,
 		}
 	}

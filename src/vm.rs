@@ -121,7 +121,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 			Instruction::Move(i) => *self.pointer_mut() -= i.unsigned_abs(),
 			Instruction::Read => self.read_char()?,
 			Instruction::Write => self.write_char()?,
-			Instruction::JumpToZero(i) => {
+			Instruction::FindZero(i) => {
 				let backwards = *i < 0;
 				while !matches!(self.current_cell(), 0) {
 					if backwards {
@@ -138,6 +138,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 					}
 				}
 			}
+			Instruction::JumpToCell(index) => self.pointer_mut().set(*index),
 			_ => {} // i => warn!("instruction {i:?} not implemented"),
 		}
 

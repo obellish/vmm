@@ -19,6 +19,10 @@ impl TapePointer {
 	pub const fn value(self) -> usize {
 		self.0
 	}
+
+	pub  fn set(&mut self, mut value: usize) {
+		self.0 = value.clamp(0, TAPE_SIZE);
+	}
 }
 
 impl Default for TapePointer {

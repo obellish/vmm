@@ -12,8 +12,7 @@ use tracing::{Level, debug, debug_span, info, span};
 
 pub use self::{change::*, pass::*};
 #[allow(clippy::wildcard_imports)]
-use crate::{ExecutionUnit, passes::*};
-use crate::{Instruction, Program};
+use crate::{ExecutionUnit, Instruction, Program, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
@@ -62,7 +61,6 @@ impl Optimizer {
 		self.run_pass(SetUntouchedCells, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
 		self.run_pass(SetZeroPass, &mut progress);
-		self.run_pass(UnrollConstantLoopsPass, &mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
