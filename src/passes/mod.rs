@@ -4,8 +4,9 @@ mod instr_scan;
 mod remove_empty_loops;
 mod set_untouched_cells;
 mod set_zero;
+mod unroll_constant_loops;
 
 pub use self::{
 	combine_instr::*, find_zero::*, instr_scan::*, remove_empty_loops::*, set_untouched_cells::*,
-	set_zero::*,
+	set_zero::*, unroll_constant_loops::*,
 };
