@@ -41,7 +41,7 @@ impl Program {
 	}
 
 	pub fn len(&self) -> usize {
-		self.iter().map(Instruction::len).sum()
+		self.iter().map(Instruction::count).sum()
 	}
 
 	#[must_use]

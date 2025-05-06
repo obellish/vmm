@@ -1,19 +1,13 @@
 use std::borrow::Cow;
 
-use crate::{Change, Instruction, PeepholePass};
+use crate::{Change, Instruction, LoopPass, PeepholePass};
 
 #[derive(Debug, Clone, Copy)]
 pub struct RemoveEmptyLoopsPass;
 
-impl PeepholePass for RemoveEmptyLoopsPass {
-	const SIZE: usize = 1;
-
-	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
-		if window.first()?.is_empty() {
-			Some(Change::Remove)
-		} else {
-			None
-		}
+impl LoopPass for RemoveEmptyLoopsPass {
+	fn run_pass(&self, loop_values: &[Instruction]) -> Option<Change> {
+		loop_values.is_empty().then_some(Change::Remove)
 	}
 
 	fn name(&self) -> Cow<'static, str> {

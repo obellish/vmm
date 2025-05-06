@@ -51,10 +51,6 @@ impl<R: Read, W: Write> Vm<R, W> {
 		'program: loop {
 			let current_instruction = self.current_instruction().clone();
 
-			if let Some(profiler) = &mut self.profiler {
-				profiler.handle(&current_instruction);
-			}
-
 			self.execute_instruction(&current_instruction)?;
 
 			self.counter += 1;
@@ -107,11 +103,14 @@ impl<R: Read, W: Write> Vm<R, W> {
 	}
 
 	fn current_instruction(&self) -> &Instruction {
-		// unsafe { self.unit.program().get_unchecked(self.counter) }
 		&self.program()[self.counter]
 	}
 
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
+		if let Some(profiler) = &mut self.profiler {
+			profiler.handle(instr);
+		}
+
 		match instr {
 			Instruction::Add(i) => {
 				*self.current_cell_mut() = self.current_cell().wrapping_add(*i as u8);
@@ -138,8 +137,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 					}
 				}
 			}
-			Instruction::JumpToCell(index) => self.pointer_mut().set(*index),
-			_ => {} // i => warn!("instruction {i:?} not implemented"),
+			_ => {}
 		}
 
 		Ok(())

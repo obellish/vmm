@@ -16,7 +16,6 @@ pub enum Instruction {
 	Write,
 	Read,
 	Loop(Vec<Self>),
-	JumpToCell(usize),
 }
 
 impl Instruction {
@@ -26,7 +25,7 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn len(&self) -> usize {
+	pub fn count(&self) -> usize {
 		match self {
 			Self::Loop(l) => l.len(),
 			Self::Add(i) => i.unsigned_abs() as usize,
@@ -37,8 +36,8 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn is_empty(&self) -> bool {
-		matches!(self.len(), 0)
+	pub fn is_empty_loop(&self) -> bool {
+		matches!(self, Self::Loop(x) if x.is_empty())
 	}
 }
 

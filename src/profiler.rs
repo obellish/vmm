@@ -6,8 +6,7 @@ use crate::Instruction;
 pub struct Profiler {
 	pub add: u64,
 	pub mov: u64,
-	pub jr: u64,
-	pub jl: u64,
+	pub while_loop: u64,
 	pub inp: u64,
 	pub out: u64,
 	pub set: u64,
@@ -21,8 +20,7 @@ impl Profiler {
 		Self {
 			add: 0,
 			mov: 0,
-			jl: 0,
-			jr: 0,
+			while_loop: 0,
 			inp: 0,
 			out: 0,
 			set: 0,
@@ -39,6 +37,7 @@ impl Profiler {
 			Instruction::Read => self.inp += 1,
 			Instruction::Write => self.out += 1,
 			Instruction::FindZero { .. } => self.muz += 1,
+			Instruction::Loop(_) => self.while_loop += 1,
 			_ => self.unknown += 1,
 		}
 	}
