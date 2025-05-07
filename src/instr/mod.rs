@@ -1,4 +1,6 @@
 mod parse;
+#[cfg(test)]
+mod tests;
 
 use std::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
