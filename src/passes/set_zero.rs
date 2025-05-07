@@ -4,7 +4,7 @@ use crate::{Change, Instruction, LoopPass};
 pub struct SetZeroPass;
 
 impl LoopPass for SetZeroPass {
-	fn run_pass(&self, loop_values: &[Instruction]) -> Option<Change> {
+	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		if let [Instruction::Inc(-1)] = loop_values {
 			Some(Change::ReplaceOne(Instruction::Set(0)))
 		} else {

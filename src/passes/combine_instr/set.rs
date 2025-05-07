@@ -6,7 +6,7 @@ pub struct CombineSetInstrPass;
 impl PeepholePass for CombineSetInstrPass {
 	const SIZE: usize = 2;
 
-	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::Set(0), Instruction::Inc(y)] => {
 				Some(Change::ReplaceOne(Instruction::Set(*y as u8)))

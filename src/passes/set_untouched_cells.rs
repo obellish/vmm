@@ -5,7 +5,7 @@ use crate::{Change, Instruction, Pass};
 pub struct SetUntouchedCellsPass;
 
 impl Pass for SetUntouchedCellsPass {
-	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool {
+	fn run_pass(&mut self, unit: &mut Vec<Instruction>) -> bool {
 		if let Some(Instruction::Inc(i)) = unit.first() {
 			Change::ReplaceOne(Instruction::Set(*i as u8)).apply(unit, 0, 1);
 

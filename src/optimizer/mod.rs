@@ -103,7 +103,7 @@ impl Display for OptimizerError {
 
 impl StdError for OptimizerError {}
 
-fn run_pass_on_vec<P>(pass: P, v: &mut Vec<Instruction>, progress: &mut bool)
+fn run_pass_on_vec<P>(mut pass: P, v: &mut Vec<Instruction>, progress: &mut bool)
 where
 	P: Clone + Pass,
 {

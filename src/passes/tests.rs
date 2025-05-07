@@ -7,7 +7,7 @@ use crate::{
 };
 
 fn verify_pass_works<P: Pass, const N: usize>(
-	pass: P,
+	mut pass: P,
 	inp: &mut Vec<Instruction>,
 	expected: [Instruction; N],
 ) {

@@ -6,7 +6,7 @@ use crate::{
 };
 
 fn combine_instructions<P, const SIZE: usize>(
-	pass: P,
+	mut pass: P,
 	instructions: [Instruction; SIZE],
 	expected: Option<Instruction>,
 ) where
@@ -15,7 +15,7 @@ fn combine_instructions<P, const SIZE: usize>(
 	assert_eq!(P::SIZE, SIZE);
 	let mut program = Program::Raw(instructions.to_vec());
 
-	assert!(<P as Pass>::run_pass(&pass, program.as_raw()));
+	assert!(<P as Pass>::run_pass(&mut pass, program.as_raw()));
 
 	assert_eq!(&*program, expected.into_iter().collect::<Vec<_>>());
 }

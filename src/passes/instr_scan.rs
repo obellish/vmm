@@ -8,7 +8,7 @@ pub struct InstrScanPass;
 impl PeepholePass for InstrScanPass {
 	const SIZE: usize = 6;
 
-	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		debug!("{window:?}");
 		None
 	}

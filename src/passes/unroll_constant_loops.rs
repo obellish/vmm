@@ -6,7 +6,7 @@ pub struct UnrollConstantLoopsPass;
 impl PeepholePass for UnrollConstantLoopsPass {
 	const SIZE: usize = 2;
 
-	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::Set(i), Instruction::RawLoop(inner)] => {
 				if inner.iter().any(|i| matches!(i, Instruction::RawLoop(_))) {
