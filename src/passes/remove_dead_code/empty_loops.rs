@@ -4,7 +4,7 @@ use crate::{Change, Instruction, LoopPass};
 pub struct RemoveEmptyLoopsPass;
 
 impl LoopPass for RemoveEmptyLoopsPass {
-	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
-		loop_values.is_empty().then_some(Change::Remove)
-	}
+    fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
+        loop_values.is_empty().then_some(Change::Remove)
+    }
 }
