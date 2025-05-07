@@ -11,8 +11,17 @@ pub struct TapePointer(usize);
 
 impl TapePointer {
 	#[must_use]
-	pub const fn new() -> Self {
-		Self(0)
+	pub const fn new(value: usize) -> Option<Self> {
+		if value >= TAPE_SIZE {
+			None
+		} else {
+			Some(unsafe { Self::new_unchecked(value) })
+		}
+	}
+
+	#[must_use]
+	pub const unsafe fn new_unchecked(value: usize) -> Self {
+		Self(value)
 	}
 
 	#[must_use]
@@ -25,6 +34,10 @@ impl TapePointer {
 			value -= TAPE_SIZE;
 		}
 
+		unsafe { self.set_unchecked(value) };
+	}
+
+	pub const unsafe fn set_unchecked(&mut self, value: usize) {
 		self.0 = value;
 	}
 }
@@ -69,7 +82,7 @@ impl AddAssign<isize> for TapePointer {
 
 impl Default for TapePointer {
 	fn default() -> Self {
-		Self::new()
+		unsafe { Self::new_unchecked(0) }
 	}
 }
 

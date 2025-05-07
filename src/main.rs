@@ -21,32 +21,39 @@ fn main() -> Result<()> {
 		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
 		.collect::<String>();
 
-	let unoptimized = Scanner::new(&filtered_data).scan()?.collect::<Program>();
+	let program = {
+		let unoptimized = Scanner::new(&filtered_data).scan()?.collect::<Program>();
 
-	serialize_and_write(&unoptimized, "unoptimized_program")?;
+		serialize_and_write(&unoptimized, "unoptimized_program")?;
 
-	write_program(&unoptimized, "unoptimized")?;
+		write_program(&unoptimized, "unoptimized")?;
+		if args.optimize {
+			let mut optimizer = Optimizer::new(unoptimized.clone());
 
-	let mut optimizer = Optimizer::new(unoptimized.clone());
+			let optimized = optimizer.optimize()?;
 
-	let optimized = optimizer.optimize()?;
+			serialize_and_write(&optimized, "optimized_program")?;
 
-	serialize_and_write(&optimized, "optimized_program")?;
+			write_program(&optimized, "optimized")?;
 
-	write_program(&optimized, "optimized")?;
+			if program_to_string(&unoptimized) != program_to_string(&optimized) {
+				warn!("program instructions do not match, semantics may be different");
+			}
 
-	if program_to_string(&unoptimized) != program_to_string(&optimized) {
-		warn!("program instructions do not match, semantics may be different");
-	}
+			optimized
+		} else {
+			unoptimized
+		}
+	};
 
-	let profiler = if optimized.needs_input() {
-		let mut vm = Vm::stdio(optimized).and_profile();
+	let profiler = if program.needs_input() {
+		let mut vm = Vm::stdio(program).and_profile();
 
 		vm.run()?;
 
 		vm.profiler()
 	} else {
-		let mut vm = Vm::stdio(optimized)
+		let mut vm = Vm::stdio(program)
 			.with_input(std::io::empty())
 			.and_profile();
 
@@ -63,6 +70,8 @@ fn main() -> Result<()> {
 #[derive(Debug, Parser)]
 struct Args {
 	pub file: PathBuf,
+	#[arg(short, long)]
+	pub optimize: bool,
 }
 
 fn install_tracing() {

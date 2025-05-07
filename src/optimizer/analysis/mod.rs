@@ -17,7 +17,7 @@ impl CellAnalyzer {
 	pub const fn new() -> Self {
 		Self {
 			cells: [false; TAPE_SIZE],
-			pointer: TapePointer::new(),
+			pointer: unsafe { TapePointer::new_unchecked(0) },
 		}
 	}
 

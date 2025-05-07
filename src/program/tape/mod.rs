@@ -1,4 +1,6 @@
 mod ptr;
+#[cfg(test)]
+mod tests;
 
 use std::{
 	fmt::{Debug, Formatter, Result as FmtResult},
@@ -24,7 +26,7 @@ impl Tape {
 	pub const fn new() -> Self {
 		Self {
 			cells: [0; TAPE_SIZE],
-			pointer: TapePointer::new(),
+			pointer: unsafe { TapePointer::new_unchecked(0) },
 		}
 	}
 
