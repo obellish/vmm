@@ -4,6 +4,8 @@ mod instr_scan;
 mod remove_empty_loops;
 mod set_untouched_cells;
 mod set_zero;
+#[cfg(test)]
+mod tests;
 mod unroll_constant_loops;
 
 pub use self::{

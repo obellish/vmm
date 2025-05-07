@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::{
 	Instruction, Pass, PeepholePass, Program,
-	passes::{CombineIncInstrPass, CombineMoveInstrPass},
+	passes::{CombineIncInstrPass, CombineMoveInstrPass, CombineSetInstrPass},
 };
 
 fn combine_instructions<P, const SIZE: usize>(
@@ -21,7 +21,7 @@ fn combine_instructions<P, const SIZE: usize>(
 }
 
 #[test]
-fn combine_add_instructions() {
+fn combine_inc_instructions() {
 	combine_instructions(
 		CombineIncInstrPass,
 		[Instruction::Inc(1), Instruction::Inc(2)],
@@ -30,7 +30,7 @@ fn combine_add_instructions() {
 }
 
 #[test]
-fn remove_add_instructions() {
+fn remove_inc_instructions() {
 	combine_instructions(
 		CombineIncInstrPass,
 		[Instruction::Inc(-1), Instruction::Inc(1)],
@@ -53,5 +53,14 @@ fn remove_move_instructions() {
 		CombineMoveInstrPass,
 		[Instruction::MovePtr(-2), Instruction::MovePtr(2)],
 		None,
+	);
+}
+
+#[test]
+fn combine_clear_and_inc_instructions() {
+	combine_instructions(
+		CombineSetInstrPass,
+		[Instruction::Set(0), Instruction::Inc(5)],
+		Some(Instruction::Set(5)),
 	);
 }
