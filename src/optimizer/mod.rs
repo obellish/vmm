@@ -87,6 +87,7 @@ impl Optimizer {
 	where
 		P: Clone + Debug + Pass,
 	{
+		debug!("running pass");
 		run_pass_on_vec(pass, self.program.as_raw(), progress);
 	}
 }
@@ -106,8 +107,6 @@ fn run_pass_on_vec<P>(pass: P, v: &mut Vec<Instruction>, progress: &mut bool)
 where
 	P: Clone + Pass,
 {
-	debug!("running pass on vec of length {}", v.len());
-
 	*progress |= pass.run_pass(v);
 
 	if pass.should_run_on_loop() {
