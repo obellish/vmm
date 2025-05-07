@@ -8,8 +8,8 @@ impl PeepholePass for UnrollConstantLoopsPass {
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::Set(i), Instruction::Loop(inner)] => {
-				if inner.iter().any(|i| matches!(i, Instruction::Loop(_))) {
+			[Instruction::Set(i), Instruction::RawLoop(inner)] => {
+				if inner.iter().any(|i| matches!(i, Instruction::RawLoop(_))) {
 					return None;
 				}
 				let mut inner = inner.clone();

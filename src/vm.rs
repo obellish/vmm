@@ -108,7 +108,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 					*self.pointer_mut() += *i;
 				}
 			}
-			Instruction::Loop(instructions) => {
+			Instruction::RawLoop(instructions) => {
 				let mut iterations = 0usize;
 				while !matches!(self.cell(), 0) {
 					iterations += 1;

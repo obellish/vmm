@@ -33,7 +33,7 @@ impl CellAnalyzer {
 						self.pointer += *i;
 					}
 				}
-				Instruction::Loop(inner) => self.analyze(inner),
+				Instruction::RawLoop(inner) => self.analyze(inner),
 				_ => {}
 			}
 		}

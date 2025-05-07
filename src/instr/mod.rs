@@ -15,7 +15,7 @@ pub enum Instruction {
 	FindZero(isize),
 	Write,
 	Read,
-	Loop(Vec<Self>),
+	RawLoop(Vec<Self>),
 }
 
 impl Instruction {
@@ -37,7 +37,7 @@ impl Instruction {
 	#[must_use]
 	pub fn count(&self) -> usize {
 		match self {
-			Self::Loop(l) => l.len(),
+			Self::RawLoop(l) => l.len(),
 			Self::Inc(i) => i.unsigned_abs() as usize,
 			Self::MovePtr(i) => i.unsigned_abs(),
 			Self::Set(i) => *i as usize,
@@ -47,7 +47,7 @@ impl Instruction {
 
 	#[must_use]
 	pub fn is_empty_loop(&self) -> bool {
-		matches!(self, Self::Loop(x) if x.is_empty())
+		matches!(self, Self::RawLoop(x) if x.is_empty())
 	}
 }
 
@@ -85,7 +85,7 @@ impl Display for Instruction {
 					}
 				}
 			}
-			Self::Loop(instructions) => {
+			Self::RawLoop(instructions) => {
 				f.write_char('[')?;
 				for instr in instructions {
 					Display::fmt(&instr, f)?;

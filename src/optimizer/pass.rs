@@ -64,7 +64,7 @@ where
 	const SIZE: usize = 1;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
-		if let [Instruction::Loop(instructions)] = window {
+		if let [Instruction::RawLoop(instructions)] = window {
 			<P as LoopPass>::run_pass(self, instructions)
 		} else {
 			None

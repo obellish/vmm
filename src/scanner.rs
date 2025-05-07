@@ -79,7 +79,7 @@ fn parse(
 					loop_stack -= 1;
 
 					if matches!(loop_stack, 0) {
-						program.push(Instruction::Loop(
+						program.push(Instruction::RawLoop(
 							parse(opcodes[loop_start + 1..i].iter().copied())?.collect(),
 						));
 					}

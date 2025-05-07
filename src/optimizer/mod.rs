@@ -110,7 +110,7 @@ where
 
 	if pass.should_run_on_loop() {
 		for instr in v {
-			if let Instruction::Loop(i) = instr {
+			if let Instruction::RawLoop(i) = instr {
 				run_pass_on_vec(pass.clone(), i, progress);
 			}
 		}
