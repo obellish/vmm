@@ -62,7 +62,7 @@ impl Optimizer {
 
 		let mut progress = false;
 
-		self.run_pass(CombineAddInstrPass, &mut progress);
+		self.run_pass(CombineIncInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
 		self.run_pass(CombineSetInstrPass, &mut progress);
 

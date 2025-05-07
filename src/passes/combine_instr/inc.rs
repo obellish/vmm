@@ -1,9 +1,9 @@
 use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Clone, Copy)]
-pub struct CombineAddInstrPass;
+pub struct CombineIncInstrPass;
 
-impl PeepholePass for CombineAddInstrPass {
+impl PeepholePass for CombineIncInstrPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
