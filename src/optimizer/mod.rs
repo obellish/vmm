@@ -1,6 +1,8 @@
 mod analysis;
 mod change;
 mod pass;
+#[cfg(test)]
+mod tests;
 
 use std::{
 	error::Error as StdError,
@@ -68,7 +70,7 @@ impl Optimizer {
 
 		self.run_pass(SetZeroPass, &mut progress);
 		self.run_pass(FindZeroPass, &mut progress);
-		self.run_pass(SetUntouchedCells, &mut progress);
+		self.run_pass(SetUntouchedCellsPass, &mut progress);
 		self.run_pass(UnrollConstantLoopsPass, &mut progress);
 		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
 
