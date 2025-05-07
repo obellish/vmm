@@ -36,13 +36,13 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					return None;
 				}
 
-                let mut output = Vec::new();
+				let mut output = Vec::new();
 
-                for _ in 0..*i {
-                    output.extend(inner.clone());
-                }
+				for _ in 0..*i {
+					output.extend(inner.clone());
+				}
 
-                Some(Change::Replace(output))
+				Some(Change::Replace(output))
 			}
 			_ => None,
 		}
