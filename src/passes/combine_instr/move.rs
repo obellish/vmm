@@ -13,7 +13,7 @@ impl PeepholePass for CombineMoveInstrPass {
 				Some(Change::Remove)
 			} else {
 				Some(Change::ReplaceOne(Instruction::MovePtr(
-					i1.saturating_add(*i2),
+					i1.wrapping_add(*i2),
 				)))
 			}
 		} else {

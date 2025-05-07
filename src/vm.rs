@@ -2,6 +2,7 @@ use std::{
 	error::Error as StdError,
 	fmt::{Display, Formatter, Result as FmtResult},
 	io::{Error as IoError, ErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
+	num::Wrapping,
 };
 
 use super::{Instruction, Profiler, Program, Tape, TapePointer};
@@ -71,13 +72,13 @@ impl<R: Read, W: Write> Vm<R, W> {
 			}
 		}
 
-		*self.cell_mut() = buf[0];
+		self.cell_mut().0 = buf[0];
 
 		Ok(())
 	}
 
 	fn write_char(&mut self) -> Result<(), RuntimeError> {
-		let ch = *self.cell();
+		let ch = self.cell().0;
 
 		if ch.is_ascii() {
 			self.output.write_all(&[ch])?;
@@ -97,20 +98,21 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 		match instr {
 			Instruction::Inc(i) => {
-				*self.cell_mut() = self.cell().wrapping_add(*i as u8);
+				// *self.cell_mut() = self.cell().wrapping_add(*i as u8);
+				*self.cell_mut() += *i as u8;
 			}
-			Instruction::Set(i) => *self.cell_mut() = *i,
+			Instruction::Set(i) => self.cell_mut().0 = *i,
 			Instruction::MovePtr(i) => *self.pointer_mut() += *i,
 			Instruction::Read => self.read_char()?,
 			Instruction::Write => self.write_char()?,
 			Instruction::FindZero(i) => {
-				while !matches!(self.cell(), 0) {
+				while !matches!(self.cell().0, 0) {
 					*self.pointer_mut() += *i;
 				}
 			}
 			Instruction::RawLoop(instructions) => {
 				let mut iterations = 0usize;
-				while !matches!(self.cell(), 0) {
+				while !matches!(self.cell().0, 0) {
 					iterations += 1;
 
 					assert!(
@@ -146,11 +148,11 @@ impl<R: Read, W: Write> Vm<R, W> {
 		&mut self.tape
 	}
 
-	fn cell(&self) -> &u8 {
+	fn cell(&self) -> &Wrapping<u8> {
 		self.tape().current_cell()
 	}
 
-	fn cell_mut(&mut self) -> &mut u8 {
+	fn cell_mut(&mut self) -> &mut Wrapping<u8> {
 		self.tape_mut().current_cell_mut()
 	}
 

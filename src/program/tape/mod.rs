@@ -4,6 +4,7 @@ mod tests;
 
 use std::{
 	fmt::{Debug, Formatter, Result as FmtResult},
+	num::Wrapping,
 	ops::{Index, IndexMut},
 };
 
@@ -17,7 +18,7 @@ pub const TAPE_SIZE: usize = 500;
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {
 	#[serde(with = "BigArray")]
-	cells: [u8; TAPE_SIZE],
+	cells: [Wrapping<u8>; TAPE_SIZE],
 	pointer: TapePointer,
 }
 
@@ -25,17 +26,17 @@ impl Tape {
 	#[must_use]
 	pub const fn new() -> Self {
 		Self {
-			cells: [0; TAPE_SIZE],
+			cells: [Wrapping(0); TAPE_SIZE],
 			pointer: unsafe { TapePointer::new_unchecked(0) },
 		}
 	}
 
 	#[must_use]
-	pub fn current_cell(&self) -> &u8 {
+	pub fn current_cell(&self) -> &Wrapping<u8> {
 		unsafe { self.cells.get_unchecked(self.pointer.value()) }
 	}
 
-	pub fn current_cell_mut(&mut self) -> &mut u8 {
+	pub fn current_cell_mut(&mut self) -> &mut Wrapping<u8> {
 		unsafe { self.cells.get_unchecked_mut(self.pointer.value()) }
 	}
 
@@ -50,12 +51,12 @@ impl Tape {
 
 	#[expect(clippy::missing_const_for_fn)]
 	#[must_use]
-	pub fn as_slice(&self) -> &[u8] {
+	pub fn as_slice(&self) -> &[Wrapping<u8>] {
 		&self.cells
 	}
 
 	#[expect(clippy::missing_const_for_fn)]
-	pub fn as_mut_slice(&mut self) -> &mut [u8] {
+	pub fn as_mut_slice(&mut self) -> &mut [Wrapping<u8>] {
 		&mut self.cells
 	}
 }
@@ -65,10 +66,10 @@ impl Debug for Tape {
 		let pretty_printing = f.alternate();
 		let mut state = f.debug_list();
 
-		for (i, cell) in self.cells.iter().enumerate() {
+		for (i, cell) in self.cells.iter().copied().map(|i| i.0).enumerate() {
 			if matches!(cell, 0)
 				&& !pretty_printing
-				&& self.cells[i..].iter().all(|c| matches!(c, 0))
+				&& self.cells[i..].iter().all(|c| matches!(c.0, 0))
 			{
 				return state.finish_non_exhaustive();
 			}
@@ -87,7 +88,7 @@ impl Default for Tape {
 }
 
 impl Index<usize> for Tape {
-	type Output = u8;
+	type Output = Wrapping<u8>;
 
 	fn index(&self, index: usize) -> &Self::Output {
 		self.cells.index(index)
