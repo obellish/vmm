@@ -18,7 +18,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 
 				let first_instr = inner.first()?;
 
-				if matches!(first_instr, Instruction::Add(x) if *x < 0) {
+				if matches!(first_instr, Instruction::Inc(x) if *x < 0) {
 					inner.remove(0);
 					decrement_removed = true;
 				}
@@ -26,7 +26,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				if !decrement_removed {
 					let last_instr = inner.last()?;
 
-					if matches!(last_instr, Instruction::Add(x) if *x < 0) {
+					if matches!(last_instr, Instruction::Inc(x) if *x < 0) {
 						inner.pop();
 						decrement_removed = true;
 					}
@@ -36,9 +36,13 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					return None;
 				}
 
-				println!("{inner:?}");
+                let mut output = Vec::new();
 
-				None
+                for _ in 0..*i {
+                    output.extend(inner.clone());
+                }
+
+                Some(Change::Replace(output))
 			}
 			_ => None,
 		}

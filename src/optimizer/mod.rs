@@ -64,6 +64,8 @@ impl Optimizer {
 
 		self.run_pass(CombineAddInstrPass, &mut progress);
 		self.run_pass(CombineMoveInstrPass, &mut progress);
+		self.run_pass(CombineSetInstrPass, &mut progress);
+
 		self.run_pass(SetZeroPass, &mut progress);
 		self.run_pass(FindZeroPass, &mut progress);
 		self.run_pass(SetUntouchedCells, &mut progress);

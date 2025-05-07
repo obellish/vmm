@@ -6,7 +6,7 @@ pub struct SetUntouchedCells;
 
 impl Pass for SetUntouchedCells {
 	fn run_pass(&self, unit: &mut Vec<Instruction>) -> bool {
-		if let Some(Instruction::Add(i)) = unit.first() {
+		if let Some(Instruction::Inc(i)) = unit.first() {
 			Change::ReplaceOne(Instruction::Set(*i as u8)).apply(unit, 0, 1);
 
 			true

@@ -10,7 +10,7 @@ pub use self::parse::*;
 #[non_exhaustive]
 pub enum Instruction {
 	MovePtr(isize),
-	Add(i8),
+	Inc(i8),
 	Set(u8),
 	FindZero(isize),
 	Write,
@@ -38,7 +38,7 @@ impl Instruction {
 	pub fn count(&self) -> usize {
 		match self {
 			Self::Loop(l) => l.len(),
-			Self::Add(i) => i.unsigned_abs() as usize,
+			Self::Inc(i) => i.unsigned_abs() as usize,
 			Self::MovePtr(i) => i.unsigned_abs(),
 			Self::Set(i) => *i as usize,
 			_ => 1,
@@ -54,7 +54,7 @@ impl Instruction {
 impl Display for Instruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::Add(i) => {
+			Self::Inc(i) => {
 				let c = if *i > 0 { '+' } else { '-' };
 
 				for _ in 0..i.unsigned_abs() {
@@ -77,10 +77,12 @@ impl Display for Instruction {
 			}
 			Self::Read => f.write_char(',')?,
 			Self::Write => f.write_char('.')?,
-			Self::Set(0) => f.write_str("[-]")?,
 			Self::Set(i) => {
-				for _ in 0..(*i) {
-					f.write_char('+')?;
+				f.write_str("[-]")?;
+				if *i > 0 {
+					for _ in 0..(*i) {
+						f.write_char('+')?;
+					}
 				}
 			}
 			Self::Loop(instructions) => {

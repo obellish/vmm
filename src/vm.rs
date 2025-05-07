@@ -96,7 +96,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 		}
 
 		match instr {
-			Instruction::Add(i) => {
+			Instruction::Inc(i) => {
 				*self.cell_mut() = self.cell().wrapping_add(*i as u8);
 			}
 			Instruction::Set(i) => *self.cell_mut() = *i,

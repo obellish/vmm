@@ -24,8 +24,8 @@ fn combine_instructions<P, const SIZE: usize>(
 fn combine_add_instructions() {
 	combine_instructions(
 		CombineAddInstrPass,
-		[Instruction::Add(1), Instruction::Add(2)],
-		Some(Instruction::Add(3)),
+		[Instruction::Inc(1), Instruction::Inc(2)],
+		Some(Instruction::Inc(3)),
 	);
 }
 
@@ -33,7 +33,7 @@ fn combine_add_instructions() {
 fn remove_add_instructions() {
 	combine_instructions(
 		CombineAddInstrPass,
-		[Instruction::Add(-1), Instruction::Add(1)],
+		[Instruction::Inc(-1), Instruction::Inc(1)],
 		None,
 	);
 }

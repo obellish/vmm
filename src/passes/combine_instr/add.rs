@@ -7,11 +7,11 @@ impl PeepholePass for CombineAddInstrPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&self, window: &[Instruction]) -> Option<Change> {
-		if let [Instruction::Add(i1), Instruction::Add(i2)] = window {
+		if let [Instruction::Inc(i1), Instruction::Inc(i2)] = window {
 			if *i1 == -*i2 {
 				Some(Change::Remove)
 			} else {
-				Some(Change::ReplaceOne(Instruction::Add(i1.saturating_add(*i2))))
+				Some(Change::ReplaceOne(Instruction::Inc(i1.saturating_add(*i2))))
 			}
 		} else {
 			None

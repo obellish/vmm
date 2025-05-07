@@ -57,8 +57,8 @@ fn parse(
 	for (i, op) in opcodes.iter().copied().enumerate() {
 		if matches!(loop_stack, 0) {
 			if let Some(instr) = match op {
-				OpCode::Increment => Some(Instruction::Add(1)),
-				OpCode::Decrement => Some(Instruction::Add(-1)),
+				OpCode::Increment => Some(Instruction::Inc(1)),
+				OpCode::Decrement => Some(Instruction::Inc(-1)),
 				OpCode::Input => Some(Instruction::Read),
 				OpCode::Output => Some(Instruction::Write),
 				OpCode::MoveRight => Some(Instruction::MovePtr(1)),

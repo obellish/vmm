@@ -35,7 +35,7 @@ impl Profiler {
 		match instruction {
 			Instruction::Set(0) => self.clear += 1,
 			Instruction::Set(_) => self.set += 1,
-			Instruction::Add(_) => self.add += 1,
+			Instruction::Inc(_) => self.add += 1,
 			Instruction::MovePtr(_) => self.r#move += 1,
 			Instruction::Read => self.input += 1,
 			Instruction::Write => self.output += 1,
