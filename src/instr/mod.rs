@@ -12,8 +12,8 @@ pub use self::parse::*;
 #[non_exhaustive]
 pub enum Instruction {
 	MovePtr(isize),
-	Inc(i8),
-	Set(u8),
+	IncVal(i8),
+	SetVal(u8),
 	FindZero(isize),
 	Write,
 	Read,
@@ -28,12 +28,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_set(&self) -> bool {
-		matches!(self, Self::Set(_))
+		matches!(self, Self::SetVal(_))
 	}
 
 	#[must_use]
 	pub const fn is_clear(&self) -> bool {
-		matches!(self, Self::Set(0))
+		matches!(self, Self::SetVal(0))
 	}
 
 	#[must_use]
@@ -53,7 +53,7 @@ impl Instruction {
 impl Display for Instruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::Inc(i) => {
+			Self::IncVal(i) => {
 				let c = if *i > 0 { '+' } else { '-' };
 
 				for _ in 0..i.unsigned_abs() {
@@ -76,7 +76,7 @@ impl Display for Instruction {
 			}
 			Self::Read => f.write_char(',')?,
 			Self::Write => f.write_char('.')?,
-			Self::Set(i) => {
+			Self::SetVal(i) => {
 				f.write_str("[-]")?;
 				if *i > 0 {
 					for _ in 0..(*i) {

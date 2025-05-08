@@ -6,7 +6,7 @@ fn verify(input: Instruction, expected: &str) {
 
 #[test]
 fn inc() {
-	verify(Inc(5), "+++++");
+	verify(IncVal(5), "+++++");
 }
 
 #[test]
@@ -16,9 +16,9 @@ fn move_ptr() {
 
 #[test]
 fn set() {
-	verify(Set(0), "[-]");
+	verify(SetVal(0), "[-]");
 
-	verify(Set(5), "[-]+++++");
+	verify(SetVal(5), "[-]+++++");
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn read() {
 #[test]
 fn raw_loop() {
 	verify(
-		RawLoop(vec![Inc(-1), MovePtr(1), Inc(1), MovePtr(-1)]),
+		RawLoop(vec![IncVal(-1), MovePtr(1), IncVal(1), MovePtr(-1)]),
 		"[->+<]",
 	);
 }

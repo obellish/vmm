@@ -8,7 +8,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::Set(i), Instruction::RawLoop(inner)] => {
+			[Instruction::SetVal(i), Instruction::RawLoop(inner)] => {
 				if inner.iter().any(|i| matches!(i, Instruction::RawLoop(_))) {
 					return None;
 				}
@@ -18,7 +18,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 
 				let first_instr = inner.first()?;
 
-				if matches!(first_instr, Instruction::Inc(x) if *x < 0) {
+				if matches!(first_instr, Instruction::IncVal(x) if *x == -1) {
 					inner.remove(0);
 					decrement_removed = true;
 				}
@@ -26,7 +26,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				if !decrement_removed {
 					let last_instr = inner.last()?;
 
-					if matches!(last_instr, Instruction::Inc(x) if *x < 0) {
+					if matches!(last_instr, Instruction::IncVal(x) if *x == -1) {
 						inner.pop();
 						decrement_removed = true;
 					}

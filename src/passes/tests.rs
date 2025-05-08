@@ -35,21 +35,21 @@ fn find_zero_pass() -> Result<()> {
 
 #[test]
 fn remove_empty_loops_pass() -> Result<()> {
-	verify_pass_works_raw(RemoveEmptyLoopsPass, "[][-][][]", [RawLoop(vec![Inc(-1)])])
+	verify_pass_works_raw(RemoveEmptyLoopsPass, "[][-][][]", [RawLoop(vec![IncVal(-1)])])
 }
 
 #[test]
 fn set_untouched_cells_pass() {
-	let mut program = vec![Inc(3), Write];
+	let mut program = vec![IncVal(3), Write];
 
-	verify_pass_works(SetUntouchedCellsPass, &mut program, [Set(3), Write]);
+	verify_pass_works(SetUntouchedCellsPass, &mut program, [SetVal(3), Write]);
 }
 
 #[test]
 fn unroll_constant_loops_pass() {
 	let mut program = vec![
-		Set(5),
-		RawLoop(vec![Inc(-1), MovePtr(2), Inc(2), MovePtr(-2)]),
+		SetVal(5),
+		RawLoop(vec![IncVal(-1), MovePtr(2), IncVal(2), MovePtr(-2)]),
 	];
 
 	verify_pass_works(
@@ -57,19 +57,19 @@ fn unroll_constant_loops_pass() {
 		&mut program,
 		[
 			MovePtr(2),
-			Inc(2),
+			IncVal(2),
 			MovePtr(-2),
 			MovePtr(2),
-			Inc(2),
+			IncVal(2),
 			MovePtr(-2),
 			MovePtr(2),
-			Inc(2),
+			IncVal(2),
 			MovePtr(-2),
 			MovePtr(2),
-			Inc(2),
+			IncVal(2),
 			MovePtr(-2),
 			MovePtr(2),
-			Inc(2),
+			IncVal(2),
 			MovePtr(-2),
 		],
 	);

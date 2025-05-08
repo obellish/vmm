@@ -24,7 +24,7 @@ impl CellAnalyzer {
 	pub fn analyze(&mut self, program: &[Instruction]) {
 		for instr in program {
 			match instr {
-				Instruction::Inc(_) | Instruction::Set(_) => {
+				Instruction::IncVal(_) | Instruction::SetVal(_) => {
 					self.mark(self.pointer.value());
 				}
 				Instruction::MovePtr(i) => self.pointer += *i,

@@ -29,11 +29,11 @@ fn verify_optimizations_raw<const N: usize>(inp: &str, expected: [Instruction; N
 #[test]
 fn setup_loop_unrolled() -> Result<()> {
 	let program = Program::Raw(vec![
-		Set(5),
-		RawLoop(vec![Inc(-1), MovePtr(2), Inc(2), MovePtr(-2)]),
+		SetVal(5),
+		RawLoop(vec![IncVal(-1), MovePtr(2), IncVal(2), MovePtr(-2)]),
 	]);
 
-	verify_optimizations(program, [MovePtr(2), Inc(10), MovePtr(-2)])?;
+	verify_optimizations(program, [MovePtr(2), IncVal(10), MovePtr(-2)])?;
 
 	Ok(())
 }

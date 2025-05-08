@@ -8,8 +8,8 @@ impl PeepholePass for RemoveRedundantWritesPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::Inc(_), Instruction::Set(0)] => {
-				Some(Change::ReplaceOne(Instruction::Set(0)))
+			[Instruction::IncVal(_), Instruction::SetVal(0)] => {
+				Some(Change::ReplaceOne(Instruction::SetVal(0)))
 			}
 			_ => None,
 		}
