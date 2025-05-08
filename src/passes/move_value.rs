@@ -11,6 +11,12 @@ impl LoopPass for MoveValuePass {
 				Instruction::MovePtr(x),
 				Instruction::IncVal(j),
 				Instruction::MovePtr(y),
+			]
+			| [
+				Instruction::MovePtr(x),
+				Instruction::IncVal(i),
+				Instruction::MovePtr(y),
+				Instruction::IncVal(j),
 			] if *x == -*y => {
 				// dbg!((i, j));
 

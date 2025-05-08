@@ -12,48 +12,34 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info, trace};
+use tracing::{debug, info};
 
 pub use self::{analysis::*, change::*, io::*, pass::*};
 #[allow(clippy::wildcard_imports)]
 use crate::{Instruction, Program, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Optimizer<O: IROptStore = NoOpStore> {
+pub struct Optimizer<O: OptStore = NoOpStore> {
 	program: Program,
 	tape_analysis_results: Vec<Box<[CellState]>>,
-	output: Option<O>,
+	output: O,
 }
 
 impl Optimizer<NoOpStore> {
 	#[must_use]
 	pub const fn new(program: Program) -> Self {
-		Self::new_in(program)
+		Self::new_in(program, NoOpStore)
 	}
 }
 
-impl<O: IROptStore> Optimizer<O> {
+impl<O: OptStore> Optimizer<O> {
 	#[must_use]
-	pub const fn new_in(program: Program) -> Self {
+	pub const fn new_in(program: Program, output: O) -> Self {
 		Self {
 			program,
 			tape_analysis_results: Vec::new(),
-			output: None,
+			output,
 		}
-	}
-
-	pub const fn with_output(program: Program, output: O) -> Self {
-		Self {
-			program,
-			tape_analysis_results: Vec::new(),
-			output: Some(output),
-		}
-	}
-
-	#[must_use]
-	pub fn and_with_output(mut self, output: O) -> Self {
-		self.output = Some(output);
-		self
 	}
 
 	pub fn optimize(&mut self) -> Result<Program, OptimizerError> {
@@ -69,11 +55,11 @@ impl<O: IROptStore> Optimizer<O> {
 
 		let mut counter = 1;
 
-		let mut progress = self.optimize_inner(counter);
+		let mut progress = self.optimize_inner(counter)?;
 
 		while progress {
 			counter += 1;
-			progress = self.optimize_inner(counter);
+			progress = self.optimize_inner(counter)?;
 		}
 
 		Ok(Program::Optimized(
@@ -85,7 +71,7 @@ impl<O: IROptStore> Optimizer<O> {
 		))
 	}
 
-	fn optimize_inner(&mut self, iteration: usize) -> bool {
+	fn optimize_inner(&mut self, iteration: usize) -> Result<bool, OptimizerError> {
 		let starting_instruction_count = self.program.len();
 
 		let mut progress = false;
@@ -98,7 +84,8 @@ impl<O: IROptStore> Optimizer<O> {
 			analyzer.cells()
 		};
 
-		self.tape_analysis_results.push(Box::new(latest_output));
+		self.output
+			.write_analysis_output(iteration, &latest_output)?;
 
 		self.run_pass::<CombineIncInstrPass>(&mut progress);
 		self.run_pass::<CombineMoveInstrPass>(&mut progress);
@@ -119,31 +106,46 @@ impl<O: IROptStore> Optimizer<O> {
 			self.program.len()
 		);
 
-		progress || starting_instruction_count > self.program.len()
+		Ok(progress || starting_instruction_count > self.program.len())
 	}
 
-	#[tracing::instrument(skip(self))]
 	fn run_pass<P>(&mut self, progress: &mut bool)
 	where
 		P: Debug + Default + Pass,
 	{
 		let mut pass = P::default();
 
-		debug!("running pass");
+		debug!("running pass {pass:?}");
 		run_pass_on_vec(&mut pass, self.program.as_raw(), progress);
 	}
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum OptimizerError {}
+pub enum OptimizerError {
+	OptStore(OptStoreError),
+}
 
 impl Display for OptimizerError {
-	fn fmt(&self, _f: &mut Formatter<'_>) -> FmtResult {
-		match *self {}
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		match self {
+			Self::OptStore(e) => Display::fmt(&e, f),
+		}
 	}
 }
 
-impl StdError for OptimizerError {}
+impl StdError for OptimizerError {
+	fn source(&self) -> Option<&(dyn StdError + 'static)> {
+		match self {
+			Self::OptStore(e) => Some(e),
+		}
+	}
+}
+
+impl From<OptStoreError> for OptimizerError {
+	fn from(value: OptStoreError) -> Self {
+		Self::OptStore(value)
+	}
+}
 
 fn run_pass_on_vec<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool) {
 	*progress |= pass.run_pass(v);
