@@ -13,7 +13,7 @@ use serde_array::BigArray;
 
 pub use self::ptr::TapePointer;
 
-pub const TAPE_SIZE: usize = 30000;
+pub const TAPE_SIZE: usize = 1000;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {

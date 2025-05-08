@@ -11,7 +11,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
+use tracing::{debug, info, trace};
 
 pub use self::{analysis::*, change::*, pass::*};
 #[allow(clippy::wildcard_imports)]
@@ -20,6 +20,7 @@ use crate::{Instruction, Program, passes::*};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
 	program: Program,
+	tape_analysis_results: Vec<String>,
 }
 
 impl Optimizer {
@@ -27,6 +28,7 @@ impl Optimizer {
 	pub const fn new(current_unit: Program) -> Self {
 		Self {
 			program: current_unit,
+			tape_analysis_results: Vec::new(),
 		}
 	}
 
@@ -77,6 +79,18 @@ impl Optimizer {
 
 		self.run_pass::<RemoveEmptyLoopsPass>(&mut progress);
 		self.run_pass::<RemoveRedundantWritesPass>(&mut progress);
+
+		let latest_output = {
+			let mut analyzer = StaticAnalyzer::new();
+
+			analyzer.analyze(&self.program);
+
+			analyzer.output()
+		};
+
+		trace!("analysis output: {latest_output}");
+
+		self.tape_analysis_results.push(latest_output);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
