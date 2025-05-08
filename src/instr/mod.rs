@@ -14,6 +14,7 @@ pub enum Instruction {
 	MovePtr(isize),
 	IncVal(i8),
 	SetVal(u8),
+	MoveVal { offset: isize, multiplier: u8 },
 	FindZero(isize),
 	Write,
 	Read,
@@ -39,7 +40,7 @@ impl Instruction {
 	#[must_use]
 	pub fn count(&self) -> usize {
 		match self {
-			Self::RawLoop(l) => l.len() + 2,
+			Self::RawLoop(l) => l.iter().map(Self::count).sum::<usize>() + 2,
 			_ => 1,
 		}
 	}
@@ -89,6 +90,27 @@ impl Display for Instruction {
 				for instr in instructions {
 					Display::fmt(&instr, f)?;
 				}
+				f.write_char(']')?;
+			}
+			Self::MoveVal { offset, multiplier } => {
+				let (first_move, second_move) = if *offset < 0 { ('<', '>') } else { ('>', '<') };
+
+				f.write_char('[')?;
+
+				f.write_char('-')?;
+
+				for _ in 0..offset.unsigned_abs() {
+					f.write_char(first_move)?;
+				}
+
+				for _ in 0..*multiplier {
+					f.write_char('+')?;
+				}
+
+				for _ in 0..offset.unsigned_abs() {
+					f.write_char(second_move)?;
+				}
+
 				f.write_char(']')?;
 			}
 			_ => f.write_char('*')?,

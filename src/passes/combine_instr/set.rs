@@ -11,6 +11,9 @@ impl PeepholePass for CombineSetInstrPass {
 			[Instruction::SetVal(0), Instruction::IncVal(y)] => {
 				Some(Change::ReplaceOne(Instruction::SetVal(*y as u8)))
 			}
+			[Instruction::SetVal(x), Instruction::IncVal(y)] => Some(Change::ReplaceOne(
+				Instruction::SetVal((*x as i8).wrapping_add(*y) as u8),
+			)),
 			[Instruction::SetVal(x), Instruction::SetVal(y)] if (*x as i8) == -(*y as i8) => {
 				Some(Change::Remove)
 			}

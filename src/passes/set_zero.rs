@@ -11,9 +11,7 @@ impl LoopPass for SetZeroPass {
 		// 	None
 		// }
 		match loop_values {
-			[Instruction::IncVal(-1 | 1)] => {
-				Some(Change::ReplaceOne(Instruction::SetVal(0)))
-			}
+			[Instruction::IncVal(-1 | 1)] => Some(Change::ReplaceOne(Instruction::SetVal(0))),
 			_ => None,
 		}
 	}

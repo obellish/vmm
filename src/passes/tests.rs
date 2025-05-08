@@ -35,7 +35,11 @@ fn find_zero_pass() -> Result<()> {
 
 #[test]
 fn remove_empty_loops_pass() -> Result<()> {
-	verify_pass_works_raw(RemoveEmptyLoopsPass, "[][-][][]", [RawLoop(vec![IncVal(-1)])])
+	verify_pass_works_raw(
+		RemoveEmptyLoopsPass,
+		"[][-][][]",
+		[RawLoop(vec![IncVal(-1)])],
+	)
 }
 
 #[test]

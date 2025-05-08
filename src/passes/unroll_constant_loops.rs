@@ -49,6 +49,6 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	}
 
 	fn should_run_on_loop(&self) -> bool {
-		false
+		true
 	}
 }

@@ -1,7 +1,8 @@
 use std::{
 	error::Error as StdError,
-	fmt::{Display, Formatter, Result as FmtResult},
+	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	io::{Error as IoError, ErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
+	mem,
 	num::Wrapping,
 };
 
@@ -126,7 +127,19 @@ impl<R: Read, W: Write> Vm<R, W> {
 					}
 				}
 			}
-			_ => {}
+			Instruction::MoveVal { offset, multiplier } => {
+				let value = self.cell();
+				let src_offset = self.pointer();
+				let dst_offset = (*src_offset + *offset).value();
+				let src_offset = src_offset.value();
+
+				let tape = self.tape_mut();
+
+				let src_val = mem::take(&mut tape[src_offset]);
+
+				tape[dst_offset] += src_val.0.wrapping_mul(*multiplier);
+			}
+			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
 		Ok(())
@@ -175,12 +188,18 @@ impl Vm<Stdin, Stdout> {
 #[derive(Debug)]
 pub enum RuntimeError {
 	Io(IoError),
+	Unimplemented(Instruction),
 }
 
 impl Display for RuntimeError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
 			Self::Io(e) => Display::fmt(&e, f),
+			Self::Unimplemented(instr) => {
+				f.write_str("instruction ")?;
+				Debug::fmt(&instr, f)?;
+				f.write_str(" is unimplemeted")
+			}
 		}
 	}
 }
@@ -189,6 +208,7 @@ impl StdError for RuntimeError {
 	fn source(&self) -> Option<&(dyn StdError + 'static)> {
 		match self {
 			Self::Io(e) => Some(e),
+			Self::Unimplemented(_) => None,
 		}
 	}
 }
