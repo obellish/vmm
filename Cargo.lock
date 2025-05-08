@@ -694,6 +694,7 @@ dependencies = [
  "logos",
  "ron",
  "serde",
+ "serde-value",
  "serde_array",
  "serde_json",
  "tracing",
