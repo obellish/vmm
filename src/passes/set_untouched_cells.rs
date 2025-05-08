@@ -2,7 +2,9 @@ use crate::{Change, Instruction, Pass};
 
 // Currently only runs on the beginning cell, but can be expanded once cell analysis is introduced.
 #[derive(Debug, Default, Clone, Copy)]
-pub struct SetUntouchedCellsPass;
+pub struct SetUntouchedCellsPass {
+	hit_break_point: bool,
+}
 
 impl Pass for SetUntouchedCellsPass {
 	fn run_pass(&mut self, unit: &mut Vec<Instruction>) -> bool {

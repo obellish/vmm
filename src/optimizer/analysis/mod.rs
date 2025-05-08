@@ -2,49 +2,44 @@ mod cell;
 
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-use serde::{Deserialize, Serialize};
-use serde_array::BigArray;
-
 pub use self::cell::*;
 use crate::{Instruction, TAPE_SIZE, TapePointer};
 
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub struct StaticAnalyzer {
-	#[serde(with = "BigArray")]
-	pub cells: [CellState; TAPE_SIZE],
-	pub pointer: TapePointer,
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct StaticAnalyzer<'a> {
+	program: &'a [Instruction],
+	cells: [CellState; TAPE_SIZE],
+	pointer: TapePointer,
 	depth: usize,
 }
 
-impl StaticAnalyzer {
+impl<'a> StaticAnalyzer<'a> {
 	#[must_use]
-	pub const fn new() -> Self {
+	pub const fn new(program: &'a [Instruction]) -> Self {
 		Self {
-			cells: [CellState::Untouched; TAPE_SIZE],
+			program,
+			cells: [CellState::empty(); TAPE_SIZE],
 			pointer: unsafe { TapePointer::new_unchecked(0) },
 			depth: 0,
 		}
 	}
 
-	pub fn analyze(&mut self, program: &[Instruction]) {
+	pub fn analyze(&mut self) {
+		self.analyze_inner(self.program);
+	}
+
+	fn analyze_inner(&mut self, program: &[Instruction]) {
 		for instr in program {
 			match instr {
-				Instruction::IncVal(_) | Instruction::SetVal(_) => {
-					self.mark(self.pointer.value());
-				}
 				Instruction::MovePtr(i) => self.pointer += *i,
-				Instruction::FindZero(i) => {
-					while !self.cells[self.pointer.value()].is_touched() {
-						self.pointer += *i;
-					}
-				}
-				Instruction::RawLoop(inner) => {
+				Instruction::RawLoop(i) => {
 					self.depth += 1;
 
-					self.analyze(inner);
+					self.analyze_inner(i);
 
 					self.depth -= 1;
 				}
+				Instruction::IncVal(_) => self.mark(self.pointer.value()),
 				_ => {}
 			}
 		}
@@ -55,18 +50,11 @@ impl StaticAnalyzer {
 		self.cells
 	}
 
-	#[must_use]
-	pub fn output(&self) -> String {
-		self.cells.into_iter().map(|c| c.to_string()).collect()
-	}
+	fn mark(&mut self, cell: usize) {
+		self.cells[cell] |= CellState::TOUCHED;
 
-	const fn mark(&mut self, cell: usize) {
 		if self.in_loop() {
-			if !self.cells[cell].is_touched_in_loop() {
-				self.cells[cell] = CellState::InLoop;
-			}
-		} else if self.cells[cell].is_untouched() {
-			self.cells[cell] = CellState::Touched;
+			self.cells[cell] |= CellState::IN_LOOP;
 		}
 	}
 
@@ -75,15 +63,15 @@ impl StaticAnalyzer {
 	}
 }
 
-impl Debug for StaticAnalyzer {
+impl Debug for StaticAnalyzer<'_> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		let pretty_printing = f.alternate();
 		let mut state = f.debug_list();
 
 		for (i, cell) in self.cells.iter().copied().enumerate() {
-			if cell.is_untouched()
+			if cell.is_empty()
 				&& !pretty_printing
-				&& self.cells[i..].iter().all(|v| v.is_untouched())
+				&& self.cells[i..].iter().all(CellState::is_empty)
 			{
 				return state.finish_non_exhaustive();
 			}
@@ -92,11 +80,5 @@ impl Debug for StaticAnalyzer {
 		}
 
 		state.finish()
-	}
-}
-
-impl Default for StaticAnalyzer {
-	fn default() -> Self {
-		Self::new()
 	}
 }

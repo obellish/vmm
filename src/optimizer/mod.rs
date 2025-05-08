@@ -20,7 +20,7 @@ use crate::{Instruction, Program, passes::*};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Optimizer {
 	program: Program,
-	tape_analysis_results: Vec<String>,
+	tape_analysis_results: Vec<Box<[CellState]>>,
 }
 
 impl Optimizer {
@@ -66,6 +66,20 @@ impl Optimizer {
 
 		let mut progress = false;
 
+		let latest_output = {
+			let mut analyzer = StaticAnalyzer::new(&self.program);
+
+			analyzer.analyze();
+
+			println!("{analyzer:?}");
+
+			analyzer.cells()
+		};
+
+		trace!("analysis output: {latest_output:?}");
+
+		self.tape_analysis_results.push(Box::new(latest_output));
+
 		self.run_pass::<CombineIncInstrPass>(&mut progress);
 		self.run_pass::<CombineMoveInstrPass>(&mut progress);
 		self.run_pass::<CombineSetInstrPass>(&mut progress);
@@ -79,18 +93,6 @@ impl Optimizer {
 
 		self.run_pass::<RemoveEmptyLoopsPass>(&mut progress);
 		self.run_pass::<RemoveRedundantWritesPass>(&mut progress);
-
-		let latest_output = {
-			let mut analyzer = StaticAnalyzer::new();
-
-			analyzer.analyze(&self.program);
-
-			analyzer.output()
-		};
-
-		trace!("analysis output: {latest_output}");
-
-		self.tape_analysis_results.push(latest_output);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",

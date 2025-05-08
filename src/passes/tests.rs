@@ -6,24 +6,28 @@ use crate::{
 	passes::*,
 };
 
-fn verify_pass_works<P: Pass, const N: usize>(
-	mut pass: P,
-	inp: &mut Vec<Instruction>,
-	expected: [Instruction; N],
-) {
+fn verify_pass_works<P, const N: usize>(inp: &mut Vec<Instruction>, expected: [Instruction; N])
+where
+	P: Default + Pass,
+{
+	let mut pass = P::default();
+
 	assert!(pass.run_pass(inp));
 
 	assert_eq!(*inp, expected);
 }
 
-fn verify_pass_works_raw<P: Pass, const N: usize>(
+fn verify_pass_works_raw<P, const N: usize>(
 	pass: P,
 	inp: &str,
 	expected: [Instruction; N],
-) -> Result<()> {
+) -> Result<()>
+where
+	P: Default + Pass,
+{
 	let mut program = Scanner::new(inp).scan()?.collect::<Program>();
 
-	verify_pass_works(pass, program.as_raw(), expected);
+	verify_pass_works::<P, N>(program.as_raw(), expected);
 
 	Ok(())
 }
@@ -46,7 +50,7 @@ fn remove_empty_loops_pass() -> Result<()> {
 fn set_untouched_cells_pass() {
 	let mut program = vec![IncVal(3), Write];
 
-	verify_pass_works(SetUntouchedCellsPass, &mut program, [SetVal(3), Write]);
+	verify_pass_works::<SetUntouchedCellsPass, 2>( &mut program, [SetVal(3), Write]);
 }
 
 #[test]
@@ -56,8 +60,7 @@ fn unroll_constant_loops_pass() {
 		RawLoop(vec![IncVal(-1), MovePtr(2), IncVal(2), MovePtr(-2)]),
 	];
 
-	verify_pass_works(
-		UnrollConstantLoopsPass,
+	verify_pass_works::<UnrollConstantLoopsPass, 15>(
 		&mut program,
 		[
 			MovePtr(2),
