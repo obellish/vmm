@@ -1,12 +1,19 @@
 use std::{any::TypeId, collections::HashMap};
 
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{ Serialize, de::DeserializeOwned};
 use serde_value::Value;
 
 use super::{OptStore, OptStoreError};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct MapStore(HashMap<(TypeId, usize), Value>);
+
+impl MapStore {
+    #[must_use]
+    pub fn new() -> Self {
+        Self(HashMap::new())
+    }
+}
 
 impl OptStore for MapStore {
 	fn write_value<S>(&mut self, iteration: usize, value: &S) -> Result<(), OptStoreError>

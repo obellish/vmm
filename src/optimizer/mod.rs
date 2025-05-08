@@ -28,13 +28,13 @@ pub struct Optimizer<O: OptStore = NoOpStore> {
 impl Optimizer<NoOpStore> {
 	#[must_use]
 	pub const fn new(program: Program) -> Self {
-		Self::new_in(program, NoOpStore)
+		Self::new_with(program, NoOpStore)
 	}
 }
 
 impl<O: OptStore> Optimizer<O> {
 	#[must_use]
-	pub const fn new_in(program: Program, output: O) -> Self {
+	pub const fn new_with(program: Program, output: O) -> Self {
 		Self {
 			program,
 			tape_analysis_results: Vec::new(),

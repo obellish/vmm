@@ -6,7 +6,7 @@ use serde::Serialize;
 use tracing::warn;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{Instruction, Optimizer, Program, Scanner, Vm};
+use vmm::{Instruction, MapStore, Optimizer, Program, Scanner, Vm};
 
 fn main() -> Result<()> {
 	install_tracing();
@@ -28,7 +28,7 @@ fn main() -> Result<()> {
 
 		write_program(&unoptimized, "unoptimized")?;
 		if args.optimize {
-			let mut optimizer = Optimizer::new(unoptimized.clone());
+			let mut optimizer = Optimizer::new_with(unoptimized.clone(), MapStore::default());
 
 			let optimized = optimizer.optimize()?;
 

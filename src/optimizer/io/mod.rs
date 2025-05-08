@@ -6,10 +6,10 @@ use std::{
 	fmt::{Display, Formatter, Result as FmtResult},
 };
 
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_array::Array;
 
-pub use self::noop::*;
+pub use self::{map::*, noop::*};
 use crate::{CellState, TAPE_SIZE};
 
 #[derive(Debug, PartialEq, Eq)]
@@ -37,7 +37,7 @@ pub trait OptStore {
 	where
 		S: Serialize + 'static;
 
-	fn read_value< S>(&self, iteration: usize) -> Result<Option<S>, OptStoreError>
+	fn read_value<S>(&self, iteration: usize) -> Result<Option<S>, OptStoreError>
 	where
 		S: DeserializeOwned + 'static;
 
