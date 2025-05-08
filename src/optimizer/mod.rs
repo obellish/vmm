@@ -64,19 +64,19 @@ impl Optimizer {
 
 		let mut progress = false;
 
-		self.run_pass(CombineIncInstrPass, &mut progress);
-		self.run_pass(CombineMoveInstrPass, &mut progress);
-		self.run_pass(CombineSetInstrPass, &mut progress);
+		self.run_pass::<CombineIncInstrPass>(&mut progress);
+		self.run_pass::<CombineMoveInstrPass>(&mut progress);
+		self.run_pass::<CombineSetInstrPass>(&mut progress);
 
-		self.run_pass(SetZeroPass, &mut progress);
-		self.run_pass(FindZeroPass, &mut progress);
-		self.run_pass(SetUntouchedCellsPass, &mut progress);
+		self.run_pass::<SetZeroPass>(&mut progress);
+		self.run_pass::<FindZeroPass>(&mut progress);
+		self.run_pass::<SetUntouchedCellsPass>(&mut progress);
 
-		self.run_pass(MoveValuePass, &mut progress);
-		self.run_pass(UnrollConstantLoopsPass, &mut progress);
+		self.run_pass::<MoveValuePass>(&mut progress);
+		self.run_pass::<UnrollConstantLoopsPass>(&mut progress);
 
-		self.run_pass(RemoveEmptyLoopsPass, &mut progress);
-		self.run_pass(RemoveRedundantWritesPass, &mut progress);
+		self.run_pass::<RemoveEmptyLoopsPass>(&mut progress);
+		self.run_pass::<RemoveRedundantWritesPass>(&mut progress);
 
 		info!(
 			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
@@ -87,12 +87,14 @@ impl Optimizer {
 	}
 
 	#[tracing::instrument(skip(self))]
-	fn run_pass<P>(&mut self, pass: P, progress: &mut bool)
+	fn run_pass<P>(&mut self, progress: &mut bool)
 	where
-		P: Clone + Debug + Pass,
+		P: Debug + Default + Pass,
 	{
+		let mut pass = P::default();
+
 		debug!("running pass");
-		run_pass_on_vec(pass, self.program.as_raw(), progress);
+		run_pass_on_vec(&mut pass, self.program.as_raw(), progress);
 	}
 }
 
@@ -107,16 +109,13 @@ impl Display for OptimizerError {
 
 impl StdError for OptimizerError {}
 
-fn run_pass_on_vec<P>(mut pass: P, v: &mut Vec<Instruction>, progress: &mut bool)
-where
-	P: Clone + Pass,
-{
+fn run_pass_on_vec<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool) {
 	*progress |= pass.run_pass(v);
 
 	if pass.should_run_on_loop() {
 		for instr in v {
 			if let Instruction::RawLoop(i) = instr {
-				run_pass_on_vec(pass.clone(), i, progress);
+				run_pass_on_vec(pass, i, progress);
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 use crate::{Change, Instruction, PeepholePass};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct CombineSetInstrPass;
 
 impl PeepholePass for CombineSetInstrPass {

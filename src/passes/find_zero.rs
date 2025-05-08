@@ -1,6 +1,6 @@
 use crate::{Change, Instruction, LoopPass};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct FindZeroPass;
 
 impl LoopPass for FindZeroPass {
