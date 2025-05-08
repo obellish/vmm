@@ -1,5 +1,6 @@
 mod analysis;
 mod change;
+mod io;
 mod pass;
 #[cfg(test)]
 mod tests;
@@ -13,23 +14,46 @@ use std::{
 use serde::{Deserialize, Serialize};
 use tracing::{debug, info, trace};
 
-pub use self::{analysis::*, change::*, pass::*};
+pub use self::{analysis::*, change::*, io::*, pass::*};
 #[allow(clippy::wildcard_imports)]
 use crate::{Instruction, Program, passes::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Optimizer {
+pub struct Optimizer<O: IROptStore = NoOpStore> {
 	program: Program,
 	tape_analysis_results: Vec<Box<[CellState]>>,
+	output: Option<O>,
 }
 
-impl Optimizer {
+impl Optimizer<NoOpStore> {
 	#[must_use]
-	pub const fn new(current_unit: Program) -> Self {
+	pub const fn new(program: Program) -> Self {
+		Self::new_in(program)
+	}
+}
+
+impl<O: IROptStore> Optimizer<O> {
+	#[must_use]
+	pub const fn new_in(program: Program) -> Self {
 		Self {
-			program: current_unit,
+			program,
 			tape_analysis_results: Vec::new(),
+			output: None,
 		}
+	}
+
+	pub const fn with_output(program: Program, output: O) -> Self {
+		Self {
+			program,
+			tape_analysis_results: Vec::new(),
+			output: Some(output),
+		}
+	}
+
+	#[must_use]
+	pub fn and_with_output(mut self, output: O) -> Self {
+		self.output = Some(output);
+		self
 	}
 
 	pub fn optimize(&mut self) -> Result<Program, OptimizerError> {
@@ -71,12 +95,8 @@ impl Optimizer {
 
 			analyzer.analyze();
 
-			println!("{analyzer:?}");
-
 			analyzer.cells()
 		};
-
-		trace!("analysis output: {latest_output:?}");
 
 		self.tape_analysis_results.push(Box::new(latest_output));
 
