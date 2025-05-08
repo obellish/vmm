@@ -61,13 +61,17 @@ impl StaticAnalyzer {
 	}
 
 	const fn mark(&mut self, cell: usize) {
-		if self.cells[cell].is_untouched() {
-			self.cells[cell] = if matches!(self.depth, 0) {
-				CellState::Touched
-			} else {
-				CellState::InLoop
-			};
+		if self.in_loop() {
+			if !self.cells[cell].is_touched_in_loop() {
+				self.cells[cell] = CellState::InLoop;
+			}
+		} else if self.cells[cell].is_untouched() {
+			self.cells[cell] = CellState::Touched;
 		}
+	}
+
+	const fn in_loop(&self) -> bool {
+		!matches!(self.depth, 0)
 	}
 }
 
