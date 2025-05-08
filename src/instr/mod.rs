@@ -39,10 +39,7 @@ impl Instruction {
 	#[must_use]
 	pub fn count(&self) -> usize {
 		match self {
-			Self::RawLoop(l) => l.len(),
-			Self::Inc(i) => i.unsigned_abs() as usize,
-			Self::MovePtr(i) => i.unsigned_abs(),
-			Self::Set(i) => *i as usize,
+			Self::RawLoop(l) => l.len() + 2,
 			_ => 1,
 		}
 	}
