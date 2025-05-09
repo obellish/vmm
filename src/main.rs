@@ -19,6 +19,10 @@ fn main() -> Result<()> {
 		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
 		.collect::<String>();
 
+	_ = fs::remove_dir_all("./out");
+
+	fs::create_dir_all("./out")?;
+
 	let program = {
 		let unoptimized = Scanner::new(&filtered_data).scan()?.collect::<Program>();
 		if args.optimize {

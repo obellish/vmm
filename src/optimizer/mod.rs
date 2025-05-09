@@ -12,7 +12,7 @@ use std::{
 };
 
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 pub use self::{analysis::*, change::*, io::*, pass::*};
 #[allow(clippy::wildcard_imports)]
@@ -62,6 +62,21 @@ impl<O: OptStore> Optimizer<O> {
 			progress = self.optimize_inner(counter)?;
 		}
 
+		if !matches!(counter, 1) {
+			let (first_program, last_program) = (
+				self.output.read_program(1)?,
+				self.output.read_program(counter)?,
+			);
+
+			if let Some((first_program, last_program)) = first_program.zip(last_program) {
+				if first_program.into_iter().collect::<RawProgram>()
+					!= last_program.into_iter().collect::<RawProgram>()
+				{
+					warn!("program instructions do not match, semantics may be different");
+				}
+			}
+		}
+
 		Ok(Program::Optimized(
 			mem::take(&mut self.program)
 				.iter()
@@ -84,6 +99,8 @@ impl<O: OptStore> Optimizer<O> {
 
 		self.output
 			.write_analysis_output(iteration, &latest_output)?;
+
+		self.output.write_program(iteration, &self.program)?;
 
 		self.run_pass::<CombineIncInstrPass>(&mut progress);
 		self.run_pass::<CombineMoveInstrPass>(&mut progress);

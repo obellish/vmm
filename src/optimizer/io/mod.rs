@@ -4,14 +4,15 @@ mod ron;
 
 use std::{
 	error::Error as StdError,
-	fmt::{Display, Formatter, Result as FmtResult},
+	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	io::Error as IoError,
 };
 
-use serde::{Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
 pub use self::{map::*, noop::*, ron::*};
 use super::AnalysisOutput;
+use crate::{Instruction, Program};
 
 #[derive(Debug)]
 pub enum OptStoreError {
@@ -85,5 +86,49 @@ pub trait OptStore {
 		iteration: usize,
 	) -> Result<Option<AnalysisOutput>, OptStoreError> {
 		self.read_value(iteration)
+	}
+
+	fn write_program(&mut self, iteration: usize, program: &Program) -> Result<(), OptStoreError> {
+		self.write_value(iteration, program)?;
+
+		self.write_value(
+			iteration,
+			&program.into_iter().collect::<RawProgram>(),
+		)?;
+
+		Ok(())
+	}
+
+	fn read_program(&self, iteration: usize) -> Result<Option<Program>, OptStoreError> {
+		self.read_value(iteration)
+	}
+}
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[repr(transparent)]
+#[serde(transparent)]
+pub(super) struct RawProgram(String);
+
+impl Debug for RawProgram {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		Display::fmt(&self, f)
+	}
+}
+
+impl Display for RawProgram {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.write_str(&self.0)
+	}
+}
+
+impl FromIterator<Instruction> for RawProgram {
+	fn from_iter<T: IntoIterator<Item = Instruction>>(iter: T) -> Self {
+		Self(iter.into_iter().map(|i| i.to_string()).collect())
+	}
+}
+
+impl<'a> FromIterator<&'a Instruction> for RawProgram {
+	fn from_iter<T: IntoIterator<Item = &'a Instruction>>(iter: T) -> Self {
+		Self(iter.into_iter().map(ToString::to_string).collect())
 	}
 }
