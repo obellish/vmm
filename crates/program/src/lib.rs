@@ -39,13 +39,13 @@ impl Program {
 		}
 	}
 
-    pub fn rough_estimate(&self) -> usize {
-        self.iter().map(Instruction::rough_estimate).sum()
-    }
+	pub fn rough_estimate(&self) -> usize {
+		self.iter().map(Instruction::rough_estimate).sum()
+	}
 
-    pub fn needs_input(&self) -> bool {
-        self.iter().any(Instruction::needs_input)
-    }
+	pub fn needs_input(&self) -> bool {
+		self.iter().any(Instruction::needs_input)
+	}
 }
 
 impl Debug for Program {
