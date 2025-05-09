@@ -3,6 +3,7 @@ use color_eyre::Result;
 use crate::{
 	Instruction::{self, *},
 	Pass, Program, Scanner,
+	StackedInstruction::*,
 	passes::*,
 };
 
@@ -42,22 +43,30 @@ fn remove_empty_loops_pass() -> Result<()> {
 	verify_pass_works_raw(
 		RemoveEmptyLoopsPass,
 		"[][-][][]",
-		[RawLoop(vec![IncVal(-1)])],
+		[RawLoop(vec![IncVal(-1).into()])],
 	)
 }
 
 #[test]
 fn set_untouched_cells_pass() {
-	let mut program = vec![IncVal(3), Write(1)];
+	let mut program = vec![IncVal(3).into(), Write(1).into()];
 
-	verify_pass_works::<SetUntouchedCellsPass, 2>(&mut program, [SetVal(3), Write(1)]);
+	verify_pass_works::<SetUntouchedCellsPass, 2>(
+		&mut program,
+		[SetVal(3).into(), Write(1).into()],
+	);
 }
 
 #[test]
 fn unroll_constant_loops_pass() {
 	let mut program = vec![
-		SetVal(5),
-		RawLoop(vec![IncVal(-1), MovePtr(2), IncVal(2), MovePtr(-2)]),
+		SetVal(5).into(),
+		RawLoop(vec![
+			IncVal(-1).into(),
+			MovePtr(2).into(),
+			IncVal(2).into(),
+			MovePtr(-2).into(),
+		]),
 	];
 
 	verify_pass_works::<UnrollConstantLoopsPass, 15>(
@@ -78,6 +87,7 @@ fn unroll_constant_loops_pass() {
 			MovePtr(2),
 			IncVal(2),
 			MovePtr(-2),
-		],
+		]
+		.map(Into::into),
 	);
 }

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::Instruction;
+use crate::StackedInstruction;
 
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Profiler {
@@ -33,12 +34,14 @@ impl Profiler {
 
 	pub const fn handle(&mut self, instruction: &Instruction) {
 		match instruction {
+			Instruction::Stacked(s) => match *s {
+				StackedInstruction::IncVal(_) => self.add += 1,
+				StackedInstruction::MovePtr(_) => self.r#move += 1,
+				StackedInstruction::Write(x) => self.output += x as u64,
+			},
 			Instruction::SetVal(0) => self.clear += 1,
 			Instruction::SetVal(_) => self.set += 1,
-			Instruction::IncVal(_) => self.add += 1,
-			Instruction::MovePtr(_) => self.r#move += 1,
 			Instruction::Read => self.input += 1,
-			Instruction::Write(x) => self.output += *x as u64,
 			Instruction::FindZero { .. } => self.find_zero += 1,
 			Instruction::RawLoop(_) => self.while_loop += 1,
 			_ => self.unknown += 1,

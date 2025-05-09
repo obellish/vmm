@@ -6,6 +6,7 @@ use std::{
 use logos::{Lexer, Logos};
 
 use super::{Instruction, OpCode};
+use crate::StackedInstruction;
 
 #[derive(Debug, Clone)]
 pub struct Scanner<'source> {
@@ -57,12 +58,12 @@ fn parse(
 	for (i, op) in opcodes.iter().copied().enumerate() {
 		if matches!(loop_stack, 0) {
 			if let Some(instr) = match op {
-				OpCode::Increment => Some(Instruction::IncVal(1)),
-				OpCode::Decrement => Some(Instruction::IncVal(-1)),
+				OpCode::Increment => Some(Instruction::Stacked(StackedInstruction::IncVal(1))),
+				OpCode::Decrement => Some(Instruction::Stacked(StackedInstruction::IncVal(-1))),
+				OpCode::Output => Some(Instruction::Stacked(StackedInstruction::Write(1))),
+				OpCode::MoveRight => Some(Instruction::Stacked(StackedInstruction::MovePtr(1))),
+				OpCode::MoveLeft => Some(Instruction::Stacked(StackedInstruction::MovePtr(-1))),
 				OpCode::Input => Some(Instruction::Read),
-				OpCode::Output => Some(Instruction::Write(1)),
-				OpCode::MoveRight => Some(Instruction::MovePtr(1)),
-				OpCode::MoveLeft => Some(Instruction::MovePtr(-1)),
 				OpCode::JumpRight => {
 					loop_start = i;
 					loop_stack += 1;

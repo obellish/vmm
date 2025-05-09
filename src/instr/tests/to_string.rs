@@ -1,6 +1,11 @@
-use crate::Instruction::{self, *};
+use std::fmt::Display;
 
-fn verify(input: Instruction, expected: &str) {
+use crate::{
+	Instruction::{self, *},
+	StackedInstruction::{self, *},
+};
+
+fn verify(input: impl Display, expected: &str) {
 	assert_eq!(input.to_string(), expected);
 }
 
@@ -39,7 +44,12 @@ fn read() {
 #[test]
 fn raw_loop() {
 	verify(
-		RawLoop(vec![IncVal(-1), MovePtr(1), IncVal(1), MovePtr(-1)]),
+		RawLoop(vec![
+			Stacked(IncVal(-1)),
+			Stacked(MovePtr(1)),
+			Stacked(IncVal(1)),
+			Stacked(MovePtr(-1)),
+		]),
 		"[->+<]",
 	);
 }

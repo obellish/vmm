@@ -1,4 +1,5 @@
 mod parse;
+mod stack;
 #[cfg(test)]
 mod tests;
 
@@ -6,17 +7,15 @@ use std::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
 use serde::{Deserialize, Serialize};
 
-pub use self::parse::*;
+pub use self::{parse::*, stack::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
-	MovePtr(isize),
-	IncVal(i8),
+	Stacked(StackedInstruction),
 	SetVal(u8),
 	MoveVal { offset: isize, multiplier: u8 },
 	FindZero(isize),
-	Write(usize),
 	Read,
 	RawLoop(Vec<Self>),
 }
@@ -28,12 +27,17 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn is_set(&self) -> bool {
+	pub const fn is_stacked(&self) -> bool {
+		matches!(self, Self::Stacked(_))
+	}
+
+	#[must_use]
+	pub const fn is_set_val(&self) -> bool {
 		matches!(self, Self::SetVal(_))
 	}
 
 	#[must_use]
-	pub const fn is_clear(&self) -> bool {
+	pub const fn is_clear_val(&self) -> bool {
 		matches!(self, Self::SetVal(0))
 	}
 
@@ -46,6 +50,16 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub const fn is_move_val(&self) -> bool {
+		matches!(self, Self::MoveVal { .. })
+	}
+
+	#[must_use]
+	pub const fn is_loop(&self) -> bool {
+		matches!(self, Self::RawLoop(_))
+	}
+
+	#[must_use]
 	pub fn is_empty_loop(&self) -> bool {
 		matches!(self, Self::RawLoop(x) if x.is_empty())
 	}
@@ -54,19 +68,7 @@ impl Instruction {
 impl Display for Instruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::IncVal(i) => {
-				let c = if *i > 0 { '+' } else { '-' };
-
-				for _ in 0..i.unsigned_abs() {
-					f.write_char(c)?;
-				}
-			}
-			Self::MovePtr(i) => {
-				let c = if *i > 0 { '>' } else { '<' };
-				for _ in 0..i.unsigned_abs() {
-					f.write_char(c)?;
-				}
-			}
+			Self::Stacked(s) => Display::fmt(&s, f)?,
 			Self::FindZero(i) => {
 				f.write_char('[')?;
 				let c = if *i > 0 { '>' } else { '<' };
@@ -76,20 +78,6 @@ impl Display for Instruction {
 				f.write_char(']')?;
 			}
 			Self::Read => f.write_char(',')?,
-			// Self::Write => f.write_char('.')?,
-			Self::Write(x) => {
-				for _ in 0..*x {
-					f.write_char('.')?;
-				}
-			}
-			Self::SetVal(i) => {
-				f.write_str("[-]")?;
-				if *i > 0 {
-					for _ in 0..(*i) {
-						f.write_char('+')?;
-					}
-				}
-			}
 			Self::RawLoop(instructions) => {
 				f.write_char('[')?;
 				for instr in instructions {
@@ -122,5 +110,11 @@ impl Display for Instruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl From<StackedInstruction> for Instruction {
+	fn from(value: StackedInstruction) -> Self {
+		Self::Stacked(value)
 	}
 }

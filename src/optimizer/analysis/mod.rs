@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_array::BigArray;
 
 pub use self::cell::*;
-use crate::{Instruction, TAPE_SIZE, TapePointer};
+use crate::{Instruction, StackedInstruction, TAPE_SIZE, TapePointer};
 
 #[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StaticAnalyzer<'a> {
@@ -39,7 +39,7 @@ impl<'a> StaticAnalyzer<'a> {
 	fn analyze_inner(&mut self, program: &[Instruction]) {
 		for instr in program {
 			match instr {
-				Instruction::MovePtr(i) => self.pointer += *i,
+				Instruction::Stacked(StackedInstruction::MovePtr(i)) => self.pointer += *i,
 				Instruction::RawLoop(i) => {
 					self.depth += 1;
 
@@ -47,7 +47,9 @@ impl<'a> StaticAnalyzer<'a> {
 
 					self.depth -= 1;
 				}
-				Instruction::IncVal(_) => self.mark(self.pointer.value()),
+				Instruction::Stacked(StackedInstruction::IncVal(_)) => {
+					self.mark(self.pointer.value());
+				}
 				_ => {}
 			}
 		}

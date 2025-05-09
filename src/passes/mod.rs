@@ -1,4 +1,4 @@
-mod combine_instr;
+mod combine_stacked;
 mod find_zero;
 mod instr_scan;
 mod move_value;
@@ -10,6 +10,6 @@ mod tests;
 mod unroll_constant_loops;
 
 pub use self::{
-	combine_instr::*, find_zero::*, instr_scan::*, move_value::*, remove_dead_code::*,
+	combine_stacked::*, find_zero::*, instr_scan::*, move_value::*, remove_dead_code::*,
 	set_untouched_cells::*, set_zero::*, unroll_constant_loops::*,
 };

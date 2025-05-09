@@ -7,6 +7,7 @@ use std::{
 };
 
 use super::{Instruction, Profiler, Program, Tape, TapePointer};
+use crate::StackedInstruction;
 
 pub struct Vm<R = Stdin, W = Stdout>
 where
@@ -99,14 +100,8 @@ impl<R: Read, W: Write> Vm<R, W> {
 		}
 
 		match instr {
-			Instruction::IncVal(i) => {
-				// *self.cell_mut() = self.cell().wrapping_add(*i as u8);
-				*self.cell_mut() += *i as u8;
-			}
-			Instruction::SetVal(i) => self.cell_mut().0 = *i,
-			Instruction::MovePtr(i) => *self.pointer_mut() += *i,
+			Instruction::Stacked(s) => self.execute_stacked_instruction(*s)?,
 			Instruction::Read => self.read_char()?,
-			Instruction::Write(x) => self.write_char(*x)?,
 			Instruction::FindZero(i) => {
 				while !matches!(self.cell().0, 0) {
 					*self.pointer_mut() += *i;
@@ -140,7 +135,21 @@ impl<R: Read, W: Write> Vm<R, W> {
 
 				tape[dst_offset] += src_val.0.wrapping_mul(*multiplier);
 			}
+			Instruction::SetVal(i) => self.cell_mut().0 = *i,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
+		}
+
+		Ok(())
+	}
+
+	fn execute_stacked_instruction(
+		&mut self,
+		instr: StackedInstruction,
+	) -> Result<(), RuntimeError> {
+		match instr {
+			StackedInstruction::IncVal(i) => *self.cell_mut() += i as u8,
+			StackedInstruction::MovePtr(i) => *self.pointer_mut() += i,
+			StackedInstruction::Write(i) => self.write_char(i)?,
 		}
 
 		Ok(())

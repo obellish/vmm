@@ -1,4 +1,4 @@
-use crate::{Change, Instruction, PeepholePass};
+use crate::{Change, Instruction, PeepholePass, StackedInstruction};
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct UnrollConstantLoopsPass;
@@ -9,16 +9,20 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::SetVal(i), Instruction::RawLoop(inner)] => {
-				if inner.iter().any(|i| matches!(i, Instruction::RawLoop(_))) {
+				if inner.iter().any(Instruction::is_loop) {
 					return None;
 				}
+
 				let mut inner = inner.clone();
 
 				let mut decrement_removed = false;
 
 				let first_instr = inner.first()?;
 
-				if matches!(first_instr, Instruction::IncVal(x) if *x == -1) {
+				if matches!(
+					first_instr,
+					Instruction::Stacked(StackedInstruction::IncVal(-1))
+				) {
 					inner.remove(0);
 					decrement_removed = true;
 				}
@@ -26,7 +30,10 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				if !decrement_removed {
 					let last_instr = inner.last()?;
 
-					if matches!(last_instr, Instruction::IncVal(x) if *x == -1) {
+					if matches!(
+						last_instr,
+						Instruction::Stacked(StackedInstruction::IncVal(-1))
+					) {
 						inner.pop();
 						decrement_removed = true;
 					}
@@ -36,10 +43,10 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					return None;
 				}
 
-				let mut output = Vec::new();
+				let mut output = Vec::with_capacity((*i as usize) * inner.len());
 
 				for _ in 0..*i {
-					output.extend(inner.clone());
+					output.extend_from_slice(&inner);
 				}
 
 				Some(Change::Replace(output))

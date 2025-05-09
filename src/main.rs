@@ -7,6 +7,9 @@ use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 use vmm::{MapStore, Optimizer, Profiler, Program, RonWrapperStore, Scanner, Vm};
 
 fn main() -> Result<()> {
+	_ = fs::remove_dir_all("./out");
+
+	fs::create_dir_all("./out")?;
 	install_tracing();
 	color_eyre::install()?;
 
@@ -18,10 +21,6 @@ fn main() -> Result<()> {
 		.chars()
 		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
 		.collect::<String>();
-
-	_ = fs::remove_dir_all("./out");
-
-	fs::create_dir_all("./out")?;
 
 	let program = {
 		let unoptimized = Scanner::new(&filtered_data).scan()?.collect::<Program>();
