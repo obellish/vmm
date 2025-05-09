@@ -11,7 +11,7 @@ use std::{
 use serde::{Serialize, de::DeserializeOwned};
 
 pub use self::{map::*, noop::*, ron::*};
-use super::{AnalysisOutput};
+use super::AnalysisOutput;
 
 #[derive(Debug)]
 pub enum OptStoreError {

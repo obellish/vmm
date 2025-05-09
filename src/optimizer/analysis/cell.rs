@@ -14,6 +14,4 @@ bitflags! {
 	}
 }
 
-impl CellState {
-
-}
+impl CellState {}

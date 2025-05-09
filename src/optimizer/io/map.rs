@@ -1,6 +1,6 @@
 use std::{any::TypeId, collections::HashMap};
 
-use serde::{ Serialize, de::DeserializeOwned};
+use serde::{Serialize, de::DeserializeOwned};
 use serde_value::Value;
 
 use super::{OptStore, OptStoreError};
@@ -9,10 +9,10 @@ use super::{OptStore, OptStoreError};
 pub struct MapStore(HashMap<(TypeId, usize), Value>);
 
 impl MapStore {
-    #[must_use]
-    pub fn new() -> Self {
-        Self(HashMap::new())
-    }
+	#[must_use]
+	pub fn new() -> Self {
+		Self(HashMap::new())
+	}
 }
 
 impl OptStore for MapStore {

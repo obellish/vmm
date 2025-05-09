@@ -11,7 +11,11 @@ static WROTE_WARNING: AtomicBool = AtomicBool::new(false);
 pub struct NoOpStore;
 
 impl OptStore for NoOpStore {
-	fn write_value<S: Serialize>(&mut self, iteration: usize, value: &S) -> Result<(), OptStoreError> {
+	fn write_value<S: Serialize>(
+		&mut self,
+		iteration: usize,
+		value: &S,
+	) -> Result<(), OptStoreError> {
 		if !WROTE_WARNING.load(Ordering::SeqCst) {
 			warn!("NoOpStore chosen as output, not exposing any intermediate steps");
 			WROTE_WARNING.store(true, Ordering::SeqCst);
