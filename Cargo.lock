@@ -712,8 +712,9 @@ name = "vmm_interpret"
 version = "0.1.0"
 dependencies = [
  "serde",
- "serde_array",
  "vmm_ir",
+ "vmm_program",
+ "vmm_tape",
 ]
 
 [[package]]

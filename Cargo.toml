@@ -28,18 +28,24 @@ default = []
 
 [workspace]
 members = [
-    "crates/alloc", "crates/interpret",
+    "crates/alloc",
+    "crates/interpret",
     "crates/ir",
-    "crates/parse", "crates/program",
-    "crates/serde_array", "crates/tape",
-    "crates/type_name"
-, "crates/utils"]
+    "crates/parse",
+    "crates/program",
+    "crates/serde_array",
+    "crates/tape",
+    "crates/type_name",
+    "crates/utils"
+]
 resolver = "3"
 
 [workspace.dependencies]
 serde = { version = "1", default-features = false }
 serde_array = { path = "crates/serde_array" }
 vmm_ir = { path = "crates/ir" }
+vmm_program = { path = "crates/program" }
+vmm_tape = { path = "crates/tape" }
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"
