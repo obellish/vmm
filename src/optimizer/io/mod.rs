@@ -91,10 +91,7 @@ pub trait OptStore {
 	fn write_program(&mut self, iteration: usize, program: &Program) -> Result<(), OptStoreError> {
 		self.write_value(iteration, program)?;
 
-		self.write_value(
-			iteration,
-			&program.into_iter().collect::<RawProgram>(),
-		)?;
+		self.write_value(iteration, &program.into_iter().collect::<RawProgram>())?;
 
 		Ok(())
 	}
