@@ -28,7 +28,7 @@ fn find_zero() {
 
 #[test]
 fn write() {
-	verify(Write, ".");
+	verify(Write(1), ".");
 }
 
 #[test]

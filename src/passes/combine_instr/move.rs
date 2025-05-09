@@ -1,9 +1,9 @@
 use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Default, Clone, Copy)]
-pub struct CombineMoveInstrPass;
+pub struct CombineMovePtrInstrPass;
 
-impl PeepholePass for CombineMoveInstrPass {
+impl PeepholePass for CombineMovePtrInstrPass {
 	const SIZE: usize = 2;
 
 	#[tracing::instrument]

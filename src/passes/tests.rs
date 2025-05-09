@@ -48,9 +48,9 @@ fn remove_empty_loops_pass() -> Result<()> {
 
 #[test]
 fn set_untouched_cells_pass() {
-	let mut program = vec![IncVal(3), Write];
+	let mut program = vec![IncVal(3), Write(1)];
 
-	verify_pass_works::<SetUntouchedCellsPass, 2>(&mut program, [SetVal(3), Write]);
+	verify_pass_works::<SetUntouchedCellsPass, 2>(&mut program, [SetVal(3), Write(1)]);
 }
 
 #[test]

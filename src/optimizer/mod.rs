@@ -102,9 +102,10 @@ impl<O: OptStore> Optimizer<O> {
 
 		self.output.write_program(iteration, &self.program)?;
 
-		self.run_pass::<CombineIncInstrPass>(&mut progress);
-		self.run_pass::<CombineMoveInstrPass>(&mut progress);
+		self.run_pass::<CombineIncValInstrPass>(&mut progress);
+		self.run_pass::<CombineMovePtrInstrPass>(&mut progress);
 		self.run_pass::<CombineSetInstrPass>(&mut progress);
+		self.run_pass::<CombineWriteInstrPass>(&mut progress);
 
 		self.run_pass::<SetZeroPass>(&mut progress);
 		self.run_pass::<FindZeroPass>(&mut progress);

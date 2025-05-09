@@ -60,7 +60,7 @@ fn parse(
 				OpCode::Increment => Some(Instruction::IncVal(1)),
 				OpCode::Decrement => Some(Instruction::IncVal(-1)),
 				OpCode::Input => Some(Instruction::Read),
-				OpCode::Output => Some(Instruction::Write),
+				OpCode::Output => Some(Instruction::Write(1)),
 				OpCode::MoveRight => Some(Instruction::MovePtr(1)),
 				OpCode::MoveLeft => Some(Instruction::MovePtr(-1)),
 				OpCode::JumpRight => {

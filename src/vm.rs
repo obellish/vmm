@@ -78,13 +78,14 @@ impl<R: Read, W: Write> Vm<R, W> {
 		Ok(())
 	}
 
-	fn write_char(&mut self) -> Result<(), RuntimeError> {
+	fn write_char(&mut self, count: usize) -> Result<(), RuntimeError> {
 		let ch = self.cell().0;
 
 		if ch.is_ascii() {
-			self.output.write_all(&[ch])?;
+			self.output.write_all(&vec![ch; count])?;
 		} else {
-			write!(self.output, "\\0x{ch:x}")?;
+			let s = format!("\\0x{ch:x}").repeat(count);
+			write!(self.output, "{s}")?;
 		}
 
 		self.output.flush()?;
@@ -105,7 +106,7 @@ impl<R: Read, W: Write> Vm<R, W> {
 			Instruction::SetVal(i) => self.cell_mut().0 = *i,
 			Instruction::MovePtr(i) => *self.pointer_mut() += *i,
 			Instruction::Read => self.read_char()?,
-			Instruction::Write => self.write_char()?,
+			Instruction::Write(x) => self.write_char(*x)?,
 			Instruction::FindZero(i) => {
 				while !matches!(self.cell().0, 0) {
 					*self.pointer_mut() += *i;

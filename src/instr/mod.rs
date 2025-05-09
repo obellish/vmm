@@ -16,7 +16,7 @@ pub enum Instruction {
 	SetVal(u8),
 	MoveVal { offset: isize, multiplier: u8 },
 	FindZero(isize),
-	Write,
+	Write(usize),
 	Read,
 	RawLoop(Vec<Self>),
 }
@@ -76,7 +76,12 @@ impl Display for Instruction {
 				f.write_char(']')?;
 			}
 			Self::Read => f.write_char(',')?,
-			Self::Write => f.write_char('.')?,
+			// Self::Write => f.write_char('.')?,
+			Self::Write(x) => {
+				for _ in 0..*x {
+					f.write_char('.')?;
+				}
+			}
 			Self::SetVal(i) => {
 				f.write_str("[-]")?;
 				if *i > 0 {
