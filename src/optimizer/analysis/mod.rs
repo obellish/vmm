@@ -2,12 +2,17 @@ mod cell;
 
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
+use serde::{Deserialize, Serialize};
+use serde_array::BigArray;
+
 pub use self::cell::*;
 use crate::{Instruction, TAPE_SIZE, TapePointer};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct StaticAnalyzer<'a> {
+	#[serde(skip)]
 	program: &'a [Instruction],
+	#[serde(with = "BigArray")]
 	cells: [CellState; TAPE_SIZE],
 	pointer: TapePointer,
 	depth: usize,
@@ -24,8 +29,11 @@ impl<'a> StaticAnalyzer<'a> {
 		}
 	}
 
-	pub fn analyze(&mut self) {
+	#[must_use]
+	pub fn analyze(mut self) -> AnalysisOutput {
 		self.analyze_inner(self.program);
+
+		AnalysisOutput { cells: self.cells }
 	}
 
 	fn analyze_inner(&mut self, program: &[Instruction]) {
@@ -43,11 +51,6 @@ impl<'a> StaticAnalyzer<'a> {
 				_ => {}
 			}
 		}
-	}
-
-	#[must_use]
-	pub const fn cells(&self) -> [CellState; TAPE_SIZE] {
-		self.cells
 	}
 
 	fn mark(&mut self, cell: usize) {
@@ -81,4 +84,10 @@ impl Debug for StaticAnalyzer<'_> {
 
 		state.finish()
 	}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct AnalysisOutput {
+	#[serde(with = "BigArray")]
+	pub cells: [CellState; TAPE_SIZE],
 }

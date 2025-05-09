@@ -2,11 +2,9 @@ use std::{fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::Result;
-use serde::Serialize;
-use tracing::warn;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{Instruction, MapStore, Optimizer, Program, Scanner, Vm};
+use vmm::{MapStore, Optimizer, Profiler, Program, RonWrapperStore, Scanner, Vm};
 
 fn main() -> Result<()> {
 	install_tracing();
@@ -23,24 +21,13 @@ fn main() -> Result<()> {
 
 	let program = {
 		let unoptimized = Scanner::new(&filtered_data).scan()?.collect::<Program>();
-
-		serialize_and_write(&unoptimized, "unoptimized_program")?;
-
-		write_program(&unoptimized, "unoptimized")?;
 		if args.optimize {
-			let mut optimizer = Optimizer::new_with(unoptimized.clone(), MapStore::default());
+			let mut optimizer = Optimizer::new_with(
+				unoptimized,
+				RonWrapperStore::new(MapStore::default(), PathBuf::new().join("./out"))?,
+			);
 
-			let optimized = optimizer.optimize()?;
-
-			serialize_and_write(&optimized, "optimized_program")?;
-
-			write_program(&optimized, "optimized")?;
-
-			if program_to_string(&unoptimized) != program_to_string(&optimized) {
-				warn!("program instructions do not match, semantics may be different");
-			}
-
-			optimized
+			optimizer.optimize()?
 		} else {
 			unoptimized
 		}
@@ -62,7 +49,7 @@ fn main() -> Result<()> {
 		vm.profiler()
 	};
 
-	serialize_and_write(&profiler, "profiler")?;
+	write_profiler(&profiler)?;
 
 	Ok(())
 }
@@ -96,26 +83,11 @@ fn install_tracing() {
 		.init();
 }
 
-fn serialize_and_write<S: Serialize>(p: &S, name: &str) -> Result<()> {
+fn write_profiler(p: &Profiler) -> Result<()> {
 	fs::write(
-		format!("./out/{name}.json"),
-		serde_json::to_string_pretty(p)?,
-	)?;
-
-	fs::write(
-		format!("./out/{name}.ron"),
+		"./out/profiler.ron",
 		ron::ser::to_string_pretty(p, ron::ser::PrettyConfig::new())?,
 	)?;
 
 	Ok(())
-}
-
-fn write_program(p: &[Instruction], name: &str) -> Result<()> {
-	fs::write(format!("./out/{name}.bf"), program_to_string(p))?;
-
-	Ok(())
-}
-
-fn program_to_string(p: &[Instruction]) -> String {
-	p.iter().map(ToString::to_string).collect::<String>()
 }

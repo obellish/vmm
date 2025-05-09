@@ -696,15 +696,19 @@ dependencies = [
  "serde",
  "serde-value",
  "serde_array",
- "serde_json",
  "tracing",
  "tracing-error",
  "tracing-subscriber",
  "vmm_alloc",
+ "vmm_type_name",
 ]
 
 [[package]]
 name = "vmm_alloc"
+version = "0.1.0"
+
+[[package]]
+name = "vmm_type_name"
 version = "0.1.0"
 
 [[package]]

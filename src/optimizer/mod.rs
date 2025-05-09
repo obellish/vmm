@@ -79,9 +79,7 @@ impl<O: OptStore> Optimizer<O> {
 		let latest_output = {
 			let mut analyzer = StaticAnalyzer::new(&self.program);
 
-			analyzer.analyze();
-
-			analyzer.cells()
+			analyzer.analyze()
 		};
 
 		self.output
