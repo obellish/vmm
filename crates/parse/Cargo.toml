@@ -1,0 +1,19 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_parse"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+logos = { version = "0.15.0", default-features = false, features = [
+    "export_derive",
+    "logos-derive"
+] }
+vmm_ir.workspace = true
+
+[features]
+default = []
+logos-debug = ["logos/debug"]

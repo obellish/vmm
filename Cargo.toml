@@ -27,12 +27,19 @@ debug = ["logos/debug"]
 default = []
 
 [workspace]
-members = ["crates/alloc", "crates/serde_array", "crates/type_name"]
+members = [
+    "crates/alloc", "crates/interpret",
+    "crates/ir",
+    "crates/parse", "crates/program",
+    "crates/serde_array", "crates/tape",
+    "crates/type_name"
+, "crates/utils"]
 resolver = "3"
 
 [workspace.dependencies]
 serde = { version = "1", default-features = false }
 serde_array = { path = "crates/serde_array" }
+vmm_ir = { path = "crates/ir" }
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"

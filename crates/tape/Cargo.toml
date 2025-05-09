@@ -1,0 +1,12 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_tape"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { workspace = true, default-features = false, features = ["derive"] }
+serde_array = { path = "../serde_array" }

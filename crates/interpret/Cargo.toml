@@ -1,0 +1,13 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_interpret"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { workspace = true, features = ["derive", "std"] }
+serde_array = { path = "../serde_array" }
+vmm_ir.workspace = true

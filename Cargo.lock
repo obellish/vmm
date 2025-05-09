@@ -708,7 +708,52 @@ name = "vmm_alloc"
 version = "0.1.0"
 
 [[package]]
+name = "vmm_interpret"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_array",
+ "vmm_ir",
+]
+
+[[package]]
+name = "vmm_ir"
+version = "0.1.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "vmm_parse"
+version = "0.1.0"
+dependencies = [
+ "logos",
+ "vmm_ir",
+]
+
+[[package]]
+name = "vmm_program"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_array",
+ "vmm_ir",
+]
+
+[[package]]
+name = "vmm_tape"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_array",
+]
+
+[[package]]
 name = "vmm_type_name"
+version = "0.1.0"
+
+[[package]]
+name = "vmm_utils"
 version = "0.1.0"
 
 [[package]]

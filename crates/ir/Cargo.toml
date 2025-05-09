@@ -1,0 +1,14 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_ir"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { workspace = true, features = [
+    "alloc",
+    "derive"
+], default-features = false }
