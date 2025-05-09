@@ -60,11 +60,12 @@ impl PartialEq for OptStoreError {
 
 /// Intermediate Optimizations store (aka results of things between passes).
 pub trait OptStore {
-	/// Write a raw, serializable value to the store
+	/// Write a raw, serializable value to the store.
 	fn write_value<S>(&mut self, iteration: usize, value: &S) -> Result<(), OptStoreError>
 	where
 		S: Serialize + 'static;
 
+	/// Read and deserialize a value from the store.
 	fn read_value<S>(&self, iteration: usize) -> Result<Option<S>, OptStoreError>
 	where
 		S: DeserializeOwned + 'static;
