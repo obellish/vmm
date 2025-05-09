@@ -1,6 +1,6 @@
 use crate::{Change, Instruction, PeepholePass};
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Debug, Default)]
 pub struct RemoveRedundantWritesPass;
 
 impl PeepholePass for RemoveRedundantWritesPass {
@@ -8,8 +8,8 @@ impl PeepholePass for RemoveRedundantWritesPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::IncVal(_), Instruction::SetVal(0)] => {
-				Some(Change::ReplaceOne(Instruction::SetVal(0)))
+			[Instruction::IncVal(_), Instruction::SetVal(x)] => {
+				Some(Change::ReplaceOne(Instruction::SetVal(*x)))
 			}
 			_ => None,
 		}
