@@ -30,7 +30,7 @@ default = []
 members = [
     "crates/alloc",
     "crates/interpret",
-    "crates/ir",
+    "crates/ir", "crates/opt",
     "crates/parse",
     "crates/program",
     "crates/serde_array",

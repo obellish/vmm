@@ -1,0 +1,15 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_opt"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { workspace = true, features = ["derive", "std"] }
+vmm_ir.workspace = true
+vmm_program.workspace = true
+vmm_utils = { path = "../utils" }
+tracing = "0.1"

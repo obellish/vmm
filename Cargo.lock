@@ -725,6 +725,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "vmm_opt"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "tracing",
+ "vmm_ir",
+ "vmm_program",
+ "vmm_utils",
+]
+
+[[package]]
 name = "vmm_parse"
 version = "0.1.0"
 dependencies = [
