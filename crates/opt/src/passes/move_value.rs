@@ -14,9 +14,9 @@ impl LoopPass for MoveValuePass {
 			]
 			| [
 				Instruction::IncVal(j),
-				Instruction::MovePtr(x),
-				Instruction::IncVal(-1),
 				Instruction::MovePtr(y),
+				Instruction::IncVal(-1),
+				Instruction::MovePtr(x),
 			] if *x == -y => {
 				let j = *j;
 				let x = *x;
