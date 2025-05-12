@@ -1,3 +1,4 @@
 mod moves;
+mod writes;
 
-pub use self::moves::*;
+pub use self::{moves::*, writes::*};

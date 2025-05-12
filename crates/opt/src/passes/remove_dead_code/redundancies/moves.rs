@@ -17,7 +17,7 @@ impl PeepholePass for RemoveRedundantMovesPass {
 				Instruction::SetVal(0),
 				Instruction::MovePtr(*offset),
 				Instruction::SetVal(x.wrapping_mul(*multiplier)),
-				Instruction::MovePtr(-offset),
+				Instruction::MovePtr(-*offset),
 			])),
 			_ => None,
 		}

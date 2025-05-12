@@ -152,6 +152,11 @@ where
 			Instruction::MovePtr(i) => *self.ptr_mut() += *i,
 			Instruction::Write => self.write_char()?,
 			Instruction::Read => self.read_char()?,
+			Instruction::FindZero(i) => {
+				while !matches!(self.cell().0, 0) {
+					*self.ptr_mut() += *i;
+				}
+			}
 			Instruction::RawLoop(instructions) => {
 				let mut iterations = 0usize;
 				while !matches!(self.cell().0, 0) {

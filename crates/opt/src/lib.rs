@@ -90,7 +90,15 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.store
 			.insert_program_snapshot(iteration, &self.program)?;
 
+		self.run_pass::<CollapseStackedInstrPass>(&mut progress);
+		self.run_pass::<ClearCellPass>(&mut progress);
+		self.run_pass::<FindZeroPass>(&mut progress);
+
+		self.run_pass::<MoveValuePass>(&mut progress);
+
 		self.run_pass::<RemoveRedundantMovesPass>(&mut progress);
+		self.run_pass::<RemoveRedundantWritesPass>(&mut progress);
+		self.run_pass::<RemoveEmptyLoopsPass>(&mut progress);
 
 		info!(
 			"Optimization iterator {iteration}: {starting_instruction_count} -> {}",
