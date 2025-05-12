@@ -19,6 +19,7 @@ pub enum Instruction {
 	Read,
 	Write,
 	RawLoop(Vec<Self>),
+	ConstantLoop(u8, Vec<Self>),
 }
 
 impl Instruction {
@@ -119,9 +120,7 @@ impl Display for Instruction {
 			Self::Write => f.write_char('.')?,
 			Self::RawLoop(instrs) => {
 				f.write_char('[')?;
-				for instr in instrs {
-					Display::fmt(&instr, f)?;
-				}
+				display_loop(instrs, f)?;
 				f.write_char(']')?;
 			}
 			Self::MoveVal { offset, multiplier } => {
@@ -145,9 +144,24 @@ impl Display for Instruction {
 
 				f.write_char(']')?;
 			}
+			Self::ConstantLoop(step, steps) => {
+				Display::fmt(&Self::SetVal(*step), f)?;
+
+				f.write_char('[')?;
+				display_loop(steps, f)?;
+				f.write_char(']')?;
+			}
 			_ => f.write_char('*')?,
 		}
 
 		Ok(())
 	}
+}
+
+fn display_loop(i: &[Instruction], f: &mut Formatter<'_>) -> FmtResult {
+	for instr in i {
+		Display::fmt(&instr, f)?;
+	}
+
+	Ok(())
 }

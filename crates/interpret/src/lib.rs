@@ -183,6 +183,13 @@ where
 
 				tape[dst_offset] += src_val.0.wrapping_mul(*multiplier);
 			}
+			Instruction::ConstantLoop(i, instrs) => {
+				for _ in 0..*i {
+					for instr in instrs {
+						self.execute_instruction(instr)?;
+					}
+				}
+			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
