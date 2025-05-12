@@ -19,7 +19,6 @@ pub enum Instruction {
 	Read,
 	Write,
 	RawLoop(Vec<Self>),
-	ConstantLoop(u8, Vec<Self>),
 }
 
 impl Instruction {
@@ -142,13 +141,6 @@ impl Display for Instruction {
 					f.write_char(second_move)?;
 				}
 
-				f.write_char(']')?;
-			}
-			Self::ConstantLoop(step, steps) => {
-				Display::fmt(&Self::SetVal(*step), f)?;
-
-				f.write_char('[')?;
-				display_loop(steps, f)?;
 				f.write_char(']')?;
 			}
 			_ => f.write_char('*')?,

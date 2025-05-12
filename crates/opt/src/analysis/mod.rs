@@ -1,9 +1,12 @@
 mod cell;
 
-use std::num::Wrapping;
+use std::{
+	collections::{BTreeMap, HashMap},
+	num::Wrapping,
+};
 
-use serde::{Deserialize, Serialize};
-use serde_array::{Array, BigArray};
+use serde::{Deserialize, Serialize, Serializer};
+use serde_array::BigArray;
 use vmm_ir::Instruction;
 use vmm_tape::{TAPE_SIZE, TapePointer};
 
@@ -53,22 +56,47 @@ impl<'a> StaticAnalyzer<'a> {
 
 					self.depth -= 1;
 				}
-				Instruction::IncVal(x) => self.mark(*x as u8),
-				Instruction::Write => output.snapshots.push(self.cells.into()),
+				Instruction::SetVal(i) => self.mark((*i).into()),
+				Instruction::IncVal(x) => self.mark((*x).into()),
+				Instruction::Write => {
+					self.mark(CellIncrement::Write);
+
+					let mut snapshot = HashMap::new();
+
+					for (i, cell) in self
+						.cells
+						.iter()
+						.copied()
+						.filter(|c| !c.state().is_empty())
+						.enumerate()
+					{
+						snapshot.insert(i, cell);
+					}
+
+					output.snapshots.push(snapshot);
+				}
+				Instruction::Read => self.mark(CellIncrement::Read),
 				_ => {}
 			}
 		}
 	}
 
-	fn mark(&mut self, value: u8) {
+	fn mark(&mut self, value: CellIncrement) {
 		*self.cell_mut() |= CellState::TOUCHED;
 
 		if self.in_loop() {
 			*self.cell_mut() |= CellState::IN_LOOP;
 		}
-
-		if !self.cell().state().contains(CellState::IN_LOOP) {
-			*self.value_mut() += value;
+		match value {
+			CellIncrement::Set(v) => {
+				self.value_mut().0 = v;
+				if !self.in_loop() {
+					self.state_mut().remove(CellState::IN_LOOP);
+				}
+			}
+			CellIncrement::Inc(v) => *self.value_mut() += v,
+			CellIncrement::Write => *self.cell_mut() |= CellState::WRITTEN,
+			CellIncrement::Read => *self.cell_mut() |= CellState::RECEIVED_FROM_STDIN,
 		}
 	}
 
@@ -103,5 +131,38 @@ impl<'a> StaticAnalyzer<'a> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AnalysisOutput {
-	pub snapshots: Vec<Array<Cell, TAPE_SIZE>>,
+	#[serde(serialize_with = "ordered_maps")]
+	pub snapshots: Vec<HashMap<usize, Cell>>,
+}
+
+#[allow(clippy::ptr_arg)]
+fn ordered_maps<S>(values: &Vec<HashMap<usize, Cell>>, serializer: S) -> Result<S::Ok, S::Error>
+where
+	S: Serializer,
+{
+	let ordered = values
+		.iter()
+		.map(|v| v.iter().map(|(k, v)| (*k, *v)).collect::<BTreeMap<_, _>>())
+		.collect::<Vec<_>>();
+
+	ordered.serialize(serializer)
+}
+
+enum CellIncrement {
+	Inc(u8),
+	Set(u8),
+	Write,
+	Read,
+}
+
+impl From<i8> for CellIncrement {
+	fn from(value: i8) -> Self {
+		Self::Inc(value as u8)
+	}
+}
+
+impl From<u8> for CellIncrement {
+	fn from(value: u8) -> Self {
+		Self::Set(value)
+	}
 }
