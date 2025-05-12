@@ -728,10 +728,15 @@ dependencies = [
 name = "vmm_opt"
 version = "0.1.0"
 dependencies = [
+ "bitflags",
+ "ron",
  "serde",
+ "serde-value",
+ "serde_array",
  "tracing",
  "vmm_ir",
  "vmm_program",
+ "vmm_tape",
  "vmm_utils",
 ]
 
