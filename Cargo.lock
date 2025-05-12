@@ -688,19 +688,17 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 name = "vmm"
 version = "0.1.0"
 dependencies = [
- "bitflags",
  "clap",
  "color-eyre",
- "logos",
  "ron",
- "serde",
- "serde-value",
- "serde_array",
  "tracing",
  "tracing-error",
  "tracing-subscriber",
- "vmm_alloc",
- "vmm_type_name",
+ "vmm_interpret",
+ "vmm_ir",
+ "vmm_opt",
+ "vmm_parse",
+ "vmm_program",
 ]
 
 [[package]]
@@ -737,6 +735,7 @@ dependencies = [
  "vmm_ir",
  "vmm_program",
  "vmm_tape",
+ "vmm_type_name",
  "vmm_utils",
 ]
 

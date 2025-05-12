@@ -1,4 +1,6 @@
-use crate::{Change, Instruction, PeepholePass, StackedInstruction};
+use vmm_ir::Instruction;
+
+use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
 pub struct RemoveRedundantMovesPass;
@@ -13,9 +15,9 @@ impl PeepholePass for RemoveRedundantMovesPass {
 				Instruction::MoveVal { offset, multiplier },
 			] => Some(Change::Replace(vec![
 				Instruction::SetVal(0),
-				StackedInstruction::MovePtr(*offset).into(),
+				Instruction::MovePtr(*offset),
 				Instruction::SetVal(x.wrapping_mul(*multiplier)),
-				StackedInstruction::MovePtr(-*offset).into(),
+				Instruction::MovePtr(-offset),
 			])),
 			_ => None,
 		}

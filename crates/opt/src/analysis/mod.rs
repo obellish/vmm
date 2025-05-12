@@ -1,11 +1,10 @@
 mod cell;
 
-use std::fmt::{Debug, Formatter, Result as FmtResult};
+use std::fmt::Debug;
 
 use serde::{Deserialize, Serialize};
 use serde_array::BigArray;
 use vmm_ir::Instruction;
-use vmm_program::Program;
 use vmm_tape::{TAPE_SIZE, TapePointer};
 
 pub use self::cell::*;

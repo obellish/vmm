@@ -9,7 +9,7 @@ version.workspace = true
 
 [dependencies]
 bitflags = "2.9.0"
-ron = { version = "0.10", optional = true }
+ron = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive", "std"] }
 serde-value = "0.7.0"
 serde_array.workspace = true
@@ -17,7 +17,8 @@ tracing = "0.1"
 vmm_ir.workspace = true
 vmm_program.workspace = true
 vmm_tape.workspace = true
+vmm_type_name = { path = "../type_name" }
 vmm_utils = { path = "../utils" }
 
 [features]
-output-metadata = ["dep:ron"]
+output = ["dep:ron"]

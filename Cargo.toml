@@ -8,23 +8,17 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-bitflags = "2.9.0"
 clap = { version = "4.5.37", features = ["derive"] }
 color-eyre = { version = "0.6", features = ["capture-spantrace"] }
-logos = "0.15.0"
-ron = "0.10.1"
-serde = { workspace = true, features = ["derive"], default-features = true }
-serde-value = "0.7.0"
-serde_array.workspace = true
-tracing = "0.1"
+ron.workspace = true
+tracing.workspace = true
 tracing-error = "0.2.1"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter", "json"] }
-vmm_alloc = { path = "crates/alloc", features = ["nightly"] }
-vmm_type_name = { path = "crates/type_name" }
-
-[features]
-debug = ["logos/debug"]
-default = []
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+vmm_interpret = { path = "crates/interpret" }
+vmm_ir.workspace = true
+vmm_opt = { path = "crates/opt", features = ["output"] }
+vmm_parse = { path = "crates/parse" }
+vmm_program.workspace = true
 
 [workspace]
 members = [
@@ -42,8 +36,10 @@ members = [
 resolver = "3"
 
 [workspace.dependencies]
+ron = "0.10"
 serde = { version = "1", default-features = false }
 serde_array = { path = "crates/serde_array" }
+tracing = "0.1"
 vmm_ir = { path = "crates/ir" }
 vmm_program = { path = "crates/program" }
 vmm_tape = { path = "crates/tape" }

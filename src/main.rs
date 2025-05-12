@@ -4,7 +4,11 @@ use clap::Parser;
 use color_eyre::eyre::Result;
 use tracing_error::ErrorLayer;
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
-use vmm::{MapStore, Optimizer, Profiler, Program, RonWrapperStore, Scanner, Vm};
+use vmm_interpret::{Interpreter, Profiler};
+use vmm_opt::{HashMetadataStore, Optimizer, OutputMetadataStore};
+use vmm_parse::Parser as BfParser;
+// use vmm::{MapStore, Optimizer, Profiler, Program, RonWrapperStore, Scanner, Vm};
+use vmm_program::Program;
 
 fn main() -> Result<()> {
 	_ = fs::remove_dir_all("./out");
@@ -23,11 +27,11 @@ fn main() -> Result<()> {
 		.collect::<String>();
 
 	let program = {
-		let unoptimized = Scanner::new(&filtered_data).scan()?.collect::<Program>();
+		let unoptimized = BfParser::new(&filtered_data).scan()?.collect::<Program>();
 		if args.optimize {
-			let mut optimizer = Optimizer::new_with(
+			let mut optimizer = Optimizer::new(
 				unoptimized,
-				RonWrapperStore::new(MapStore::default(), PathBuf::new().join("./out"))?,
+				OutputMetadataStore::new(HashMetadataStore::new(), PathBuf::new().join("./out"))?,
 			);
 
 			optimizer.optimize()?
@@ -37,22 +41,22 @@ fn main() -> Result<()> {
 	};
 
 	let profiler = if program.needs_input() {
-		let mut vm = Vm::stdio(program).and_profile();
+		let mut vm = Interpreter::stdio(program).and_with_profiler();
 
 		vm.run()?;
 
 		vm.profiler()
 	} else {
-		let mut vm = Vm::stdio(program)
+		let mut vm = Interpreter::stdio(program)
 			.with_input(std::io::empty())
-			.and_profile();
+			.and_with_profiler();
 
 		vm.run()?;
 
 		vm.profiler()
 	};
 
-	write_profiler(&profiler)?;
+	write_profiler(profiler)?;
 
 	Ok(())
 }
@@ -86,10 +90,10 @@ fn install_tracing() {
 		.init();
 }
 
-fn write_profiler(p: &Profiler) -> Result<()> {
+fn write_profiler(p: Profiler) -> Result<()> {
 	fs::write(
 		"./out/profiler.ron",
-		ron::ser::to_string_pretty(p, ron::ser::PrettyConfig::new())?,
+		ron::ser::to_string_pretty(&p, ron::ser::PrettyConfig::new())?,
 	)?;
 
 	Ok(())
