@@ -9,7 +9,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::SetVal(i), Instruction::RawLoop(inner)] => {
-				if inner.iter().any(Instruction::is_loop) {
+				if inner.iter().any(Instruction::has_side_effect) {
 					return None;
 				}
 				match inner.as_slice() {

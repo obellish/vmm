@@ -30,6 +30,14 @@ impl Instruction {
 		}
 	}
 
+	pub fn has_side_effect(&self) -> bool {
+		match self {
+			Self::Read | Self::Write => true,
+			Self::RawLoop(instrs) => instrs.iter().any(Self::has_side_effect),
+			_ => false,
+		}
+	}
+
 	#[must_use]
 	pub const fn is_inc_val(&self) -> bool {
 		matches!(self, Self::IncVal(i) if *i > 0)
