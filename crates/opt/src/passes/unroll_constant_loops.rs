@@ -14,10 +14,6 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				}
 				match inner.as_slice() {
 					[Instruction::IncVal(-1), rest @ ..] | [rest @ .., Instruction::IncVal(-1)] => {
-						// Some(Change::ReplaceOne(Instruction::ConstantLoop(
-						// 	*i,
-						// 	rest.to_owned(),
-						// )))
 						let mut output = Vec::with_capacity((*i as usize) * rest.len());
 
 						for _ in 0..*i {
