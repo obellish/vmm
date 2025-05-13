@@ -119,6 +119,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_pass::<FindZeroPass>(progress);
 		self.run_pass::<MoveValuePass>(progress);
 		self.run_pass::<UnrollConstantLoopsPass>(progress);
+		self.run_pass::<UnrollIncrementLoopsPass>(progress);
 	}
 
 	fn run_simple_passes(&mut self, progress: &mut bool) {

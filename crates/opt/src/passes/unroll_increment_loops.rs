@@ -1,24 +1,28 @@
 use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct UnrollConstantLoopsPass;
+pub struct UnrollIncrementLoopsPass;
 
-impl PeepholePass for UnrollConstantLoopsPass {
+impl PeepholePass for UnrollIncrementLoopsPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::SetVal(i), Instruction::RawLoop(inner)] => {
+			[Instruction::IncVal(i), Instruction::RawLoop(inner)] if *i > 0 => {
 				if inner.iter().any(Instruction::has_side_effect) {
 					return None;
 				}
+
 				match inner.as_slice() {
 					[Instruction::IncVal(-1), rest @ ..] | [rest @ .., Instruction::IncVal(-1)] => {
-						let mut output = Vec::with_capacity((*i as usize) * rest.len());
+						let mut output =
+							Vec::with_capacity((*i as u8 as usize) * rest.len() + inner.len());
 
-						for _ in 0..*i {
+						for _ in 0..(*i as u8) {
 							output.extend_from_slice(rest);
 						}
+
+						output.push(Instruction::RawLoop(inner.clone()));
 
 						Some(Change::Replace(output))
 					}
@@ -27,5 +31,9 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			}
 			_ => None,
 		}
+	}
+
+	fn should_run_on_loop(&self) -> bool {
+		false
 	}
 }
