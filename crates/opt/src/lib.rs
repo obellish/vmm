@@ -93,6 +93,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_pass::<RemoveRedundantMovesPass>(&mut progress);
 		self.run_pass::<RemoveRedundantWritesPass>(&mut progress);
 		self.run_pass::<RemoveEmptyLoopsPass>(&mut progress);
+		self.run_pass::<RemoveUnreachableLoopsPass>(&mut progress);
 
 		info!(
 			"Optimization iterator {iteration}: {starting_instruction_count} -> {}",

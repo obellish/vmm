@@ -22,7 +22,10 @@ impl PeepholePass for SetUntouchedCellsPass {
 				self.hit_pass = true;
 				None
 			}
-			[Instruction::IncVal(x)] => Some(Change::ReplaceOne(Instruction::SetVal(*x as u8))),
+			[Instruction::IncVal(x)] => {
+				self.hit_pass = true;
+				Some(Change::ReplaceOne(Instruction::SetVal(*x as u8)))
+			}
 			_ => None,
 		}
 	}

@@ -22,6 +22,9 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[Instruction::MovePtr(i1), Instruction::MovePtr(i2)] => Some(Change::ReplaceOne(
 				Instruction::MovePtr(i1.wrapping_add(*i2)),
 			)),
+			[Instruction::SetVal(_), Instruction::SetVal(x)] => {
+				Some(Change::ReplaceOne(Instruction::SetVal(*x)))
+			}
 			_ => None,
 		}
 	}
