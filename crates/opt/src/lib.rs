@@ -17,7 +17,7 @@ use vmm_ir::Instruction;
 use vmm_program::Program;
 
 #[allow(clippy::wildcard_imports)]
-use self::{analysis::StaticAnalyzer, passes::*};
+use self::passes::*;
 pub use self::{change::*, metadata::*, pass::*};
 
 pub struct Optimizer<S: MetadataStore = HashMetadataStore> {
@@ -78,14 +78,6 @@ impl<S: MetadataStore> Optimizer<S> {
 		let starting_instruction_count = self.program.rough_estimate();
 
 		let mut progress = false;
-
-		let latest_output = {
-			let analyzer = StaticAnalyzer::new(&self.program);
-
-			analyzer.analyze()
-		};
-
-		self.store.insert_cell_analysis(iteration, &latest_output)?;
 
 		self.store
 			.insert_program_snapshot(iteration, &self.program)?;
