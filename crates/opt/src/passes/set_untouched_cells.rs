@@ -36,8 +36,6 @@ impl Pass for SetUntouchedCellsPass {
 					break;
 				}
 				Instruction::IncVal(i) => {
-					// *instr = Instruction::SetVal(*i as u8);
-					// Change::ReplaceOne(Instruction::SetVal(*i as u8)).apply(program, idx, 1);
 					changes.push((Change::ReplaceOne(Instruction::SetVal(*i as u8)), idx, 1));
 				}
 				_ => {}
