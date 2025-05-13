@@ -83,6 +83,7 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_pass::<CollapseStackedInstrPass>(&mut progress);
 		self.run_pass::<ClearCellPass>(&mut progress);
+		self.run_pass::<ClearLoopPass>(&mut progress);
 		self.run_pass::<FindZeroPass>(&mut progress);
 		self.run_pass::<SetUntouchedCellsPass>(&mut progress);
 
