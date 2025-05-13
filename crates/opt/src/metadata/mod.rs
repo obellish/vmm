@@ -17,6 +17,7 @@ use vmm_ir::Instruction;
 pub use self::output::*;
 
 #[derive(Debug, Default, Clone)]
+#[repr(transparent)]
 pub struct HashMetadataStore {
 	inner: HashMap<(TypeId, usize), Value>,
 }
