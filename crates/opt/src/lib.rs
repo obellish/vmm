@@ -110,7 +110,6 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_pass::<RemoveRedundantWritesPass>(progress);
 		self.run_pass::<RemoveEmptyLoopsPass>(progress);
 		self.run_pass::<RemoveUnreachableLoopsPass>(progress);
-		self.run_pass::<RemoveUselessLoopsPass>(progress);
 		self.run_pass::<CleanUpStartPass>(progress);
 	}
 
