@@ -15,7 +15,6 @@ use vmm_ir::Instruction;
 
 #[cfg(feature = "output")]
 pub use self::output::*;
-use super::analysis::AnalysisOutput;
 
 #[derive(Debug, Default, Clone)]
 pub struct HashMetadataStore {
@@ -135,22 +134,6 @@ pub trait MetadataStore {
 	fn insert<S>(&mut self, iteration: usize, value: &S) -> Result<(), MetadataStoreError>
 	where
 		S: Serialize + 'static;
-
-	fn insert_cell_analysis(
-		&mut self,
-		iteration: usize,
-		value: &AnalysisOutput,
-	) -> Result<(), MetadataStoreError> {
-		self.insert(iteration, value)?;
-		Ok(())
-	}
-
-	fn get_cell_analysis(
-		&self,
-		iteration: usize,
-	) -> Result<Option<AnalysisOutput>, MetadataStoreError> {
-		self.get(iteration)
-	}
 
 	fn insert_program_snapshot(
 		&mut self,

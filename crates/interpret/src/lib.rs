@@ -171,7 +171,10 @@ where
 					}
 				}
 			}
-			Instruction::MoveVal { offset, multiplier } => {
+			Instruction::MoveVal {
+				offset,
+				factor: multiplier,
+			} => {
 				let (src_offset, dst_offset) = {
 					let src_offset = self.ptr();
 					(src_offset.value(), (*src_offset + *offset).value())

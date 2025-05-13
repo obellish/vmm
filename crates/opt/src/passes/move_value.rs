@@ -27,7 +27,7 @@ impl LoopPass for MoveValuePass {
 
 				Some(Change::ReplaceOne(Instruction::MoveVal {
 					offset: x,
-					multiplier: j as u8,
+					factor: j as u8,
 				}))
 			}
 			_ => None,

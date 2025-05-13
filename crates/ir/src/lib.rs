@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 pub enum Instruction {
 	IncVal(i8),
 	SetVal(u8),
-	MoveVal { offset: isize, multiplier: u8 },
+	MoveVal { offset: isize, factor: u8 },
 	MovePtr(isize),
 	FindZero(isize),
 	Read,
@@ -122,7 +122,10 @@ impl Display for Instruction {
 				display_loop(instrs, f)?;
 				f.write_char(']')?;
 			}
-			Self::MoveVal { offset, multiplier } => {
+			Self::MoveVal {
+				offset,
+				factor: multiplier,
+			} => {
 				let (first_move, second_move) = if *offset < 0 { ('<', '>') } else { ('>', '<') };
 
 				f.write_char('[')?;

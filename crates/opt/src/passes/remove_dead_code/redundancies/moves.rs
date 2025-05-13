@@ -12,7 +12,10 @@ impl PeepholePass for RemoveRedundantMovesPass {
 		match window {
 			[
 				Instruction::SetVal(x),
-				Instruction::MoveVal { offset, multiplier },
+				Instruction::MoveVal {
+					offset,
+					factor: multiplier,
+				},
 			] => Some(Change::Replace(vec![
 				Instruction::SetVal(0),
 				Instruction::MovePtr(*offset),
