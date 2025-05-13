@@ -81,20 +81,11 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.store
 			.insert_program_snapshot(iteration, &self.program)?;
 
-		self.run_pass::<CollapseStackedInstrPass>(&mut progress);
-		self.run_pass::<ClearCellPass>(&mut progress);
-		self.run_pass::<ClearLoopPass>(&mut progress);
-		self.run_pass::<FindZeroPass>(&mut progress);
-		self.run_pass::<SetUntouchedCellsPass>(&mut progress);
+		self.run_simple_passes(&mut progress);
 
-		self.run_pass::<MoveValuePass>(&mut progress);
-		self.run_pass::<UnrollConstantLoopsPass>(&mut progress);
+		self.run_loop_passes(&mut progress);
 
-		self.run_pass::<RemoveRedundantMovesPass>(&mut progress);
-		self.run_pass::<RemoveRedundantWritesPass>(&mut progress);
-		self.run_pass::<RemoveEmptyLoopsPass>(&mut progress);
-		self.run_pass::<RemoveUnreachableLoopsPass>(&mut progress);
-		self.run_pass::<RemoveUselessLoopsPass>(&mut progress);
+		self.run_dead_code_cleanup_passes(&mut progress);
 
 		info!(
 			"Optimization iterator {iteration}: {starting_instruction_count} -> {}",
@@ -112,6 +103,28 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		debug!("running pass {pass:?}");
 		run_pass(&mut pass, self.program.as_raw(), progress);
+	}
+
+	fn run_dead_code_cleanup_passes(&mut self, progress: &mut bool) {
+		self.run_pass::<RemoveRedundantMovesPass>(progress);
+		self.run_pass::<RemoveRedundantWritesPass>(progress);
+		self.run_pass::<RemoveEmptyLoopsPass>(progress);
+		self.run_pass::<RemoveUnreachableLoopsPass>(progress);
+		self.run_pass::<RemoveUselessLoopsPass>(progress);
+		self.run_pass::<CleanUpStartPass>(progress);
+	}
+
+	fn run_loop_passes(&mut self, progress: &mut bool) {
+		self.run_pass::<ClearCellPass>(progress);
+		self.run_pass::<ClearLoopPass>(progress);
+		self.run_pass::<FindZeroPass>(progress);
+		self.run_pass::<MoveValuePass>(progress);
+		self.run_pass::<UnrollConstantLoopsPass>(progress);
+	}
+
+	fn run_simple_passes(&mut self, progress: &mut bool) {
+		self.run_pass::<CollapseStackedInstrPass>(progress);
+		self.run_pass::<SetUntouchedCellsPass>(progress);
 	}
 }
 
