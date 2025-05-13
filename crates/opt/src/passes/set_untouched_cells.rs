@@ -1,53 +1,30 @@
-use crate::{Change, Instruction, Pass};
+use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Default)]
 pub struct SetUntouchedCellsPass {
 	hit_pass: bool,
 }
 
-impl Pass for SetUntouchedCellsPass {
-	fn run_pass(&mut self, program: &mut Vec<Instruction>) -> bool {
-		// if let Some(Instruction::IncVal(i)) = program.first() {
-		// 	Change::ReplaceOne(Instruction::SetVal(*i as u8)).apply(program, 0, 1);
+impl PeepholePass for SetUntouchedCellsPass {
+	const SIZE: usize = 1;
 
-		// 	true
-		// } else {
-		// 	false
-		// }
-
-		let mut progress = false;
-
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		if self.hit_pass {
-			return progress;
+			return None;
 		}
 
-		let mut changes = Vec::new();
-
-		for (idx, instr) in program.iter_mut().enumerate() {
-			match instr {
-				Instruction::FindZero(_)
-				| Instruction::MoveVal { .. }
-				| Instruction::RawLoop(_) => {
-					self.hit_pass = true;
-					break;
-				}
-				Instruction::MovePtr(i) if *i < 0 => {
-					self.hit_pass = true;
-					break;
-				}
-				Instruction::IncVal(i) => {
-					changes.push((Change::ReplaceOne(Instruction::SetVal(*i as u8)), idx, 1));
-				}
-				_ => {}
+		match window {
+			[Instruction::FindZero(_) | Instruction::MoveVal { .. } | Instruction::RawLoop(_)] => {
+				self.hit_pass = true;
+				None
 			}
+			[Instruction::MovePtr(x)] if *x < 0 => {
+				self.hit_pass = true;
+				None
+			}
+			[Instruction::IncVal(x)] => Some(Change::ReplaceOne(Instruction::SetVal(*x as u8))),
+			_ => None,
 		}
-
-		for (change, idx, size) in changes {
-			change.apply(program, idx, size);
-			progress = true;
-		}
-
-		progress
 	}
 
 	fn should_run_on_loop(&self) -> bool {
