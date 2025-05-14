@@ -1,4 +1,6 @@
-use crate::{Change, Instruction, LoopPass};
+use vmm_ir::Instruction;
+
+use crate::{Change, LoopPass};
 
 #[derive(Debug, Default)]
 pub struct ClearCellPass;
