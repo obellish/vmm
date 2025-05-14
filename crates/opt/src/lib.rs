@@ -81,11 +81,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.store
 			.insert_program_snapshot(iteration, &self.program)?;
 
-		self.run_simple_passes(&mut progress);
-
-		self.run_loop_passes(&mut progress);
-
-		self.run_dead_code_cleanup_passes(&mut progress);
+		self.run_all_passes(&mut progress);
 
 		info!(
 			"Optimization iterator {iteration}: {starting_instruction_count} -> {}",
@@ -105,26 +101,22 @@ impl<S: MetadataStore> Optimizer<S> {
 		run_pass(&mut pass, self.program.as_raw(), progress);
 	}
 
-	fn run_dead_code_cleanup_passes(&mut self, progress: &mut bool) {
-		self.run_pass::<RemoveRedundantMovesPass>(progress);
-		self.run_pass::<RemoveRedundantWritesPass>(progress);
-		self.run_pass::<RemoveEmptyLoopsPass>(progress);
-		self.run_pass::<RemoveUnreachableLoopsPass>(progress);
-		self.run_pass::<CleanUpStartPass>(progress);
-	}
+	fn run_all_passes(&mut self, progress: &mut bool) {
+		self.run_pass::<CollapseStackedInstrPass>(progress);
+		self.run_pass::<SetUntouchedCellsPass>(progress);
 
-	fn run_loop_passes(&mut self, progress: &mut bool) {
 		self.run_pass::<ClearCellPass>(progress);
 		self.run_pass::<ClearLoopPass>(progress);
 		self.run_pass::<FindZeroPass>(progress);
 		self.run_pass::<MoveValuePass>(progress);
 		self.run_pass::<UnrollConstantLoopsPass>(progress);
 		self.run_pass::<UnrollIncrementLoopsPass>(progress);
-	}
 
-	fn run_simple_passes(&mut self, progress: &mut bool) {
-		self.run_pass::<CollapseStackedInstrPass>(progress);
-		self.run_pass::<SetUntouchedCellsPass>(progress);
+		self.run_pass::<RemoveRedundantMovesPass>(progress);
+		self.run_pass::<RemoveRedundantWritesPass>(progress);
+		self.run_pass::<RemoveEmptyLoopsPass>(progress);
+		self.run_pass::<RemoveUnreachableLoopsPass>(progress);
+		self.run_pass::<CleanUpStartPass>(progress);
 	}
 }
 
