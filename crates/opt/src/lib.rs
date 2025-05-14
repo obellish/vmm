@@ -84,7 +84,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_all_passes(&mut progress);
 
 		info!(
-			"Optimization iterator {iteration}: {starting_instruction_count} -> {}",
+			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
 			self.program.rough_estimate()
 		);
 
@@ -109,14 +109,15 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_pass::<ClearLoopPass>(progress);
 		self.run_pass::<FindZeroPass>(progress);
 		self.run_pass::<MoveValuePass>(progress);
-		self.run_pass::<UnrollConstantLoopsPass>(progress);
-		self.run_pass::<UnrollIncrementLoopsPass>(progress);
 
 		self.run_pass::<RemoveRedundantMovesPass>(progress);
 		self.run_pass::<RemoveRedundantWritesPass>(progress);
 		self.run_pass::<RemoveEmptyLoopsPass>(progress);
 		self.run_pass::<RemoveUnreachableLoopsPass>(progress);
 		self.run_pass::<CleanUpStartPass>(progress);
+
+		self.run_pass::<UnrollConstantLoopsPass>(progress);
+		self.run_pass::<UnrollIncrementLoopsPass>(progress);
 	}
 }
 
