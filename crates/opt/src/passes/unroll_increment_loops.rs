@@ -43,8 +43,8 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 				raw_loop @ Instruction::RawLoop(inner),
 			]
 			if *i > 0
-			&& !raw_loop.might_move_ptr()
-			&& !inner.iter().any(Instruction::is_loop)
+				&& !raw_loop.might_move_ptr()
+				&& !inner.iter().any(Instruction::is_loop)
 		)
 	}
 }
