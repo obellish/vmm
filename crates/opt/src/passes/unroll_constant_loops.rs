@@ -28,4 +28,8 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(window, [Instruction::SetVal(_), Instruction::RawLoop(_)])
+	}
 }

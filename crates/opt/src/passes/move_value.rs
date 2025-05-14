@@ -35,6 +35,20 @@ impl LoopPass for MoveValuePass {
 	}
 
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
-		matches!(loop_values, [Instruction::IncVal(-1), Instruction::MovePtr(x), Instruction::IncVal(_), Instruction::MovePtr(y)] | [Instruction::IncVal(_), Instruction::MovePtr(x), Instruction::IncVal(-1), Instruction::MovePtr(y)] if *x == -y)
+		matches!(
+			loop_values,
+			[
+				Instruction::IncVal(-1),
+				Instruction::MovePtr(x),
+				Instruction::IncVal(_),
+				Instruction::MovePtr(y)
+			] | [
+				Instruction::IncVal(_),
+				Instruction::MovePtr(x),
+				Instruction::IncVal(-1),
+				Instruction::MovePtr(y)
+			]
+			if *x == -y
+		)
 	}
 }

@@ -34,4 +34,17 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(
+			window,
+			[
+				Instruction::IncVal(i),
+				raw_loop @ Instruction::RawLoop(inner),
+			]
+			if *i > 0
+			&& !raw_loop.might_move_ptr()
+			&& !inner.iter().any(Instruction::is_loop)
+		)
+	}
 }
