@@ -9,7 +9,10 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::IncVal(i), Instruction::RawLoop(inner)] if *i > 0 => {
-				if inner.iter().any(|i| i.has_side_effect() || i.is_loop()) {
+				if inner
+					.iter()
+					.any(Instruction::might_move_ptr)
+				{
 					return None;
 				}
 

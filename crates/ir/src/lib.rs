@@ -93,7 +93,9 @@ impl Instruction {
 	#[must_use]
 	pub fn offset(&self) -> Option<isize> {
 		match self {
-			Self::MoveVal { .. } | Self::IncVal(_) | Self::Read | Self::Write => Some(0),
+			Self::MoveVal { .. } | Self::IncVal(_) | Self::SetVal(_) | Self::Read | Self::Write => {
+				Some(0)
+			}
 			Self::MovePtr(i) => Some(*i),
 			Self::RawLoop(instrs) => {
 				let mut sum = 0;
@@ -106,6 +108,11 @@ impl Instruction {
 			}
 			_ => None,
 		}
+	}
+
+	#[must_use]
+	pub fn might_move_ptr(&self) -> bool {
+		self.offset().is_none_or(|offset| !matches!(offset, 0))
 	}
 }
 
