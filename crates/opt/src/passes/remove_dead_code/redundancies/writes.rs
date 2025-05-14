@@ -22,4 +22,12 @@ impl PeepholePass for RemoveRedundantWritesPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(
+			window,
+			[Instruction::IncVal(_), Instruction::SetVal(_)]
+				| [Instruction::SetVal(_), Instruction::IncVal(_)]
+		)
+	}
 }

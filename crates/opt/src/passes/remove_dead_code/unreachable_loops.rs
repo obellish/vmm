@@ -14,4 +14,8 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(window, [Instruction::SetVal(0), Instruction::RawLoop(..)])
+	}
 }

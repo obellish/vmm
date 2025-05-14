@@ -10,4 +10,8 @@ impl LoopPass for FindZeroPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, loop_values: &[Instruction]) -> bool {
+		matches!(loop_values, [Instruction::MovePtr(_)])
+	}
 }

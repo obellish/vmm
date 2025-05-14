@@ -26,4 +26,21 @@ impl LoopPass for ClearLoopPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, loop_values: &[Instruction]) -> bool {
+		matches!(
+			loop_values,
+			[
+				Instruction::MovePtr(_),
+				Instruction::SetVal(0),
+				Instruction::MovePtr(_),
+				Instruction::IncVal(-1)
+			] | [
+				Instruction::MovePtr(_),
+				Instruction::IncVal(-1),
+				Instruction::MovePtr(_),
+				Instruction::SetVal(0)
+			]
+		)
+	}
 }

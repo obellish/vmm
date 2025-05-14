@@ -10,4 +10,8 @@ impl LoopPass for ClearCellPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, loop_values: &[Instruction]) -> bool {
+		matches!(loop_values, [Instruction::IncVal(-1 | 1)])
+	}
 }

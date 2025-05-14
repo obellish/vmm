@@ -25,4 +25,11 @@ impl PeepholePass for RemoveRedundantMovesPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(
+			window,
+			[Instruction::SetVal(_), Instruction::MoveVal { .. }]
+		)
+	}
 }

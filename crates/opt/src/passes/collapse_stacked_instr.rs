@@ -28,4 +28,13 @@ impl PeepholePass for CollapseStackedInstrPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(
+			window,
+			[Instruction::IncVal(_), Instruction::IncVal(_)]
+				| [Instruction::MovePtr(_), Instruction::MovePtr(_)]
+				| [Instruction::SetVal(_), Instruction::SetVal(_)]
+		)
+	}
 }

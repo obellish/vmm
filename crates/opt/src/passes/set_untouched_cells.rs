@@ -30,6 +30,18 @@ impl PeepholePass for SetUntouchedCellsPass {
 		}
 	}
 
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		!self.hit_pass
+			&& matches!(
+				window,
+				[Instruction::FindZero(_)
+					| Instruction::MoveVal { .. }
+					| Instruction::RawLoop(_)
+					| Instruction::MovePtr(isize::MIN..=0)
+					| Instruction::IncVal(_)]
+			)
+	}
+
 	fn should_run_on_loop(&self) -> bool {
 		false
 	}

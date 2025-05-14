@@ -25,6 +25,11 @@ where
 
 			assert_eq!(window.len(), P::SIZE);
 
+			if !P::should_run(self, window) {
+				i += 1;
+				continue;
+			}
+
 			let change = P::run_pass(self, window);
 
 			let (changed, removed) = change
@@ -53,6 +58,10 @@ pub trait PeepholePass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
 
+	fn should_run(&self, _window: &[Instruction]) -> bool {
+		true
+	}
+
 	fn should_run_on_loop(&self) -> bool {
 		true
 	}
@@ -72,6 +81,14 @@ where
 		}
 	}
 
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		let [Instruction::RawLoop(instrs)] = window else {
+			return false;
+		};
+
+		<P as LoopPass>::should_run(self, instrs)
+	}
+
 	fn should_run_on_loop(&self) -> bool {
 		true
 	}
@@ -79,4 +96,8 @@ where
 
 pub trait LoopPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change>;
+
+	fn should_run(&self, _loop_values: &[Instruction]) -> bool {
+		true
+	}
 }
