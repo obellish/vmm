@@ -14,7 +14,7 @@ pub enum Instruction {
 	IncVal(i8),
 	SetVal(u8),
 	MoveVal { offset: isize, factor: u8 },
-	MovePtr(isize),
+	MovePtr(MoveBy),
 	FindZero(isize),
 	Read,
 	Write,
@@ -96,7 +96,7 @@ impl Instruction {
 			Self::MoveVal { .. } | Self::IncVal(_) | Self::SetVal(_) | Self::Read | Self::Write => {
 				Some(0)
 			}
-			Self::MovePtr(i) => Some(*i),
+			Self::MovePtr(MoveBy::Relative(i)) => Some(*i),
 			Self::RawLoop(instrs) => {
 				let mut sum = 0;
 
@@ -117,7 +117,7 @@ impl Instruction {
 }
 
 impl Display for Instruction {
-	#[expect(unreachable_patterns)] // For when we add more instructions.
+	#[allow(unreachable_patterns)] // For when we add more instructions.
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
 			Self::IncVal(i) => {
@@ -126,7 +126,7 @@ impl Display for Instruction {
 					f.write_char(c)?;
 				}
 			}
-			Self::MovePtr(i) => {
+			Self::MovePtr(MoveBy::Relative(i)) => {
 				let c = if *i < 0 { '<' } else { '>' };
 				for _ in 0..i.unsigned_abs() {
 					f.write_char(c)?;
@@ -192,4 +192,22 @@ fn display_loop(i: &[Instruction], f: &mut Formatter<'_>) -> FmtResult {
 	}
 
 	Ok(())
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MoveBy {
+	Relative(isize),
+	Absolute(usize),
+}
+
+impl From<isize> for MoveBy {
+	fn from(value: isize) -> Self {
+		Self::Relative(value)
+	}
+}
+
+impl From<usize> for MoveBy {
+	fn from(value: usize) -> Self {
+		Self::Absolute(value)
+	}
 }

@@ -10,7 +10,7 @@ use std::{
 	num::Wrapping,
 };
 
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, MoveBy};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 
@@ -149,7 +149,7 @@ where
 		match instr {
 			Instruction::IncVal(i) => *self.cell_mut() += *i as u8,
 			Instruction::SetVal(i) => self.cell_mut().0 = *i,
-			Instruction::MovePtr(i) => *self.ptr_mut() += *i,
+			Instruction::MovePtr(MoveBy::Relative(i)) => *self.ptr_mut() += *i,
 			Instruction::Write => self.write_char()?,
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => {

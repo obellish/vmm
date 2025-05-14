@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, MoveBy};
 
 use crate::{Change, PeepholePass};
 
@@ -16,12 +16,16 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[Instruction::IncVal(i1), Instruction::IncVal(i2)] => Some(Change::ReplaceOne(
 				Instruction::IncVal(i1.wrapping_add(*i2)),
 			)),
-			[Instruction::MovePtr(i1), Instruction::MovePtr(i2)] if *i1 == -i2 => {
-				Some(Change::Remove)
-			}
-			[Instruction::MovePtr(i1), Instruction::MovePtr(i2)] => Some(Change::ReplaceOne(
-				Instruction::MovePtr(i1.wrapping_add(*i2)),
-			)),
+			[
+				Instruction::MovePtr(MoveBy::Relative(i1)),
+				Instruction::MovePtr(MoveBy::Relative(i2)),
+			] if *i1 == -i2 => Some(Change::Remove),
+			[
+				Instruction::MovePtr(MoveBy::Relative(i1)),
+				Instruction::MovePtr(MoveBy::Relative(i2)),
+			] => Some(Change::ReplaceOne(Instruction::MovePtr(
+				i1.wrapping_add(*i2).into(),
+			))),
 			[Instruction::SetVal(_), Instruction::SetVal(x)] => {
 				Some(Change::ReplaceOne(Instruction::SetVal(*x)))
 			}
@@ -33,8 +37,10 @@ impl PeepholePass for CollapseStackedInstrPass {
 		matches!(
 			window,
 			[Instruction::IncVal(_), Instruction::IncVal(_)]
-				| [Instruction::MovePtr(_), Instruction::MovePtr(_)]
-				| [Instruction::SetVal(_), Instruction::SetVal(_)]
+				| [
+					Instruction::MovePtr(MoveBy::Relative(_)),
+					Instruction::MovePtr(MoveBy::Relative(_))
+				] | [Instruction::SetVal(_), Instruction::SetVal(_)]
 		)
 	}
 }

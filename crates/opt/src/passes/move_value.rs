@@ -1,3 +1,5 @@
+use vmm_ir::MoveBy;
+
 use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Default)]
@@ -8,15 +10,15 @@ impl LoopPass for MoveValuePass {
 		match loop_values {
 			[
 				Instruction::IncVal(-1),
-				Instruction::MovePtr(x),
+				Instruction::MovePtr(MoveBy::Relative(x)),
 				Instruction::IncVal(j),
-				Instruction::MovePtr(y),
+				Instruction::MovePtr(MoveBy::Relative(y)),
 			]
 			| [
 				Instruction::IncVal(j),
-				Instruction::MovePtr(y),
+				Instruction::MovePtr(MoveBy::Relative(y)),
 				Instruction::IncVal(-1),
-				Instruction::MovePtr(x),
+				Instruction::MovePtr(MoveBy::Relative(x)),
 			] if *x == -y => {
 				let j = *j;
 				let x = *x;
@@ -39,14 +41,14 @@ impl LoopPass for MoveValuePass {
 			loop_values,
 			[
 				Instruction::IncVal(-1),
-				Instruction::MovePtr(x),
+				Instruction::MovePtr(MoveBy::Relative(x)),
 				Instruction::IncVal(_),
-				Instruction::MovePtr(y)
+				Instruction::MovePtr(MoveBy::Relative(y))
 			] | [
 				Instruction::IncVal(_),
-				Instruction::MovePtr(x),
+				Instruction::MovePtr(MoveBy::Relative(x)),
 				Instruction::IncVal(-1),
-				Instruction::MovePtr(y)
+				Instruction::MovePtr(MoveBy::Relative(y))
 			]
 			if *x == -y
 		)

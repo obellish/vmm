@@ -11,7 +11,7 @@ fn inc_val() {
 
 #[test]
 fn move_ptr() {
-	verify(MovePtr(3), ">>>");
+	verify(MovePtr(3isize.into()), ">>>");
 }
 
 #[test]
@@ -39,7 +39,12 @@ fn read() {
 #[test]
 fn raw_loop() {
 	verify(
-		RawLoop(vec![IncVal(-1), MovePtr(1), IncVal(1), MovePtr(-1)]),
+		RawLoop(vec![
+			IncVal(-1),
+			MovePtr(1isize.into()),
+			IncVal(1),
+			MovePtr((-1isize).into()),
+		]),
 		"[->+<]",
 	);
 }

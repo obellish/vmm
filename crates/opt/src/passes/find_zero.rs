@@ -1,3 +1,5 @@
+use vmm_ir::MoveBy;
+
 use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Default)]
@@ -6,12 +8,14 @@ pub struct FindZeroPass;
 impl LoopPass for FindZeroPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
-			[Instruction::MovePtr(x)] => Some(Change::ReplaceOne(Instruction::FindZero(*x))),
+			[Instruction::MovePtr(MoveBy::Relative(x))] => {
+				Some(Change::ReplaceOne(Instruction::FindZero(*x)))
+			}
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
-		matches!(loop_values, [Instruction::MovePtr(_)])
+		matches!(loop_values, [Instruction::MovePtr(MoveBy::Relative(_))])
 	}
 }

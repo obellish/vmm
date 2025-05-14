@@ -1,3 +1,5 @@
+use vmm_ir::MoveBy;
+
 use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Default)]
@@ -18,7 +20,7 @@ impl PeepholePass for SetUntouchedCellsPass {
 				self.hit_pass = true;
 				None
 			}
-			[Instruction::MovePtr(x)] if *x < 0 => {
+			[Instruction::MovePtr(MoveBy::Relative(x))] if *x < 0 => {
 				self.hit_pass = true;
 				None
 			}
@@ -37,7 +39,7 @@ impl PeepholePass for SetUntouchedCellsPass {
 				[Instruction::FindZero(_)
 					| Instruction::MoveVal { .. }
 					| Instruction::RawLoop(_)
-					| Instruction::MovePtr(isize::MIN..=0)
+					| Instruction::MovePtr(MoveBy::Relative(isize::MIN..=0))
 					| Instruction::IncVal(_)]
 			)
 	}
