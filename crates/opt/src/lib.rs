@@ -129,7 +129,7 @@ pub enum OptimizerError {
 impl Display for OptimizerError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::MetadataStore(e) => Display::fmt(&e, f)?,
+			Self::MetadataStore(_) => f.write_str("issue storing metadata")?,
 		}
 
 		Ok(())
