@@ -89,6 +89,24 @@ impl Instruction {
 			_ => 1,
 		}
 	}
+
+	#[must_use]
+	pub fn offset(&self) -> Option<isize> {
+		match self {
+			Self::MoveVal { .. } | Self::IncVal(_) | Self::Read | Self::Write => Some(0),
+			Self::MovePtr(i) => Some(*i),
+			Self::RawLoop(instrs) => {
+				let mut sum = 0;
+
+				for instr in instrs {
+					sum += instr.offset()?;
+				}
+
+				Some(sum)
+			}
+			_ => None,
+		}
+	}
 }
 
 impl Display for Instruction {
