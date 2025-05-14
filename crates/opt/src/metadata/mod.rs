@@ -9,6 +9,7 @@ use std::{
 	io::Error as IoError,
 };
 
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_value::Value;
 use vmm_ir::Instruction;
@@ -157,7 +158,7 @@ pub trait MetadataStore {
 			return Ok(None);
 		};
 
-		Ok(Some(program.0.into_iter().collect()))
+		Ok(Some(program.0.into_par_iter().collect()))
 	}
 }
 

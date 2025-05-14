@@ -4,8 +4,8 @@ use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
 pub struct InspectInstrPass {
-    moves: usize,
-    stays: usize,
+	moves: usize,
+	stays: usize,
 }
 
 impl PeepholePass for InspectInstrPass {
@@ -13,18 +13,18 @@ impl PeepholePass for InspectInstrPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-            [lop @ Instruction::RawLoop(_)] => {
-                // println!("{}", lop.might_move_ptr());
+			[lop @ Instruction::RawLoop(_)] => {
+				// println!("{}", lop.might_move_ptr());
 
-                // None
-                if lop.might_move_ptr() {
-                    self.moves += 1;
-                } else {
-                    self.stays += 1;
-                }
+				// None
+				if lop.might_move_ptr() {
+					self.moves += 1;
+				} else {
+					self.stays += 1;
+				}
 
-                None
-            }
+				None
+			}
 			_ => None,
 		}
 	}
@@ -35,8 +35,8 @@ impl PeepholePass for InspectInstrPass {
 }
 
 impl Drop for InspectInstrPass {
-    fn drop(&mut self) {
-        println!("loops that move ptr - {}", self.moves);
-        println!("loops that don't move ptr - {}", self.stays);
-    }
+	fn drop(&mut self) {
+		println!("loops that move ptr - {}", self.moves);
+		println!("loops that don't move ptr - {}", self.stays);
+	}
 }
