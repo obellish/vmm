@@ -11,7 +11,7 @@ use std::{
 	mem,
 };
 
-use tracing::{debug, info, warn};
+use tracing::{Level, debug, info, warn};
 use vmm_ir::Instruction;
 use vmm_program::Program;
 
@@ -74,7 +74,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		))
 	}
 
-	#[tracing::instrument("run pass", skip(self))]
+	#[tracing::instrument("run pass", skip(self), level = Level::DEBUG)]
 	fn optimization_pass(&mut self, iteration: usize) -> Result<bool, OptimizerError> {
 		let starting_instruction_count = self.program.rough_estimate();
 

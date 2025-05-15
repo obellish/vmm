@@ -1,4 +1,4 @@
-use tracing::trace;
+use tracing::{Level, trace};
 use vmm_ir::Instruction;
 use vmm_utils::InsertOrPush as _;
 
@@ -10,7 +10,7 @@ pub enum Change {
 }
 
 impl Change {
-	#[tracing::instrument(skip(self, ops, size))]
+	#[tracing::instrument(skip(self, ops, size), level = Level::TRACE)]
 	pub fn apply(self, ops: &mut Vec<Instruction>, i: usize, size: usize) -> (bool, usize) {
 		match self {
 			Self::Remove => {

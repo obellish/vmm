@@ -12,7 +12,7 @@ use core::{
 };
 
 use logos::{Lexer, Logos};
-use tracing::info;
+use tracing::{Level, info};
 use vmm_ir::Instruction;
 
 pub use self::opcode::*;
@@ -30,7 +30,7 @@ impl<'source> Parser<'source> {
 		}
 	}
 
-	#[tracing::instrument(skip(self))]
+	#[tracing::instrument(level = Level::DEBUG, skip(self))]
 	pub fn scan(self) -> Result<impl Iterator<Item = Instruction>, ParseError> {
 		info!("scanning {} chars", self.inner.source().len());
 		parse(self.inner.filter_map(Result::ok)).map(IntoIterator::into_iter)
