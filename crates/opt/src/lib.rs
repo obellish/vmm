@@ -89,11 +89,6 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_all_passes(&mut progress);
 
-		// info!(
-		// 	"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
-		// 	self.program.rough_estimate()
-		// );
-
 		info!(
 			"{starting_instruction_count} -> {}",
 			self.program.rough_estimate()
