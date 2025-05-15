@@ -10,6 +10,7 @@ pub enum Change {
 }
 
 impl Change {
+	#[tracing::instrument(skip(self, ops, size))]
 	pub fn apply(self, ops: &mut Vec<Instruction>, i: usize, size: usize) -> (bool, usize) {
 		match self {
 			Self::Remove => {

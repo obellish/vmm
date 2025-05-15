@@ -88,10 +88,7 @@ fn install_tracing() {
 		.open("./out/output.json")
 		.expect("failed to open file");
 
-	let file_layer = fmt::layer()
-		.with_span_events(FmtSpan::CLOSE)
-		.with_ansi(false)
-		.with_writer(log_file);
+	let file_layer = fmt::layer().with_ansi(false).with_writer(log_file);
 
 	let filter_layer = EnvFilter::new("info");
 	let fmt_layer = fmt::layer().with_target(false).with_filter(filter_layer);
