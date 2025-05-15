@@ -11,7 +11,7 @@ use std::{
 	mem,
 };
 
-use tracing::{debug, info, warn};
+use tracing::{debug, info, info_span, warn};
 use vmm_ir::Instruction;
 use vmm_program::Program;
 
@@ -30,6 +30,8 @@ impl<S: MetadataStore> Optimizer<S> {
 	}
 
 	pub fn optimize(&mut self) -> Result<Program, OptimizerError> {
+		let span = info_span!("Program optimization").entered();
+
 		if self.program.is_finalized() {
 			return Ok(Program::Finalized(
 				mem::take(&mut self.program)
@@ -42,11 +44,13 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		let mut counter = 1;
 
-		let mut progress = self.optimize_inner(counter)?;
+		let mut progress = info_span!("pass run", iteration = counter)
+			.in_scope(|| self.optimize_inner(counter))?;
 
 		while progress {
 			counter += 1;
-			progress = self.optimize_inner(counter)?;
+			progress = info_span!("pass run", iteration = counter)
+				.in_scope(|| self.optimize_inner(counter))?;
 		}
 
 		if !matches!(counter, 1) {
@@ -63,6 +67,8 @@ impl<S: MetadataStore> Optimizer<S> {
 				}
 			}
 		}
+
+		span.exit();
 
 		Ok(Program::Finalized(
 			mem::take(&mut self.program)
@@ -83,8 +89,13 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_all_passes(&mut progress);
 
+		// info!(
+		// 	"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
+		// 	self.program.rough_estimate()
+		// );
+
 		info!(
-			"Optimization iteration {iteration}: {starting_instruction_count} -> {}",
+			"{starting_instruction_count} -> {}",
 			self.program.rough_estimate()
 		);
 
