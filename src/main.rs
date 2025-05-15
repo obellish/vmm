@@ -11,7 +11,6 @@ use tracing_subscriber::{
 use vmm_interpret::{Interpreter, Profiler};
 use vmm_opt::{HashMetadataStore, Optimizer, OutputMetadataStore};
 use vmm_parse::Parser as BfParser;
-// use vmm::{MapStore, Optimizer, Profiler, Program, RonWrapperStore, Scanner, Vm};
 use vmm_program::Program;
 
 fn main() -> Result<()> {
@@ -100,7 +99,7 @@ fn install_tracing() {
 	let json_file_layer = fmt::layer()
 		.with_ansi(false)
 		.json()
-		.flatten_event(false)
+		.flatten_event(true)
 		.with_span_events(FmtSpan::FULL)
 		.with_writer(json_log_file);
 
