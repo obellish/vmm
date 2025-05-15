@@ -15,7 +15,7 @@ impl Change {
 			Self::Remove => {
 				let removed = ops.drain(i..(i + size)).collect::<Vec<_>>();
 
-				trace!("removed instructions {removed:?}");
+				trace!("removing instructions {removed:?}");
 
 				(true, 0)
 			}
