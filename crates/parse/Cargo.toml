@@ -12,6 +12,7 @@ logos = { version = "0.15.0", default-features = false, features = [
     "export_derive",
     "logos-derive"
 ] }
+tracing.workspace = true
 vmm_ir.workspace = true
 
 [features]

@@ -796,6 +796,7 @@ name = "vmm_parse"
 version = "0.1.0"
 dependencies = [
  "logos",
+ "tracing",
  "vmm_ir",
 ]
 

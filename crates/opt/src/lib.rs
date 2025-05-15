@@ -29,7 +29,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		Self { program, store }
 	}
 
-	#[tracing::instrument(skip(self))]
+	#[tracing::instrument("optimize program", skip(self))]
 	pub fn optimize(&mut self) -> Result<Program, OptimizerError> {
 		if self.program.is_finalized() {
 			return Ok(Program::Finalized(
@@ -74,7 +74,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		))
 	}
 
-	#[tracing::instrument(skip(self))]
+	#[tracing::instrument("run pass", skip(self))]
 	fn optimization_pass(&mut self, iteration: usize) -> Result<bool, OptimizerError> {
 		let starting_instruction_count = self.program.rough_estimate();
 

@@ -8,10 +8,11 @@ mod opcode;
 use alloc::vec::Vec;
 use core::{
 	error::Error as StdError,
-	fmt::{Display, Formatter, Result as FmtResult},
+	fmt::{Debug, Display, Formatter, Result as FmtResult},
 };
 
 use logos::{Lexer, Logos};
+use tracing::info;
 use vmm_ir::Instruction;
 
 pub use self::opcode::*;
@@ -29,7 +30,9 @@ impl<'source> Parser<'source> {
 		}
 	}
 
+	#[tracing::instrument(skip(self))]
 	pub fn scan(self) -> Result<impl Iterator<Item = Instruction>, ParseError> {
+		info!("scanning {} chars", self.inner.source().len());
 		parse(self.inner.filter_map(Result::ok)).map(IntoIterator::into_iter)
 	}
 }
