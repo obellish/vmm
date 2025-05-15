@@ -42,21 +42,21 @@ impl<S: MetadataStore> Optimizer<S> {
 			));
 		}
 
-		let mut counter = 1;
+		let mut iteration = 1;
 
-		let mut progress = info_span!("pass run", iteration = counter)
-			.in_scope(|| self.optimize_inner(counter))?;
+		let mut progress =
+			info_span!("pass run", iteration).in_scope(|| self.optimize_inner(iteration))?;
 
 		while progress {
-			counter += 1;
-			progress = info_span!("pass run", iteration = counter)
-				.in_scope(|| self.optimize_inner(counter))?;
+			iteration += 1;
+			progress =
+				info_span!("pass run", iteration).in_scope(|| self.optimize_inner(iteration))?;
 		}
 
-		if !matches!(counter, 1) {
+		if !matches!(iteration, 1) {
 			let (first_program, last_program) = (
 				self.store.get_program_snapshot(1)?,
-				self.store.get_program_snapshot(counter)?,
+				self.store.get_program_snapshot(iteration)?,
 			);
 
 			if let Some((first_program, last_program)) = Option::zip(first_program, last_program) {
