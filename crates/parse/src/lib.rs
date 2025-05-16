@@ -12,7 +12,7 @@ use core::{
 };
 
 use logos::{Lexer, Logos};
-use tracing::{Level, info};
+use tracing::{Level, info, trace, trace_span};
 use vmm_ir::Instruction;
 
 pub use self::opcode::*;
@@ -30,10 +30,10 @@ impl<'source> Parser<'source> {
 		}
 	}
 
-	#[tracing::instrument(level = Level::DEBUG, skip(self))]
+	#[tracing::instrument(skip(self))]
 	pub fn scan(self) -> Result<impl Iterator<Item = Instruction>, ParseError> {
 		info!("scanning {} chars", self.inner.source().len());
-		parse(self.inner.filter_map(Result::ok)).map(IntoIterator::into_iter)
+		parse(self.inner.filter_map(Result::ok), 0).map(IntoIterator::into_iter)
 	}
 }
 
@@ -56,7 +56,14 @@ impl Display for ParseError {
 
 impl StdError for ParseError {}
 
-fn parse(opcodes: impl Iterator<Item = OpCode>) -> Result<Vec<Instruction>, ParseError> {
+fn parse(
+	opcodes: impl Iterator<Item = OpCode>,
+	depth: usize,
+) -> Result<Vec<Instruction>, ParseError> {
+	let span = trace_span!("parse", depth);
+
+	let guard = span.enter();
+
 	let opcodes = opcodes.into_iter().collect::<Vec<_>>();
 	let mut program = Vec::new();
 	let mut loop_stack = 0;
@@ -78,6 +85,7 @@ fn parse(opcodes: impl Iterator<Item = OpCode>) -> Result<Vec<Instruction>, Pars
 				}
 				OpCode::JumpLeft => return Err(ParseError::UnmatchedBracket(i)),
 			} {
+				trace!(parent: &span, "got instruction {instr}");
 				program.push(instr);
 			}
 		} else {
@@ -88,6 +96,7 @@ fn parse(opcodes: impl Iterator<Item = OpCode>) -> Result<Vec<Instruction>, Pars
 					if matches!(loop_stack, 0) {
 						program.push(Instruction::RawLoop(parse(
 							opcodes[loop_start + 1..i].iter().copied(),
+							depth + 1,
 						)?));
 					}
 				}
@@ -95,6 +104,8 @@ fn parse(opcodes: impl Iterator<Item = OpCode>) -> Result<Vec<Instruction>, Pars
 			}
 		}
 	}
+
+	drop(guard);
 
 	Ok(program)
 }
