@@ -12,7 +12,7 @@ use core::{
 };
 
 use logos::{Lexer, Logos};
-use tracing::{Level, info, trace, trace_span};
+use tracing::{info, trace, trace_span};
 use vmm_ir::Instruction;
 
 pub use self::opcode::*;

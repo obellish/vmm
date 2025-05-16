@@ -16,7 +16,7 @@ pub use self::ptr::*;
 
 pub const TAPE_SIZE: usize = 1000;
 
-#[derive(Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {
 	#[serde(with = "BigArray")]
 	cells: [Wrapping<u8>; TAPE_SIZE],
