@@ -137,12 +137,6 @@ where
 	fn write_char(&mut self) -> Result<(), RuntimeError> {
 		let ch = self.cell().0;
 
-		// if ch.is_ascii() {
-		// 	self.output.write_all(&[ch])?;
-		// } else {
-		// 	write!(self.output, "\\0x{ch:x}")?;
-		// }
-
 		if !cfg!(target_os = "windows") || ch < 128 {
 			self.output.write_all(&[ch])?;
 			self.output.flush()?;
