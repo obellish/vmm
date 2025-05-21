@@ -1,4 +1,4 @@
-use vmm_ir::MoveBy;
+use vmm_ir::Offset;
 
 use crate::{Change, Instruction, LoopPass};
 
@@ -9,16 +9,28 @@ impl LoopPass for MoveValuePass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
-				Instruction::IncVal(-1, None),
-				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(j, None),
-				Instruction::MovePtr(MoveBy::Relative(y)),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::IncVal {
+					value: j,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(y)),
 			]
 			| [
-				Instruction::IncVal(j, None),
-				Instruction::MovePtr(MoveBy::Relative(y)),
-				Instruction::IncVal(-1, None),
-				Instruction::MovePtr(MoveBy::Relative(x)),
+				Instruction::IncVal {
+					value: j,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(y)),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(x)),
 			] if *x == -y => {
 				let j = *j;
 				let x = *x;
@@ -28,7 +40,7 @@ impl LoopPass for MoveValuePass {
 				}
 
 				Some(Change::ReplaceOne(Instruction::MoveVal {
-					offset: x,
+					offset: x.into(),
 					factor: j as u8,
 				}))
 			}
@@ -40,15 +52,15 @@ impl LoopPass for MoveValuePass {
 		matches!(
 			loop_values,
 			[
-				Instruction::IncVal(-1, None),
-				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(_, None),
-				Instruction::MovePtr(MoveBy::Relative(y))
+				Instruction::IncVal {value: -1, offset: None},
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::IncVal { offset: None, .. },
+				Instruction::MovePtr(Offset::Relative(y))
 			] | [
-				Instruction::IncVal(_, None),
-				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(-1, None),
-				Instruction::MovePtr(MoveBy::Relative(y))
+				Instruction::IncVal { offset: None, .. },
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::IncVal {value: -1, offset: None},
+				Instruction::MovePtr(Offset::Relative(y))
 			]
 			if *x == -y
 		)

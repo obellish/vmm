@@ -11,10 +11,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
-	IncVal(i8, Option<isize>),
+	IncVal { value: i8, offset: Option<Offset> },
 	SetVal(u8),
-	MoveVal { offset: isize, factor: u8 },
-	MovePtr(MoveBy),
+	MoveVal { offset: Offset, factor: u8 },
+	MovePtr(Offset),
 	FindZero(isize),
 	Read,
 	Write,
@@ -24,12 +24,19 @@ pub enum Instruction {
 impl Instruction {
 	#[must_use]
 	pub const fn inc_val(v: i8) -> Self {
-		Self::IncVal(v, None)
+		Self::IncVal {
+			value: v,
+			offset: None,
+		}
 	}
 
 	#[must_use]
-	pub const fn inc_val_at(v: i8, offset: isize) -> Self {
-		Self::IncVal(v, Some(offset))
+	pub const fn inc_val_relative(v: i8, offset: isize) -> Self {
+		// Self::IncVal(v, Some(offset))
+		Self::IncVal {
+			value: v,
+			offset: Some(Offset::Relative(offset)),
+		}
 	}
 
 	#[must_use]
@@ -43,18 +50,29 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn move_val(offset: isize, factor: u8) -> Self {
-		Self::MoveVal { offset, factor }
+	pub const fn move_val_by(offset: isize, factor: u8) -> Self {
+		Self::MoveVal {
+			offset: Offset::Relative(offset),
+			factor,
+		}
+	}
+
+	#[must_use]
+	pub const fn move_val_to(index: usize, factor: u8) -> Self {
+		Self::MoveVal {
+			offset: Offset::Absolute(index),
+			factor,
+		}
 	}
 
 	#[must_use]
 	pub const fn move_ptr_by(offset: isize) -> Self {
-		Self::MovePtr(MoveBy::Relative(offset))
+		Self::MovePtr(Offset::Relative(offset))
 	}
 
 	#[must_use]
 	pub const fn move_ptr_to(index: usize) -> Self {
-		Self::MovePtr(MoveBy::Absolute(index))
+		Self::MovePtr(Offset::Absolute(index))
 	}
 
 	#[must_use]
@@ -94,12 +112,13 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_inc_val(&self) -> bool {
-		matches!(self, Self::IncVal(i, _) if *i > 0)
+		// matches!(self, Self::IncVal(i, _) if *i > 0)
+		matches!(self, Self::IncVal {value, ..} if *value > 0)
 	}
 
 	#[must_use]
 	pub const fn is_dec_val(&self) -> bool {
-		matches!(self, Self::IncVal(i, _) if *i < 0)
+		matches!(self, Self::IncVal {value, ..} if *value < 0 )
 	}
 
 	#[must_use]
@@ -148,11 +167,11 @@ impl Instruction {
 	pub fn offset(&self) -> Option<isize> {
 		match self {
 			Self::MoveVal { .. }
-			| Self::IncVal(_, None)
+			| Self::IncVal { .. }
 			| Self::SetVal(..)
 			| Self::Read
 			| Self::Write => Some(0),
-			Self::MovePtr(MoveBy::Relative(i)) => Some(*i),
+			Self::MovePtr(Offset::Relative(i)) => Some(*i),
 			Self::RawLoop(instrs) => {
 				let mut sum = 0;
 
@@ -176,13 +195,16 @@ impl Display for Instruction {
 	#[allow(unreachable_patterns)] // For when we add more instructions.
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::IncVal(i, None) => {
+			Self::IncVal {
+				value: i,
+				offset: None,
+			} => {
 				let c = if *i < 0 { '-' } else { '+' };
 				for _ in 0..i.unsigned_abs() {
 					f.write_char(c)?;
 				}
 			}
-			Self::MovePtr(MoveBy::Relative(i)) => {
+			Self::MovePtr(Offset::Relative(i)) => {
 				let c = if *i < 0 { '<' } else { '>' };
 				for _ in 0..i.unsigned_abs() {
 					f.write_char(c)?;
@@ -212,7 +234,7 @@ impl Display for Instruction {
 				f.write_char(']')?;
 			}
 			Self::MoveVal {
-				offset,
+				offset: Offset::Relative(offset),
 				factor: multiplier,
 			} => {
 				let (first_move, second_move) = if *offset < 0 { ('<', '>') } else { ('>', '<') };
@@ -251,18 +273,18 @@ fn display_loop(i: &[Instruction], f: &mut Formatter<'_>) -> FmtResult {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum MoveBy {
+pub enum Offset {
 	Relative(isize),
 	Absolute(usize),
 }
 
-impl From<isize> for MoveBy {
+impl From<isize> for Offset {
 	fn from(value: isize) -> Self {
 		Self::Relative(value)
 	}
 }
 
-impl From<usize> for MoveBy {
+impl From<usize> for Offset {
 	fn from(value: usize) -> Self {
 		Self::Absolute(value)
 	}

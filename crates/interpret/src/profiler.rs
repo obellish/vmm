@@ -34,7 +34,7 @@ impl Profiler {
 
 	pub const fn handle(&mut self, instruction: &Instruction) {
 		match instruction {
-			Instruction::IncVal(..) => self.inc_val += 1,
+			Instruction::IncVal { .. } => self.inc_val += 1,
 			Instruction::MovePtr(_) => self.move_ptr += 1,
 			Instruction::SetVal(0) => self.clear += 1,
 			Instruction::SetVal(_) => self.set += 1,

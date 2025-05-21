@@ -10,7 +10,7 @@ use std::{
 	num::Wrapping,
 };
 
-use vmm_ir::{Instruction, MoveBy};
+use vmm_ir::{Instruction, Offset};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 
@@ -151,9 +151,12 @@ where
 		}
 
 		match instr {
-			Instruction::IncVal(i, None) => *self.cell_mut() += *i as u8,
+			Instruction::IncVal {
+				value: i,
+				offset: None,
+			} => *self.cell_mut() += *i as u8,
 			Instruction::SetVal(i) => self.cell_mut().0 = *i,
-			Instruction::MovePtr(MoveBy::Relative(i)) => *self.ptr_mut() += *i,
+			Instruction::MovePtr(Offset::Relative(i)) => *self.ptr_mut() += *i,
 			Instruction::Write => self.write_char()?,
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => {
@@ -176,7 +179,7 @@ where
 				}
 			}
 			Instruction::MoveVal {
-				offset,
+				offset: Offset::Relative(offset),
 				factor: multiplier,
 			} => {
 				let (src_offset, dst_offset) = {

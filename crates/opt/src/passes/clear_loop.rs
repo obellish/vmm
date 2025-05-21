@@ -10,11 +10,17 @@ impl LoopPass for ClearLoopPass {
 				Instruction::MovePtr(x),
 				Instruction::SetVal(0),
 				Instruction::MovePtr(y),
-				Instruction::IncVal(-1, None),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
 			]
 			| [
 				Instruction::MovePtr(x),
-				Instruction::IncVal(-1, None),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
 				Instruction::MovePtr(y),
 				Instruction::SetVal(0),
 			] => Some(Change::Replace(vec![
@@ -34,10 +40,16 @@ impl LoopPass for ClearLoopPass {
 				Instruction::MovePtr(_),
 				Instruction::SetVal(0),
 				Instruction::MovePtr(_),
-				Instruction::IncVal(-1, None)
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				}
 			] | [
 				Instruction::MovePtr(_),
-				Instruction::IncVal(-1, None),
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
 				Instruction::MovePtr(_),
 				Instruction::SetVal(0)
 			]

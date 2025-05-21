@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -13,7 +13,7 @@ impl PeepholePass for RemoveRedundantMovesPass {
 			[
 				Instruction::SetVal(x),
 				Instruction::MoveVal {
-					offset,
+					offset: Offset::Relative(offset),
 					factor: multiplier,
 				},
 			] => Some(Change::Replace(vec![
