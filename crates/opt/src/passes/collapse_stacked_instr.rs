@@ -45,6 +45,29 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[Instruction::SetVal(_), Instruction::SetVal(x)] => {
 				Some(Change::ReplaceOne(Instruction::SetVal(*x)))
 			}
+			[
+				Instruction::IncVal {
+					value: i1,
+					offset: Some(Offset::Relative(x)),
+				},
+				Instruction::IncVal {
+					value: i2,
+					offset: Some(Offset::Relative(y)),
+				},
+			] if *i1 == -i2 && x == y => Some(Change::Remove),
+			[
+				Instruction::IncVal {
+					value: i1,
+					offset: Some(Offset::Relative(x)),
+				},
+				Instruction::IncVal {
+					value: i2,
+					offset: Some(Offset::Relative(y)),
+				},
+			] if x == y => Some(Change::ReplaceOne(Instruction::IncVal {
+				value: i1.wrapping_add(*i2),
+				offset: Some(Offset::Relative(*x)),
+			})),
 			_ => None,
 		}
 	}
@@ -52,13 +75,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,
-			[
-				Instruction::IncVal { offset: None, .. },
-				Instruction::IncVal { offset: None, .. }
-			] | [
-				Instruction::MovePtr(Offset::Relative(_)),
-				Instruction::MovePtr(Offset::Relative(_))
-			] | [Instruction::SetVal(_), Instruction::SetVal(_)]
+			[Instruction::IncVal { .. }, Instruction::IncVal { .. }]
+				| [
+					Instruction::MovePtr(Offset::Relative(_)),
+					Instruction::MovePtr(Offset::Relative(_))
+				] | [Instruction::SetVal(_), Instruction::SetVal(_)]
 		)
 	}
 }

@@ -193,6 +193,16 @@ where
 
 				tape[dst_offset] += src_val.0.wrapping_mul(*multiplier);
 			}
+			Instruction::IncVal {
+				value,
+				offset: Some(Offset::Relative(x)),
+			} => {
+				let dst_offset = (*self.ptr() + *x).value();
+
+				let tape = self.tape_mut();
+
+				tape[dst_offset] += *value as u8;
+			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
