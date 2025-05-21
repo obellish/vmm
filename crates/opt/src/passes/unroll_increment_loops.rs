@@ -9,14 +9,15 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::IncVal(i),
+				Instruction::IncVal(i, None),
 				raw_loop @ Instruction::RawLoop(inner),
 			] if *i > 0
 				&& !raw_loop.might_move_ptr()
 				&& !inner.iter().any(Instruction::is_loop) =>
 			{
 				match inner.as_slice() {
-					[Instruction::IncVal(-1), rest @ ..] | [rest @ .., Instruction::IncVal(-1)] => {
+					[Instruction::IncVal(-1, None), rest @ ..]
+					| [rest @ .., Instruction::IncVal(-1, None)] => {
 						let mut output =
 							Vec::with_capacity((*i as u8 as usize) * rest.len() + inner.len());
 
@@ -39,7 +40,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 		matches!(
 			window,
 			[
-				Instruction::IncVal(i),
+				Instruction::IncVal(i, None),
 				raw_loop @ Instruction::RawLoop(inner),
 			]
 			if *i > 0

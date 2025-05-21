@@ -10,13 +10,13 @@ impl PeepholePass for RemoveRedundantWritesPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::IncVal(_), Instruction::SetVal(x)] => {
+			[Instruction::IncVal(_, None), Instruction::SetVal(x)] => {
 				Some(Change::ReplaceOne(Instruction::SetVal(*x)))
 			}
-			[Instruction::SetVal(0), Instruction::IncVal(y)] => {
+			[Instruction::SetVal(0), Instruction::IncVal(y, None)] => {
 				Some(Change::ReplaceOne(Instruction::SetVal(*y as u8)))
 			}
-			[Instruction::SetVal(x), Instruction::IncVal(y)] => Some(Change::ReplaceOne(
+			[Instruction::SetVal(x), Instruction::IncVal(y, None)] => Some(Change::ReplaceOne(
 				Instruction::SetVal((*x as i8).wrapping_add(*y) as u8),
 			)),
 			_ => None,
@@ -26,8 +26,8 @@ impl PeepholePass for RemoveRedundantWritesPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,
-			[Instruction::IncVal(_), Instruction::SetVal(_)]
-				| [Instruction::SetVal(_), Instruction::IncVal(_)]
+			[Instruction::IncVal(_, None), Instruction::SetVal(_)]
+				| [Instruction::SetVal(_), Instruction::IncVal(_, None)]
 		)
 	}
 }

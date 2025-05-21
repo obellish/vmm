@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
-	IncVal(i8),
+	IncVal(i8, Option<isize>),
 	SetVal(u8),
 	MoveVal { offset: isize, factor: u8 },
 	MovePtr(MoveBy),
@@ -22,6 +22,60 @@ pub enum Instruction {
 }
 
 impl Instruction {
+	#[must_use]
+	pub const fn inc_val(v: i8) -> Self {
+		Self::IncVal(v, None)
+	}
+
+	#[must_use]
+	pub const fn inc_val_at(v: i8, offset: isize) -> Self {
+		Self::IncVal(v, Some(offset))
+	}
+
+	#[must_use]
+	pub const fn set_val(v: u8) -> Self {
+		Self::SetVal(v)
+	}
+
+	#[must_use]
+	pub const fn clear_val() -> Self {
+		Self::set_val(0)
+	}
+
+	#[must_use]
+	pub const fn move_val(offset: isize, factor: u8) -> Self {
+		Self::MoveVal { offset, factor }
+	}
+
+	#[must_use]
+	pub const fn move_ptr_by(offset: isize) -> Self {
+		Self::MovePtr(MoveBy::Relative(offset))
+	}
+
+	#[must_use]
+	pub const fn move_ptr_to(index: usize) -> Self {
+		Self::MovePtr(MoveBy::Absolute(index))
+	}
+
+	#[must_use]
+	pub const fn find_zero(jump_by: isize) -> Self {
+		Self::FindZero(jump_by)
+	}
+
+	#[must_use]
+	pub const fn read() -> Self {
+		Self::Read
+	}
+
+	#[must_use]
+	pub const fn write() -> Self {
+		Self::Write
+	}
+
+	pub fn raw_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
+		Self::RawLoop(instructions.into_iter().collect())
+	}
+
 	pub fn needs_input(&self) -> bool {
 		match self {
 			Self::Read => true,
@@ -40,12 +94,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_inc_val(&self) -> bool {
-		matches!(self, Self::IncVal(i) if *i > 0)
+		matches!(self, Self::IncVal(i, _) if *i > 0)
 	}
 
 	#[must_use]
 	pub const fn is_dec_val(&self) -> bool {
-		matches!(self, Self::IncVal(i) if *i < 0)
+		matches!(self, Self::IncVal(i, _) if *i < 0)
 	}
 
 	#[must_use]
@@ -93,9 +147,11 @@ impl Instruction {
 	#[must_use]
 	pub fn offset(&self) -> Option<isize> {
 		match self {
-			Self::MoveVal { .. } | Self::IncVal(_) | Self::SetVal(_) | Self::Read | Self::Write => {
-				Some(0)
-			}
+			Self::MoveVal { .. }
+			| Self::IncVal(_, None)
+			| Self::SetVal(..)
+			| Self::Read
+			| Self::Write => Some(0),
 			Self::MovePtr(MoveBy::Relative(i)) => Some(*i),
 			Self::RawLoop(instrs) => {
 				let mut sum = 0;
@@ -120,7 +176,7 @@ impl Display for Instruction {
 	#[allow(unreachable_patterns)] // For when we add more instructions.
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::IncVal(i) => {
+			Self::IncVal(i, None) => {
 				let c = if *i < 0 { '-' } else { '+' };
 				for _ in 0..i.unsigned_abs() {
 					f.write_char(c)?;

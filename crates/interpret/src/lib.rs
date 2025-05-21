@@ -151,7 +151,7 @@ where
 		}
 
 		match instr {
-			Instruction::IncVal(i) => *self.cell_mut() += *i as u8,
+			Instruction::IncVal(i, None) => *self.cell_mut() += *i as u8,
 			Instruction::SetVal(i) => self.cell_mut().0 = *i,
 			Instruction::MovePtr(MoveBy::Relative(i)) => *self.ptr_mut() += *i,
 			Instruction::Write => self.write_char()?,

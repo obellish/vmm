@@ -3,6 +3,7 @@ use std::{fmt::Debug, fs, path::PathBuf};
 use clap::Parser;
 use color_eyre::eyre::Result;
 use tracing_error::ErrorLayer;
+use tracing_flame::FlameLayer;
 use tracing_subscriber::{
 	EnvFilter,
 	fmt::{self, format::FmtSpan},
@@ -17,7 +18,7 @@ fn main() -> Result<()> {
 	_ = fs::remove_dir_all("./out");
 
 	fs::create_dir_all("./out")?;
-	install_tracing();
+	let _guard = install_tracing();
 	color_eyre::install()?;
 
 	let args = Args::parse();
@@ -71,7 +72,7 @@ struct Args {
 	pub optimize: bool,
 }
 
-fn install_tracing() {
+fn install_tracing() -> impl Drop {
 	fs::create_dir_all("./out").unwrap();
 
 	let log_file = fs::OpenOptions::new()
@@ -100,12 +101,17 @@ fn install_tracing() {
 		.with_span_events(FmtSpan::FULL)
 		.with_writer(json_log_file);
 
+	let (flame_layer, guard) = FlameLayer::with_file("./out/output.folded").unwrap();
+
 	tracing_subscriber::registry()
 		.with(json_file_layer)
 		.with(file_layer)
 		.with(fmt_layer)
+		.with(flame_layer)
 		.with(ErrorLayer::default())
 		.init();
+
+	guard
 }
 
 fn write_profiler(p: Profiler) -> Result<()> {

@@ -24,7 +24,7 @@ impl PeepholePass for SetUntouchedCellsPass {
 				self.hit_pass = true;
 				None
 			}
-			[Instruction::IncVal(x)] => {
+			[Instruction::IncVal(x, None)] => {
 				self.hit_pass = true;
 				Some(Change::ReplaceOne(Instruction::SetVal(*x as u8)))
 			}
@@ -40,7 +40,7 @@ impl PeepholePass for SetUntouchedCellsPass {
 					| Instruction::MoveVal { .. }
 					| Instruction::RawLoop(_)
 					| Instruction::MovePtr(MoveBy::Relative(isize::MIN..=0))
-					| Instruction::IncVal(_)]
+					| Instruction::IncVal(_, None)]
 			)
 	}
 

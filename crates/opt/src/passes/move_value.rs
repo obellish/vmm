@@ -9,15 +9,15 @@ impl LoopPass for MoveValuePass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
-				Instruction::IncVal(-1),
+				Instruction::IncVal(-1, None),
 				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(j),
+				Instruction::IncVal(j, None),
 				Instruction::MovePtr(MoveBy::Relative(y)),
 			]
 			| [
-				Instruction::IncVal(j),
+				Instruction::IncVal(j, None),
 				Instruction::MovePtr(MoveBy::Relative(y)),
-				Instruction::IncVal(-1),
+				Instruction::IncVal(-1, None),
 				Instruction::MovePtr(MoveBy::Relative(x)),
 			] if *x == -y => {
 				let j = *j;
@@ -40,14 +40,14 @@ impl LoopPass for MoveValuePass {
 		matches!(
 			loop_values,
 			[
-				Instruction::IncVal(-1),
+				Instruction::IncVal(-1, None),
 				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(_),
+				Instruction::IncVal(_, None),
 				Instruction::MovePtr(MoveBy::Relative(y))
 			] | [
-				Instruction::IncVal(_),
+				Instruction::IncVal(_, None),
 				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(-1),
+				Instruction::IncVal(-1, None),
 				Instruction::MovePtr(MoveBy::Relative(y))
 			]
 			if *x == -y
