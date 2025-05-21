@@ -115,28 +115,38 @@ where
 	}
 
 	fn read_char(&mut self) -> Result<(), RuntimeError> {
-		let mut buf = [0];
-		if let Err(e) = self.input.read_exact(&mut buf) {
-			if !matches!(e.kind(), IoErrorKind::UnexpectedEof) {
-				return Err(e.into());
+		loop {
+			let mut buf = [0];
+			let err = self.input.read_exact(&mut buf);
+			match err.as_ref().map_err(IoError::kind) {
+				Err(IoErrorKind::UnexpectedEof) => {
+					mem::take(&mut buf);
+				}
+				_ => err?,
 			}
+
+			if cfg!(target_os = "windows") && matches!(buf[0], b'\r') {
+				continue;
+			}
+
+			break;
 		}
-
-		self.cell_mut().0 = buf[0];
-
 		Ok(())
 	}
 
 	fn write_char(&mut self) -> Result<(), RuntimeError> {
 		let ch = self.cell().0;
 
-		if ch.is_ascii() {
-			self.output.write_all(&[ch])?;
-		} else {
-			write!(self.output, "\\0x{ch:x}")?;
-		}
+		// if ch.is_ascii() {
+		// 	self.output.write_all(&[ch])?;
+		// } else {
+		// 	write!(self.output, "\\0x{ch:x}")?;
+		// }
 
-		self.output.flush()?;
+		if !cfg!(target_os = "windows") || ch < 128 {
+			self.output.write_all(&[ch])?;
+			self.output.flush()?;
+		}
 
 		Ok(())
 	}
