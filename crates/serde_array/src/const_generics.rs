@@ -78,9 +78,8 @@ where
 }
 
 pub trait BigArray<'de, T>: Sized {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer,
 		T: Serialize;
 
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -90,9 +89,8 @@ pub trait BigArray<'de, T>: Sized {
 }
 
 impl<'de, T, const N: usize> BigArray<'de, T> for [T; N] {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
-		S: Serializer,
 		T: Serialize,
 	{
 		let mut seq = serializer.serialize_tuple(self.len())?;
