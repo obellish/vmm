@@ -41,7 +41,7 @@ impl Profiler {
 			Instruction::Read => self.input += 1,
 			Instruction::Write => self.output += 1,
 			Instruction::FindZero(..) => self.find_zero += 1,
-			Instruction::RawLoop(_) => self.while_loop += 1,
+			Instruction::DynamicLoop(_) => self.while_loop += 1,
 			Instruction::MoveVal { .. } => self.move_val += 1,
 			_ => self.unknown += 1,
 		}

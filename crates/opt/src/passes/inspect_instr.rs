@@ -13,7 +13,7 @@ impl PeepholePass for InspectInstrPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[lop @ Instruction::RawLoop(_)] => {
+			[lop @ Instruction::DynamicLoop(_)] => {
 				// println!("{}", lop.might_move_ptr());
 
 				// None
@@ -30,7 +30,7 @@ impl PeepholePass for InspectInstrPass {
 	}
 
 	fn should_run(&self, _window: &[Instruction]) -> bool {
-		matches!(_window, [Instruction::RawLoop(_)])
+		matches!(_window, [Instruction::DynamicLoop(_)])
 	}
 }
 

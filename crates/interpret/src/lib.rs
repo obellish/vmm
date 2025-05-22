@@ -167,7 +167,7 @@ where
 					*self.ptr_mut() += *i;
 				}
 			}
-			Instruction::RawLoop(instructions) => {
+			Instruction::DynamicLoop(instructions) => {
 				let mut iterations = 0usize;
 				while !matches!(self.cell().0, 0) {
 					iterations += 1;

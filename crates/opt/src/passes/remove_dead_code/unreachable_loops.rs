@@ -13,7 +13,7 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 					offset: None,
 					value: None,
 				},
-				Instruction::RawLoop(..),
+				Instruction::DynamicLoop(..),
 			] => Some(Change::ReplaceOne(Instruction::clear_val())),
 			_ => None,
 		}
@@ -27,7 +27,7 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 					value: None,
 					offset: None
 				},
-				Instruction::RawLoop(..)
+				Instruction::DynamicLoop(..)
 			]
 		)
 	}

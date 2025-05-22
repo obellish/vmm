@@ -80,7 +80,7 @@ where
 	const SIZE: usize = 1;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		if let [Instruction::RawLoop(instructions)] = window {
+		if let [Instruction::DynamicLoop(instructions)] = window {
 			<P as LoopPass>::run_pass(self, instructions)
 		} else {
 			None
@@ -88,7 +88,7 @@ where
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		let [Instruction::RawLoop(instrs)] = window else {
+		let [Instruction::DynamicLoop(instrs)] = window else {
 			return false;
 		};
 

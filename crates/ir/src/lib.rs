@@ -30,7 +30,7 @@ pub enum Instruction {
 	FindZero(isize),
 	Read,
 	Write,
-	RawLoop(Vec<Self>),
+	DynamicLoop(Vec<Self>),
 }
 
 impl Instruction {
@@ -124,13 +124,13 @@ impl Instruction {
 	}
 
 	pub fn raw_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
-		Self::RawLoop(instructions.into_iter().collect())
+		Self::DynamicLoop(instructions.into_iter().collect())
 	}
 
 	pub fn needs_input(&self) -> bool {
 		match self {
 			Self::Read => true,
-			Self::RawLoop(instrs) => instrs.iter().any(Self::needs_input),
+			Self::DynamicLoop(instrs) => instrs.iter().any(Self::needs_input),
 			_ => false,
 		}
 	}
@@ -138,7 +138,7 @@ impl Instruction {
 	pub fn has_side_effect(&self) -> bool {
 		match self {
 			Self::Read | Self::Write => true,
-			Self::RawLoop(instrs) => instrs.iter().any(Self::has_side_effect),
+			Self::DynamicLoop(instrs) => instrs.iter().any(Self::has_side_effect),
 			_ => false,
 		}
 	}
@@ -170,12 +170,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_loop(&self) -> bool {
-		matches!(self, Self::RawLoop(_))
+		matches!(self, Self::DynamicLoop(_))
 	}
 
 	#[must_use]
 	pub fn is_empty_loop(&self) -> bool {
-		matches!(self, Self::RawLoop(l) if l.is_empty())
+		matches!(self, Self::DynamicLoop(l) if l.is_empty())
 	}
 
 	#[must_use]
@@ -195,7 +195,7 @@ impl Instruction {
 
 	pub fn rough_estimate(&self) -> usize {
 		match self {
-			Self::RawLoop(l) => l.iter().map(Self::rough_estimate).sum::<usize>() + 2,
+			Self::DynamicLoop(l) => l.iter().map(Self::rough_estimate).sum::<usize>() + 2,
 			_ => 1,
 		}
 	}
@@ -209,7 +209,7 @@ impl Instruction {
 			| Self::Read
 			| Self::Write => Some(0),
 			Self::MovePtr(Offset::Relative(i)) => Some(*i),
-			Self::RawLoop(instrs) => {
+			Self::DynamicLoop(instrs) => {
 				let mut sum = 0;
 
 				for instr in instrs {
@@ -269,7 +269,7 @@ impl Display for Instruction {
 			}
 			Self::Read => f.write_char(',')?,
 			Self::Write => f.write_char('.')?,
-			Self::RawLoop(instrs) => {
+			Self::DynamicLoop(instrs) => {
 				f.write_char('[')?;
 				display_loop(instrs, f)?;
 				f.write_char(']')?;

@@ -167,7 +167,7 @@ fn run_pass<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool
 
 	if pass.should_run_on_loop() {
 		for instr in v {
-			if let Instruction::RawLoop(i) = instr {
+			if let Instruction::DynamicLoop(i) = instr {
 				run_pass(pass, i, progress);
 			}
 		}

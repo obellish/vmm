@@ -10,7 +10,7 @@ impl Pass for CleanUpStartPass {
 		};
 
 		match instr {
-			Instruction::RawLoop(_)
+			Instruction::DynamicLoop(_)
 			| Instruction::SetVal {
 				value: None,
 				offset: None,
