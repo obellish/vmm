@@ -249,11 +249,11 @@ impl Display for Instruction {
 				}
 			}
 			Self::SetVal {
-				value: Some(i),
+				value: i,
 				offset: None,
 			} => {
 				f.write_str("[-]")?;
-				if i.get() > 0 {
+				if let Some(i) = i {
 					for _ in 0..i.get() {
 						f.write_char('+')?;
 					}
@@ -278,25 +278,48 @@ impl Display for Instruction {
 				offset: Offset::Relative(offset),
 				factor: multiplier,
 			} => {
-				let (first_move, second_move) = if *offset < 0 { ('<', '>') } else { ('>', '<') };
-
 				f.write_char('[')?;
 
 				f.write_char('-')?;
 
-				for _ in 0..offset.unsigned_abs() {
-					f.write_char(first_move)?;
-				}
+				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
 
 				for _ in 0..*multiplier {
 					f.write_char('+')?;
 				}
 
-				for _ in 0..offset.unsigned_abs() {
-					f.write_char(second_move)?;
-				}
+				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
 
 				f.write_char(']')?;
+			}
+			Self::IncVal {
+				value,
+				offset: Some(Offset::Relative(offset)),
+			} => {
+				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
+				Display::fmt(
+					&Self::IncVal {
+						value: *value,
+						offset: None,
+					},
+					f,
+				)?;
+
+				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
+			}
+			Self::SetVal {
+				value,
+				offset: Some(Offset::Relative(offset)),
+			} => {
+				Display::fmt(&Self::MovePtr((*offset).into()), f)?;
+				Display::fmt(
+					&Self::SetVal {
+						value: *value,
+						offset: None,
+					},
+					f,
+				)?;
+				Display::fmt(&Self::MovePtr((-offset).into()), f)?;
 			}
 			_ => f.write_char('*')?,
 		}

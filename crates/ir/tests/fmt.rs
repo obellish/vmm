@@ -1,4 +1,4 @@
-use vmm_ir::Instruction::{self, *};
+use vmm_ir::Instruction;
 
 fn verify(input: Instruction, expected: &str) {
 	assert_eq!(input.to_string(), expected);
