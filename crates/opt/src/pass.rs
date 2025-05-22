@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use tracing::warn;
 use vmm_ir::Instruction;
 
 use super::Change;
@@ -21,7 +22,7 @@ where
 		let mut progress = false;
 
 		while program.len() >= P::SIZE && i < program.len() - (P::SIZE - 1) {
-			let window = &program[i..(P::SIZE + i)];
+			let window = &program[i..(P::SIZE + i)].to_vec();
 
 			assert_eq!(window.len(), P::SIZE);
 
@@ -42,6 +43,10 @@ where
 				progress = true;
 			} else {
 				i += 1;
+				if P::should_run(self, window) {
+					warn!("pass {self:?}::should_ran was true but didn't make changes");
+					tracing::trace!("{window:?}");
+				}
 			}
 		}
 

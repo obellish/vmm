@@ -24,4 +24,16 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			_ => None,
 		}
 	}
+
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(
+			window,
+			[
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::IncVal { offset: None, .. },
+				Instruction::MovePtr(Offset::Relative(y))
+			]
+			if *x == -y
+		)
+	}
 }

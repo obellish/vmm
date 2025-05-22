@@ -75,11 +75,26 @@ impl PeepholePass for CollapseStackedInstrPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,
-			[Instruction::IncVal { .. }, Instruction::IncVal { .. }]
-				| [
-					Instruction::MovePtr(Offset::Relative(_)),
-					Instruction::MovePtr(Offset::Relative(_))
-				] | [Instruction::SetVal(_), Instruction::SetVal(_)]
+			[
+				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal { offset: None, .. }
+			] | [
+				Instruction::MovePtr(Offset::Relative(_)),
+				Instruction::MovePtr(Offset::Relative(_))
+			] | [Instruction::SetVal(_), Instruction::SetVal(_)]
+		) || matches!(
+			window,
+			[
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(x)),
+					..
+				},
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(y)),
+					..
+				}
+			]
+			if *x == *y
 		)
 	}
 }
