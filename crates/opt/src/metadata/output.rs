@@ -50,7 +50,7 @@ impl<T: MetadataStore> MetadataStore for OutputMetadataStore<T> {
 		self.folder_path
 			.join(format!(
 				"{}-{iteration}.ron",
-				ShortName(std::any::type_name::<T>())
+				ShortName(std::any::type_name::<S>())
 			))
 			.pipe(|value| fs::write(value, serialized))?;
 
