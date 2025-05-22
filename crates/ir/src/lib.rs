@@ -342,6 +342,17 @@ pub enum Offset {
 	Absolute(usize),
 }
 
+impl Display for Offset {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		match self {
+			Self::Absolute(v) => Display::fmt(&v, f)?,
+			Self::Relative(v) => Display::fmt(&v, f)?,
+		}
+
+		Ok(())
+	}
+}
+
 impl From<isize> for Offset {
 	fn from(value: isize) -> Self {
 		Self::Relative(value)
