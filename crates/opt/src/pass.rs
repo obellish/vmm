@@ -63,7 +63,8 @@ pub trait PeepholePass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
 
-	fn should_run(&self, _window: &[Instruction]) -> bool {
+	#[allow(unused)]
+	fn should_run(&self, window: &[Instruction]) -> bool {
 		true
 	}
 
