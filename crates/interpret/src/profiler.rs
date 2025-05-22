@@ -36,8 +36,8 @@ impl Profiler {
 		match instruction {
 			Instruction::IncVal { .. } => self.inc_val += 1,
 			Instruction::MovePtr(_) => self.move_ptr += 1,
-			Instruction::SetVal(0) => self.clear += 1,
-			Instruction::SetVal(_) => self.set += 1,
+			Instruction::SetVal { value: None, .. } => self.clear += 1,
+			Instruction::SetVal { .. } => self.set += 1,
 			Instruction::Read => self.input += 1,
 			Instruction::Write => self.output += 1,
 			Instruction::FindZero(..) => self.find_zero += 1,

@@ -16,9 +16,6 @@ fn move_ptr() {
 
 #[test]
 fn set_val() {
-	// verify(SetVal(0), "[-]");
-
-	// verify(SetVal(5), "[-]+++++");
 	verify(Instruction::clear_val(), "[-]");
 
 	verify(Instruction::set_val(5), "[-]+++++");

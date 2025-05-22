@@ -7,7 +7,7 @@ use std::{
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	io::{Error as IoError, ErrorKind as IoErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
 	mem,
-	num::Wrapping,
+	num::{NonZero, Wrapping},
 };
 
 use vmm_ir::{Instruction, Offset};
@@ -155,7 +155,10 @@ where
 				value: i,
 				offset: None,
 			} => *self.cell_mut() += *i as u8,
-			Instruction::SetVal(i) => self.cell_mut().0 = *i,
+			Instruction::SetVal {
+				value: i,
+				offset: None,
+			} => self.cell_mut().0 = i.map_or(0, NonZero::get),
 			Instruction::MovePtr(Offset::Relative(i)) => *self.ptr_mut() += *i,
 			Instruction::Write => self.write_char()?,
 			Instruction::Read => self.read_char()?,

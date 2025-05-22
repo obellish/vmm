@@ -42,9 +42,13 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] => Some(Change::ReplaceOne(Instruction::MovePtr(
 				i1.wrapping_add(*i2).into(),
 			))),
-			[Instruction::SetVal(_), Instruction::SetVal(x)] => {
-				Some(Change::ReplaceOne(Instruction::SetVal(*x)))
-			}
+			[
+				Instruction::SetVal { offset: None, .. },
+				Instruction::SetVal {
+					value: Some(x),
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::set_val(x.get()))),
 			[
 				Instruction::IncVal {
 					value: i1,
@@ -81,7 +85,10 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] | [
 				Instruction::MovePtr(Offset::Relative(_)),
 				Instruction::MovePtr(Offset::Relative(_))
-			] | [Instruction::SetVal(_), Instruction::SetVal(_)]
+			] | [
+				Instruction::SetVal { offset: None, .. },
+				Instruction::SetVal { offset: None, .. }
+			]
 		) || matches!(
 			window,
 			[

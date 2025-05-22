@@ -31,7 +31,7 @@ impl PeepholePass for SetUntouchedCellsPass {
 				},
 			] => {
 				self.hit_pass = true;
-				Some(Change::ReplaceOne(Instruction::SetVal(*x as u8)))
+				Some(Change::ReplaceOne(Instruction::set_val(*x as u8)))
 			}
 			_ => None,
 		}

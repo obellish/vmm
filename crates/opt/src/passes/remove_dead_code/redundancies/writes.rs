@@ -12,23 +12,32 @@ impl PeepholePass for RemoveRedundantWritesPass {
 		match window {
 			[
 				Instruction::IncVal { offset: None, .. },
-				Instruction::SetVal(x),
-			] => Some(Change::ReplaceOne(Instruction::SetVal(*x))),
+				Instruction::SetVal {
+					value: Some(x),
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::set_val(x.get()))),
 			[
-				Instruction::SetVal(0),
+				Instruction::SetVal {
+					value: None,
+					offset: None,
+				},
 				Instruction::IncVal {
 					value: y,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::SetVal(*y as u8))),
+			] => Some(Change::ReplaceOne(Instruction::set_val(*y as u8))),
 			[
-				Instruction::SetVal(x),
+				Instruction::SetVal {
+					value: Some(x),
+					offset: None,
+				},
 				Instruction::IncVal {
 					value: y,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::SetVal(
-				(*x as i8).wrapping_add(*y) as u8,
+			] => Some(Change::ReplaceOne(Instruction::set_val(
+				(x.get() as i8).wrapping_add(*y) as u8,
 			))),
 			_ => None,
 		}
@@ -39,9 +48,9 @@ impl PeepholePass for RemoveRedundantWritesPass {
 			window,
 			[
 				Instruction::IncVal { offset: None, .. },
-				Instruction::SetVal(_)
+				Instruction::SetVal { offset: None, .. }
 			] | [
-				Instruction::SetVal(_),
+				Instruction::SetVal { offset: None, .. },
 				Instruction::IncVal { offset: None, .. }
 			]
 		)

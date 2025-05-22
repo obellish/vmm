@@ -8,7 +8,13 @@ impl PeepholePass for UnrollConstantLoopsPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::SetVal(i), Instruction::RawLoop(inner)] => {
+			[
+				Instruction::SetVal {
+					offset: None,
+					value: Some(i),
+				},
+				Instruction::RawLoop(inner),
+			] => {
 				if inner.iter().any(Instruction::has_side_effect) {
 					return None;
 				}
@@ -27,9 +33,9 @@ impl PeepholePass for UnrollConstantLoopsPass {
 							offset: None,
 						},
 					] => {
-						let mut output = Vec::with_capacity((*i as usize) * rest.len());
+						let mut output = Vec::with_capacity((i.get() as usize) * rest.len());
 
-						for _ in 0..*i {
+						for _ in 0..i.get() {
 							output.extend_from_slice(rest);
 						}
 
@@ -43,7 +49,11 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		let [Instruction::SetVal(_), Instruction::RawLoop(inner)] = window else {
+		let [
+			Instruction::SetVal { offset: None, .. },
+			Instruction::RawLoop(inner),
+		] = window
+		else {
 			return false;
 		};
 

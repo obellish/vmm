@@ -4,16 +4,28 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
+use core::{
+	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	num::NonZeroU8,
+};
 
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
-	IncVal { value: i8, offset: Option<Offset> },
-	SetVal(u8),
-	MoveVal { offset: Offset, factor: u8 },
+	IncVal {
+		value: i8,
+		offset: Option<Offset>,
+	},
+	SetVal {
+		value: Option<NonZeroU8>,
+		offset: Option<Offset>,
+	},
+	MoveVal {
+		offset: Offset,
+		factor: u8,
+	},
 	MovePtr(Offset),
 	FindZero(isize),
 	Read,
@@ -32,7 +44,6 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn inc_val_relative(v: i8, offset: isize) -> Self {
-		// Self::IncVal(v, Some(offset))
 		Self::IncVal {
 			value: v,
 			offset: Some(Offset::Relative(offset)),
@@ -41,12 +52,34 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn set_val(v: u8) -> Self {
-		Self::SetVal(v)
+		Self::SetVal {
+			value: NonZeroU8::new(v),
+			offset: None,
+		}
+	}
+
+	#[must_use]
+	pub const fn set_val_relative(v: u8, offset: isize) -> Self {
+		Self::SetVal {
+			value: NonZeroU8::new(v),
+			offset: Some(Offset::Relative(offset)),
+		}
 	}
 
 	#[must_use]
 	pub const fn clear_val() -> Self {
-		Self::set_val(0)
+		Self::SetVal {
+			value: None,
+			offset: None,
+		}
+	}
+
+	#[must_use]
+	pub const fn clear_val_relative(offset: isize) -> Self {
+		Self::SetVal {
+			value: None,
+			offset: Some(Offset::Relative(offset)),
+		}
 	}
 
 	#[must_use]
@@ -112,7 +145,6 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_inc_val(&self) -> bool {
-		// matches!(self, Self::IncVal(i, _) if *i > 0)
 		matches!(self, Self::IncVal {value, ..} if *value > 0)
 	}
 
@@ -123,12 +155,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_set_val(&self) -> bool {
-		matches!(self, Self::SetVal(_))
+		matches!(self, Self::SetVal { .. })
 	}
 
 	#[must_use]
 	pub const fn is_clear_val(&self) -> bool {
-		matches!(self, Self::SetVal(0))
+		matches!(self, Self::SetVal { .. })
 	}
 
 	#[must_use]
@@ -168,7 +200,7 @@ impl Instruction {
 		match self {
 			Self::MoveVal { .. }
 			| Self::IncVal { .. }
-			| Self::SetVal(..)
+			| Self::SetVal { .. }
 			| Self::Read
 			| Self::Write => Some(0),
 			Self::MovePtr(Offset::Relative(i)) => Some(*i),
@@ -210,10 +242,13 @@ impl Display for Instruction {
 					f.write_char(c)?;
 				}
 			}
-			Self::SetVal(i) => {
+			Self::SetVal {
+				value: Some(i),
+				offset: None,
+			} => {
 				f.write_str("[-]")?;
-				if *i > 0 {
-					for _ in 0..*i {
+				if i.get() > 0 {
+					for _ in 0..i.get() {
 						f.write_char('+')?;
 					}
 				}
