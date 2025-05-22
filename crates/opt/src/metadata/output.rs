@@ -2,6 +2,7 @@ use std::{fs, path::PathBuf};
 
 use ron::ser::{PrettyConfig, to_string_pretty};
 use serde::{Deserialize, Serialize};
+use tap::prelude::*;
 use vmm_type_name::ShortName;
 
 use super::{MetadataStore, MetadataStoreError};
@@ -46,12 +47,12 @@ impl<T: MetadataStore> MetadataStore for OutputMetadataStore<T> {
 
 		let serialized = to_string_pretty(value, config())?;
 
-		let file_name = self.folder_path.join(format!(
-			"{}-{iteration}.ron",
-			ShortName(std::any::type_name::<S>())
-		));
-
-		fs::write(file_name, serialized)?;
+		self.folder_path
+			.join(format!(
+				"{}-{iteration}.ron",
+				ShortName(std::any::type_name::<T>())
+			))
+			.pipe(|value| fs::write(value, serialized))?;
 
 		Ok(())
 	}

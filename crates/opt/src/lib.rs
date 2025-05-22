@@ -11,6 +11,7 @@ use std::{
 	mem,
 };
 
+use tap::prelude::*;
 use tracing::{debug, info, warn};
 use vmm_ir::Instruction;
 use vmm_program::Program;
@@ -97,8 +98,8 @@ impl<S: MetadataStore> Optimizer<S> {
 	where
 		P: Debug + Pass,
 	{
-		debug!("running pass {pass:?}");
-		run_pass(pass, self.program.as_raw(), progress);
+		pass.tap(|pass| debug!("running pass {pass:?}"))
+			.pipe(|pass| run_pass(pass, self.program.as_raw(), progress));
 	}
 
 	fn run_default_pass<P>(&mut self, progress: &mut bool)
