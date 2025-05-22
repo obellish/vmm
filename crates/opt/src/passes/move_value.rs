@@ -44,6 +44,34 @@ impl LoopPass for MoveValuePass {
 					factor: j as u8,
 				}))
 			}
+			[
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				Instruction::IncVal {
+					value: value @ 0..=i8::MAX,
+					offset: Some(offset @ Offset::Relative(_)),
+				},
+			]
+			| [
+				Instruction::IncVal {
+					value: value @ 0..=i8::MAX,
+					offset: Some(offset @ Offset::Relative(_)),
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+			] => {
+				// println!("{} {:?}", value, offset);
+
+				// None
+				Some(Change::ReplaceOne(Instruction::MoveVal {
+					offset: *offset,
+					factor: *value as u8,
+				}))
+			}
 			_ => None,
 		}
 	}
@@ -52,17 +80,44 @@ impl LoopPass for MoveValuePass {
 		matches!(
 			loop_values,
 			[
-				Instruction::IncVal {value: -1, offset: None},
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
 				Instruction::MovePtr(Offset::Relative(x)),
 				Instruction::IncVal { offset: None, .. },
 				Instruction::MovePtr(Offset::Relative(y))
 			] | [
 				Instruction::IncVal { offset: None, .. },
 				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::IncVal {value: -1, offset: None},
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
 				Instruction::MovePtr(Offset::Relative(y))
 			]
 			if *x == -y
+		) || matches!(
+			loop_values,
+			[
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
+				Instruction::IncVal {
+					value: 0..=i8::MAX,
+					offset: Some(Offset::Relative(_))
+				}
+			] | [
+				Instruction::IncVal {
+					value: 0..=i8::MAX,
+					offset: Some(Offset::Relative(_))
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				}
+			]
 		)
 	}
 }

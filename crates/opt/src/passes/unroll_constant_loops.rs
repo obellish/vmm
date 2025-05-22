@@ -43,6 +43,14 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [Instruction::SetVal(_), Instruction::RawLoop(_)])
+		let [Instruction::SetVal(_), Instruction::RawLoop(inner)] = window else {
+			return false;
+		};
+
+		if inner.iter().any(Instruction::has_side_effect) {
+			return false;
+		}
+
+		true
 	}
 }
