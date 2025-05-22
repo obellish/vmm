@@ -9,14 +9,30 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::IncVal(i),
-				raw_loop @ Instruction::RawLoop(inner),
+				Instruction::IncVal {
+					value: i,
+					offset: None,
+				},
+				raw_loop @ Instruction::DynamicLoop(inner),
 			] if *i > 0
 				&& !raw_loop.might_move_ptr()
 				&& !inner.iter().any(Instruction::is_loop) =>
 			{
 				match inner.as_slice() {
-					[Instruction::IncVal(-1), rest @ ..] | [rest @ .., Instruction::IncVal(-1)] => {
+					[
+						Instruction::IncVal {
+							value: -1,
+							offset: None,
+						},
+						rest @ ..,
+					]
+					| [
+						rest @ ..,
+						Instruction::IncVal {
+							value: -1,
+							offset: None,
+						},
+					] => {
 						let mut output =
 							Vec::with_capacity((*i as u8 as usize) * rest.len() + inner.len());
 
@@ -24,7 +40,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 							output.extend_from_slice(rest);
 						}
 
-						output.push(Instruction::RawLoop(inner.clone()));
+						output.push(Instruction::DynamicLoop(inner.clone()));
 
 						Some(Change::Replace(output))
 					}
@@ -36,15 +52,44 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
+		let [
+			Instruction::IncVal {
+				value: i,
+				offset: None,
+			},
+			raw_loop @ Instruction::DynamicLoop(inner),
+		] = window
+		else {
+			return false;
+		};
+
+		if *i <= 0 {
+			return false;
+		}
+
+		if raw_loop.might_move_ptr() {
+			return false;
+		}
+
+		if inner.iter().any(Instruction::is_loop) {
+			return false;
+		}
+
 		matches!(
-			window,
+			inner.as_slice(),
 			[
-				Instruction::IncVal(i),
-				raw_loop @ Instruction::RawLoop(inner),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				..,
+			] | [
+				..,
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
 			]
-			if *i > 0
-				&& !raw_loop.might_move_ptr()
-				&& !inner.iter().any(Instruction::is_loop)
 		)
 	}
 }

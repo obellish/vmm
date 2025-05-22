@@ -1,4 +1,4 @@
-use vmm_ir::MoveBy;
+use vmm_ir::Offset;
 
 use crate::{Change, Instruction, PeepholePass};
 
@@ -16,32 +16,44 @@ impl PeepholePass for SetUntouchedCellsPass {
 		}
 
 		match window {
-			[Instruction::FindZero(_) | Instruction::MoveVal { .. } | Instruction::RawLoop(_)] => {
+			[
+				Instruction::FindZero(_)
+				| Instruction::MoveVal { .. }
+				| Instruction::DynamicLoop(_),
+			] => {
 				self.hit_pass = true;
 				None
 			}
-			[Instruction::MovePtr(MoveBy::Relative(x))] if *x < 0 => {
+			[Instruction::MovePtr(Offset::Relative(x))] if *x < 0 => {
 				self.hit_pass = true;
 				None
 			}
-			[Instruction::IncVal(x)] => {
+			[
+				Instruction::IncVal {
+					value: x,
+					offset: None,
+				},
+			] => {
 				self.hit_pass = true;
-				Some(Change::ReplaceOne(Instruction::SetVal(*x as u8)))
+				Some(Change::ReplaceOne(Instruction::set_val(*x as u8)))
 			}
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		!self.hit_pass
-			&& matches!(
-				window,
-				[Instruction::FindZero(_)
-					| Instruction::MoveVal { .. }
-					| Instruction::RawLoop(_)
-					| Instruction::MovePtr(MoveBy::Relative(isize::MIN..=0))
-					| Instruction::IncVal(_)]
-			)
+		if self.hit_pass {
+			return false;
+		}
+
+		matches!(
+			window,
+			[Instruction::FindZero(_)
+				| Instruction::MoveVal { .. }
+				| Instruction::DynamicLoop(_)
+				| Instruction::MovePtr(Offset::Relative(isize::MIN..=0))
+				| Instruction::IncVal { offset: None, .. }]
+		)
 	}
 
 	fn should_run_on_loop(&self) -> bool {

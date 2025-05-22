@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use tracing::warn;
 use vmm_ir::Instruction;
 
 use super::Change;
@@ -21,7 +22,7 @@ where
 		let mut progress = false;
 
 		while program.len() >= P::SIZE && i < program.len() - (P::SIZE - 1) {
-			let window = &program[i..(P::SIZE + i)];
+			let window = &program[i..(P::SIZE + i)].to_vec();
 
 			assert_eq!(window.len(), P::SIZE);
 
@@ -42,6 +43,10 @@ where
 				progress = true;
 			} else {
 				i += 1;
+				if P::should_run(self, window) {
+					warn!("pass {self:?}::should_ran was true but didn't make changes");
+					tracing::trace!("{window:?}");
+				}
 			}
 		}
 
@@ -58,7 +63,8 @@ pub trait PeepholePass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
 
-	fn should_run(&self, _window: &[Instruction]) -> bool {
+	#[allow(unused)]
+	fn should_run(&self, window: &[Instruction]) -> bool {
 		true
 	}
 
@@ -74,7 +80,7 @@ where
 	const SIZE: usize = 1;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		if let [Instruction::RawLoop(instructions)] = window {
+		if let [Instruction::DynamicLoop(instructions)] = window {
 			<P as LoopPass>::run_pass(self, instructions)
 		} else {
 			None
@@ -82,7 +88,7 @@ where
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		let [Instruction::RawLoop(instrs)] = window else {
+		let [Instruction::DynamicLoop(instrs)] = window else {
 			return false;
 		};
 

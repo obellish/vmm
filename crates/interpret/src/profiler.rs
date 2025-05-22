@@ -34,14 +34,14 @@ impl Profiler {
 
 	pub const fn handle(&mut self, instruction: &Instruction) {
 		match instruction {
-			Instruction::IncVal(_) => self.inc_val += 1,
+			Instruction::IncVal { .. } => self.inc_val += 1,
 			Instruction::MovePtr(_) => self.move_ptr += 1,
-			Instruction::SetVal(0) => self.clear += 1,
-			Instruction::SetVal(_) => self.set += 1,
+			Instruction::SetVal { value: None, .. } => self.clear += 1,
+			Instruction::SetVal { .. } => self.set += 1,
 			Instruction::Read => self.input += 1,
 			Instruction::Write => self.output += 1,
 			Instruction::FindZero(..) => self.find_zero += 1,
-			Instruction::RawLoop(_) => self.while_loop += 1,
+			Instruction::DynamicLoop(_) => self.while_loop += 1,
 			Instruction::MoveVal { .. } => self.move_val += 1,
 			_ => self.unknown += 1,
 		}

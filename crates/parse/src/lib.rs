@@ -72,8 +72,8 @@ fn parse(
 	for (i, op) in opcodes.iter().copied().enumerate() {
 		if matches!(loop_stack, 0) {
 			if let Some(instr) = match op {
-				OpCode::Increment => Some(Instruction::IncVal(1)),
-				OpCode::Decrement => Some(Instruction::IncVal(-1)),
+				OpCode::Increment => Some(Instruction::inc_val(1)),
+				OpCode::Decrement => Some(Instruction::inc_val(-1)),
 				OpCode::Output => Some(Instruction::Write),
 				OpCode::MoveRight => Some(Instruction::MovePtr(1isize.into())),
 				OpCode::MoveLeft => Some(Instruction::MovePtr((-1isize).into())),
@@ -94,7 +94,7 @@ fn parse(
 				OpCode::JumpLeft => {
 					loop_stack -= 1;
 					if matches!(loop_stack, 0) {
-						program.push(Instruction::RawLoop(parse(
+						program.push(Instruction::DynamicLoop(parse(
 							opcodes[loop_start + 1..i].iter().copied(),
 							depth + 1,
 						)?));

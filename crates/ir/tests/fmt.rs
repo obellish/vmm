@@ -1,4 +1,4 @@
-use vmm_ir::Instruction::{self, *};
+use vmm_ir::Instruction;
 
 fn verify(input: Instruction, expected: &str) {
 	assert_eq!(input.to_string(), expected);
@@ -6,44 +6,44 @@ fn verify(input: Instruction, expected: &str) {
 
 #[test]
 fn inc_val() {
-	verify(IncVal(5), "+++++");
+	verify(Instruction::inc_val(5), "+++++");
 }
 
 #[test]
 fn move_ptr() {
-	verify(MovePtr(3isize.into()), ">>>");
+	verify(Instruction::move_ptr_by(3), ">>>");
 }
 
 #[test]
 fn set_val() {
-	verify(SetVal(0), "[-]");
+	verify(Instruction::clear_val(), "[-]");
 
-	verify(SetVal(5), "[-]+++++");
+	verify(Instruction::set_val(5), "[-]+++++");
 }
 
 #[test]
 fn find_zero() {
-	verify(FindZero(-9), "[<<<<<<<<<]");
+	verify(Instruction::find_zero(-9), "[<<<<<<<<<]");
 }
 
 #[test]
 fn write() {
-	verify(Write, ".");
+	verify(Instruction::write(), ".");
 }
 
 #[test]
 fn read() {
-	verify(Read, ",");
+	verify(Instruction::read(), ",");
 }
 
 #[test]
 fn raw_loop() {
 	verify(
-		RawLoop(vec![
-			IncVal(-1),
-			MovePtr(1isize.into()),
-			IncVal(1),
-			MovePtr((-1isize).into()),
+		Instruction::raw_loop([
+			Instruction::inc_val(-1),
+			Instruction::move_ptr_by(1),
+			Instruction::inc_val(1),
+			Instruction::move_ptr_by(-1),
 		]),
 		"[->+<]",
 	);

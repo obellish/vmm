@@ -8,20 +8,48 @@ impl LoopPass for ClearLoopPass {
 		match loop_values {
 			[
 				Instruction::MovePtr(x),
-				Instruction::SetVal(0),
+				Instruction::SetVal {
+					value: None,
+					offset: None,
+				},
 				Instruction::MovePtr(y),
-				Instruction::IncVal(-1),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
 			]
 			| [
 				Instruction::MovePtr(x),
-				Instruction::IncVal(-1),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
 				Instruction::MovePtr(y),
-				Instruction::SetVal(0),
+				Instruction::SetVal {
+					value: None,
+					offset: None,
+				},
 			] => Some(Change::Replace(vec![
 				Instruction::MovePtr(*x),
-				Instruction::SetVal(0),
+				Instruction::clear_val(),
 				Instruction::MovePtr(*y),
-				Instruction::SetVal(0),
+				Instruction::clear_val(),
+			])),
+			[
+				Instruction::SetVal {
+					offset: offset @ Some(_),
+					value: None,
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+			] => Some(Change::Replace(vec![
+				Instruction::SetVal {
+					value: None,
+					offset: *offset,
+				},
+				Instruction::clear_val(),
 			])),
 			_ => None,
 		}
@@ -32,14 +60,35 @@ impl LoopPass for ClearLoopPass {
 			loop_values,
 			[
 				Instruction::MovePtr(_),
-				Instruction::SetVal(0),
+				Instruction::SetVal {
+					value: None,
+					offset: None
+				},
 				Instruction::MovePtr(_),
-				Instruction::IncVal(-1)
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				}
 			] | [
 				Instruction::MovePtr(_),
-				Instruction::IncVal(-1),
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
 				Instruction::MovePtr(_),
-				Instruction::SetVal(0)
+				Instruction::SetVal {
+					value: None,
+					offset: None
+				}
+			] | [
+				Instruction::SetVal {
+					offset: Some(_),
+					value: None
+				},
+				Instruction::IncVal {
+					offset: None,
+					value: -1
+				}
 			]
 		)
 	}

@@ -93,33 +93,43 @@ impl<S: MetadataStore> Optimizer<S> {
 		Ok(progress)
 	}
 
-	fn run_pass<P>(&mut self, progress: &mut bool)
+	fn run_pass<P>(&mut self, pass: &mut P, progress: &mut bool)
+	where
+		P: Debug + Pass,
+	{
+		debug!("running pass {pass:?}");
+		run_pass(pass, self.program.as_raw(), progress);
+	}
+
+	fn run_default_pass<P>(&mut self, progress: &mut bool)
 	where
 		P: Debug + Default + Pass,
 	{
 		let mut pass = P::default();
 
-		debug!("running pass {pass:?}");
-		run_pass(&mut pass, self.program.as_raw(), progress);
+		self.run_pass(&mut pass, progress);
 	}
 
 	fn run_all_passes(&mut self, progress: &mut bool) {
-		self.run_pass::<CollapseStackedInstrPass>(progress);
-		self.run_pass::<SetUntouchedCellsPass>(progress);
+		self.run_default_pass::<CollapseStackedInstrPass>(progress);
+		self.run_default_pass::<CollapseRelativeInstrPass>(progress);
+		self.run_default_pass::<SetUntouchedCellsPass>(progress);
 
-		self.run_pass::<ClearCellPass>(progress);
-		self.run_pass::<ClearLoopPass>(progress);
-		self.run_pass::<FindZeroPass>(progress);
-		self.run_pass::<MoveValuePass>(progress);
+		self.run_default_pass::<ClearCellPass>(progress);
+		self.run_default_pass::<ClearLoopPass>(progress);
+		self.run_default_pass::<FindZeroPass>(progress);
+		self.run_default_pass::<MoveValuePass>(progress);
 
-		self.run_pass::<RemoveRedundantMovesPass>(progress);
-		self.run_pass::<RemoveRedundantWritesPass>(progress);
-		self.run_pass::<RemoveEmptyLoopsPass>(progress);
-		self.run_pass::<RemoveUnreachableLoopsPass>(progress);
-		self.run_pass::<CleanUpStartPass>(progress);
+		self.run_default_pass::<ReorderMoveChangePass>(progress);
+		self.run_default_pass::<CombineMoveChangePass>(progress);
 
-		self.run_pass::<UnrollConstantLoopsPass>(progress);
-		self.run_pass::<UnrollIncrementLoopsPass>(progress);
+		self.run_default_pass::<RemoveRedundantWritesPass>(progress);
+		self.run_default_pass::<RemoveEmptyLoopsPass>(progress);
+		self.run_default_pass::<RemoveUnreachableLoopsPass>(progress);
+		self.run_default_pass::<CleanUpStartPass>(progress);
+
+		self.run_default_pass::<UnrollConstantLoopsPass>(progress);
+		self.run_default_pass::<UnrollIncrementLoopsPass>(progress);
 	}
 }
 
@@ -157,7 +167,7 @@ fn run_pass<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool
 
 	if pass.should_run_on_loop() {
 		for instr in v {
-			if let Instruction::RawLoop(i) = instr {
+			if let Instruction::DynamicLoop(i) = instr {
 				run_pass(pass, i, progress);
 			}
 		}

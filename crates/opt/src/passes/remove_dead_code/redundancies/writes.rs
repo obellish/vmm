@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -10,15 +10,42 @@ impl PeepholePass for RemoveRedundantWritesPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::IncVal(_), Instruction::SetVal(x)] => {
-				Some(Change::ReplaceOne(Instruction::SetVal(*x)))
-			}
-			[Instruction::SetVal(0), Instruction::IncVal(y)] => {
-				Some(Change::ReplaceOne(Instruction::SetVal(*y as u8)))
-			}
-			[Instruction::SetVal(x), Instruction::IncVal(y)] => Some(Change::ReplaceOne(
-				Instruction::SetVal((*x as i8).wrapping_add(*y) as u8),
-			)),
+			[
+				Instruction::IncVal { offset: None, .. },
+				Instruction::SetVal {
+					value: None,
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::clear_val())),
+			[
+				Instruction::IncVal { offset: None, .. },
+				Instruction::SetVal {
+					value: Some(x),
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::set_val(x.get()))),
+			[
+				Instruction::SetVal {
+					value: None,
+					offset: None,
+				},
+				Instruction::IncVal {
+					value: y,
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::set_val(*y as u8))),
+			[
+				Instruction::SetVal {
+					value: Some(x),
+					offset: None,
+				},
+				Instruction::IncVal {
+					value: y,
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::set_val(
+				(x.get() as i8).wrapping_add(*y) as u8,
+			))),
 			_ => None,
 		}
 	}
@@ -26,8 +53,26 @@ impl PeepholePass for RemoveRedundantWritesPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,
-			[Instruction::IncVal(_), Instruction::SetVal(_)]
-				| [Instruction::SetVal(_), Instruction::IncVal(_)]
+			[
+				Instruction::IncVal { offset: None, .. },
+				Instruction::SetVal { offset: None, .. }
+			] | [
+				Instruction::SetVal { offset: None, .. },
+				Instruction::IncVal { offset: None, .. }
+			]
+		) || matches!(
+			window,
+			[
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(x)),
+					..
+				},
+				Instruction::SetVal {
+					offset: Some(Offset::Relative(y)),
+					..
+				}
+			]
+			if *x == *y,
 		)
 	}
 }

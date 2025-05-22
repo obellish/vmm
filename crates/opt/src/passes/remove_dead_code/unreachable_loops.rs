@@ -8,14 +8,27 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[Instruction::SetVal(0), Instruction::RawLoop(..)] => {
-				Some(Change::ReplaceOne(Instruction::SetVal(0)))
-			}
+			[
+				Instruction::SetVal {
+					offset: None,
+					value: None,
+				},
+				Instruction::DynamicLoop(..),
+			] => Some(Change::ReplaceOne(Instruction::clear_val())),
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [Instruction::SetVal(0), Instruction::RawLoop(..)])
+		matches!(
+			window,
+			[
+				Instruction::SetVal {
+					value: None,
+					offset: None
+				},
+				Instruction::DynamicLoop(..)
+			]
+		)
 	}
 }

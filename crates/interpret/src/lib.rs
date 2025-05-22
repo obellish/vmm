@@ -7,10 +7,10 @@ use std::{
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	io::{Error as IoError, ErrorKind as IoErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
 	mem,
-	num::Wrapping,
+	num::{NonZero, Wrapping},
 };
 
-use vmm_ir::{Instruction, MoveBy};
+use vmm_ir::{Instruction, Offset};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 
@@ -151,9 +151,15 @@ where
 		}
 
 		match instr {
-			Instruction::IncVal(i) => *self.cell_mut() += *i as u8,
-			Instruction::SetVal(i) => self.cell_mut().0 = *i,
-			Instruction::MovePtr(MoveBy::Relative(i)) => *self.ptr_mut() += *i,
+			Instruction::IncVal {
+				value: i,
+				offset: None,
+			} => *self.cell_mut() += *i as u8,
+			Instruction::SetVal {
+				value: i,
+				offset: None,
+			} => self.cell_mut().0 = i.map_or(0, NonZero::get),
+			Instruction::MovePtr(Offset::Relative(i)) => *self.ptr_mut() += *i,
 			Instruction::Write => self.write_char()?,
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => {
@@ -161,7 +167,7 @@ where
 					*self.ptr_mut() += *i;
 				}
 			}
-			Instruction::RawLoop(instructions) => {
+			Instruction::DynamicLoop(instructions) => {
 				let mut iterations = 0usize;
 				while !matches!(self.cell().0, 0) {
 					iterations += 1;
@@ -176,7 +182,7 @@ where
 				}
 			}
 			Instruction::MoveVal {
-				offset,
+				offset: Offset::Relative(offset),
 				factor: multiplier,
 			} => {
 				let (src_offset, dst_offset) = {
@@ -189,6 +195,26 @@ where
 				let src_val = mem::take(&mut tape[src_offset]);
 
 				tape[dst_offset] += src_val.0.wrapping_mul(*multiplier);
+			}
+			Instruction::IncVal {
+				value,
+				offset: Some(Offset::Relative(x)),
+			} => {
+				let dst_offset = (*self.ptr() + *x).value();
+
+				let tape = self.tape_mut();
+
+				tape[dst_offset] += *value as u8;
+			}
+			Instruction::SetVal {
+				value,
+				offset: Some(Offset::Relative(x)),
+			} => {
+				let dst_offset = (*self.ptr() + *x).value();
+
+				let tape = self.tape_mut();
+
+				tape[dst_offset].0 = value.map_or(0, NonZero::get);
 			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}

@@ -1,4 +1,4 @@
-use vmm_ir::MoveBy;
+use vmm_ir::Offset;
 
 use crate::{Change, Instruction, LoopPass};
 
@@ -9,29 +9,60 @@ impl LoopPass for MoveValuePass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
-				Instruction::IncVal(-1),
-				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(j),
-				Instruction::MovePtr(MoveBy::Relative(y)),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::IncVal {
+					value: j @ 0..=i8::MAX,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(y)),
 			]
 			| [
-				Instruction::IncVal(j),
-				Instruction::MovePtr(MoveBy::Relative(y)),
-				Instruction::IncVal(-1),
-				Instruction::MovePtr(MoveBy::Relative(x)),
+				Instruction::IncVal {
+					value: j @ 0..=i8::MAX,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(y)),
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(x)),
 			] if *x == -y => {
 				let j = *j;
 				let x = *x;
 
-				if j < 0 {
-					return None;
-				}
-
 				Some(Change::ReplaceOne(Instruction::MoveVal {
-					offset: x,
+					offset: x.into(),
 					factor: j as u8,
 				}))
 			}
+			[
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				Instruction::IncVal {
+					value: value @ 0..=i8::MAX,
+					offset: Some(offset @ Offset::Relative(_)),
+				},
+			]
+			| [
+				Instruction::IncVal {
+					value: value @ 0..=i8::MAX,
+					offset: Some(offset @ Offset::Relative(_)),
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::MoveVal {
+				offset: *offset,
+				factor: *value as u8,
+			})),
 			_ => None,
 		}
 	}
@@ -40,17 +71,44 @@ impl LoopPass for MoveValuePass {
 		matches!(
 			loop_values,
 			[
-				Instruction::IncVal(-1),
-				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(_),
-				Instruction::MovePtr(MoveBy::Relative(y))
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::IncVal { offset: None, .. },
+				Instruction::MovePtr(Offset::Relative(y))
 			] | [
-				Instruction::IncVal(_),
-				Instruction::MovePtr(MoveBy::Relative(x)),
-				Instruction::IncVal(-1),
-				Instruction::MovePtr(MoveBy::Relative(y))
+				Instruction::IncVal { offset: None, .. },
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
+				Instruction::MovePtr(Offset::Relative(y))
 			]
 			if *x == -y
+		) || matches!(
+			loop_values,
+			[
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
+				Instruction::IncVal {
+					value: 0..=i8::MAX,
+					offset: Some(Offset::Relative(_))
+				}
+			] | [
+				Instruction::IncVal {
+					value: 0..=i8::MAX,
+					offset: Some(Offset::Relative(_))
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				}
+			]
 		)
 	}
 }
