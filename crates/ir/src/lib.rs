@@ -179,6 +179,11 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub const fn is_io(&self) -> bool {
+		self.is_read() || self.is_write()
+	}
+
+	#[must_use]
 	pub const fn is_read(&self) -> bool {
 		matches!(self, Self::Read)
 	}

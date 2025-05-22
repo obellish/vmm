@@ -35,6 +35,22 @@ impl LoopPass for ClearLoopPass {
 				Instruction::MovePtr(*y),
 				Instruction::clear_val(),
 			])),
+			[
+				Instruction::SetVal {
+					offset: offset @ Some(_),
+					value: None,
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+			] => Some(Change::Replace(vec![
+				Instruction::SetVal {
+					value: None,
+					offset: *offset,
+				},
+				Instruction::clear_val(),
+			])),
 			_ => None,
 		}
 	}
@@ -63,6 +79,15 @@ impl LoopPass for ClearLoopPass {
 				Instruction::SetVal {
 					value: None,
 					offset: None
+				}
+			] | [
+				Instruction::SetVal {
+					offset: Some(_),
+					value: None
+				},
+				Instruction::IncVal {
+					offset: None,
+					value: -1
 				}
 			]
 		)

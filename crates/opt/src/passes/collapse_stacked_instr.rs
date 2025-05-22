@@ -92,6 +92,19 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: Some(Offset::Relative(y)),
 				},
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::clear_val_relative(*x))),
+			[
+				Instruction::SetVal {
+					offset: Some(Offset::Relative(x)),
+					..
+				},
+				Instruction::SetVal {
+					offset: Some(Offset::Relative(y)),
+					value,
+				},
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::SetVal {
+				offset: Some(Offset::Relative(*x)),
+				value: *value,
+			})),
 			_ => None,
 		}
 	}
