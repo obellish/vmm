@@ -13,6 +13,13 @@ impl PeepholePass for RemoveRedundantWritesPass {
 			[
 				Instruction::IncVal { offset: None, .. },
 				Instruction::SetVal {
+					value: None,
+					offset: None,
+				},
+			] => Some(Change::ReplaceOne(Instruction::clear_val())),
+			[
+				Instruction::IncVal { offset: None, .. },
+				Instruction::SetVal {
 					value: Some(x),
 					offset: None,
 				},
