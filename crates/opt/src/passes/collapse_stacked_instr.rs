@@ -73,10 +73,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 				offset: Some(Offset::Relative(*x)),
 			})),
 			[
-				Instruction::SetVal {
-					value: None,
-					offset: None,
-				},
+				Instruction::SetVal { offset: None, .. },
 				Instruction::SetVal {
 					value: None,
 					offset: None,

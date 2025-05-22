@@ -9,11 +9,13 @@ mod move_value;
 mod remove_dead_code;
 mod reorder_instr;
 mod set_untouched_cells;
+mod simd;
 mod unroll_constant_loops;
 mod unroll_increment_loops;
 
 pub use self::{
 	clear_cell::*, clear_loop::*, collapse_relative_instr::*, collapse_stacked_instr::*,
 	combine_move_change::*, find_zero::*, inspect_instr::*, move_value::*, remove_dead_code::*,
-	reorder_instr::*, set_untouched_cells::*, unroll_constant_loops::*, unroll_increment_loops::*,
+	reorder_instr::*, set_untouched_cells::*, simd::*, unroll_constant_loops::*,
+	unroll_increment_loops::*,
 };

@@ -3,6 +3,8 @@
 
 extern crate alloc;
 
+mod simc;
+
 use alloc::vec::Vec;
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
@@ -10,6 +12,8 @@ use core::{
 };
 
 use serde::{Deserialize, Serialize};
+
+pub use self::simc::Simc;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -31,6 +35,7 @@ pub enum Instruction {
 	Read,
 	Write,
 	DynamicLoop(Vec<Self>),
+	Simc(Simc),
 }
 
 impl Instruction {
@@ -325,6 +330,12 @@ impl Display for Instruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl From<Simc> for Instruction {
+	fn from(value: Simc) -> Self {
+		Self::Simc(value)
 	}
 }
 

@@ -8,9 +8,10 @@ use std::{
 	io::{Error as IoError, ErrorKind as IoErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
 	mem,
 	num::{NonZero, Wrapping},
+	slice::GetDisjointMutError,
 };
 
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, Simc};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 
@@ -216,7 +217,27 @@ where
 
 				tape[dst_offset].0 = value.map_or(0, NonZero::get);
 			}
+			Instruction::Simc(simc) => self.execute_simc_instruction(simc)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
+		}
+
+		Ok(())
+	}
+
+	#[expect(clippy::trivially_copy_pass_by_ref)]
+	fn execute_simc_instruction(&mut self, instr: &Simc) -> Result<(), RuntimeError> {
+		match instr {
+			Simc::Clear {
+				count,
+				offset: None,
+			} => {
+				for i in 0..=*count {
+					let src_offset = dbg!((*self.ptr() + i).value());
+
+					mem::take(&mut self.tape_mut()[src_offset].0);
+				}
+			}
+			i => return Err(RuntimeError::Unimplemented((*i).into())),
 		}
 
 		Ok(())
@@ -235,12 +256,14 @@ pub enum RuntimeError {
 	Io(IoError),
 	Unimplemented(Instruction),
 	TooManyIterations(usize),
+	GetDisjointMut(GetDisjointMutError),
 }
 
 impl Display for RuntimeError {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
 			Self::Io(e) => Display::fmt(&e, f),
+			Self::GetDisjointMut(e) => Display::fmt(&e, f),
 			Self::Unimplemented(instr) => {
 				f.write_str("instruction ")?;
 				Debug::fmt(&instr, f)?;
@@ -260,6 +283,7 @@ impl StdError for RuntimeError {
 	fn source(&self) -> Option<&(dyn StdError + 'static)> {
 		match self {
 			Self::Io(e) => Some(e),
+			Self::GetDisjointMut(e) => Some(e),
 			Self::Unimplemented(_) | Self::TooManyIterations(_) => None,
 		}
 	}
@@ -268,5 +292,11 @@ impl StdError for RuntimeError {
 impl From<IoError> for RuntimeError {
 	fn from(value: IoError) -> Self {
 		Self::Io(value)
+	}
+}
+
+impl From<GetDisjointMutError> for RuntimeError {
+	fn from(value: GetDisjointMutError) -> Self {
+		Self::GetDisjointMut(value)
 	}
 }

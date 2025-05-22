@@ -117,6 +117,8 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_pass::<SetUntouchedCellsPass>(progress);
 
 		self.run_default_pass::<ClearCellPass>(progress);
+		self.run_default_pass::<CombineMoveAndClearToSimdPass>(progress);
+		// self.run_default_pass::<CombineClearClearToSimdPass>(progress);
 		self.run_default_pass::<ClearLoopPass>(progress);
 		self.run_default_pass::<FindZeroPass>(progress);
 		self.run_default_pass::<MoveValuePass>(progress);
