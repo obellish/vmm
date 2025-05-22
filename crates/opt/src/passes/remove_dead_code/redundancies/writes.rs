@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -60,6 +60,19 @@ impl PeepholePass for RemoveRedundantWritesPass {
 				Instruction::SetVal { offset: None, .. },
 				Instruction::IncVal { offset: None, .. }
 			]
+		) || matches!(
+			window,
+			[
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(x)),
+					..
+				},
+				Instruction::SetVal {
+					offset: Some(Offset::Relative(y)),
+					..
+				}
+			]
+			if *x == *y,
 		)
 	}
 }

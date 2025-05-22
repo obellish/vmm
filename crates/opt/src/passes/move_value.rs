@@ -15,14 +15,14 @@ impl LoopPass for MoveValuePass {
 				},
 				Instruction::MovePtr(Offset::Relative(x)),
 				Instruction::IncVal {
-					value: j,
+					value: j @ 0..=i8::MAX,
 					offset: None,
 				},
 				Instruction::MovePtr(Offset::Relative(y)),
 			]
 			| [
 				Instruction::IncVal {
-					value: j,
+					value: j @ 0..=i8::MAX,
 					offset: None,
 				},
 				Instruction::MovePtr(Offset::Relative(y)),
@@ -34,10 +34,6 @@ impl LoopPass for MoveValuePass {
 			] if *x == -y => {
 				let j = *j;
 				let x = *x;
-
-				if j < 0 {
-					return None;
-				}
 
 				Some(Change::ReplaceOne(Instruction::MoveVal {
 					offset: x.into(),
@@ -63,15 +59,10 @@ impl LoopPass for MoveValuePass {
 					value: -1,
 					offset: None,
 				},
-			] => {
-				// println!("{} {:?}", value, offset);
-
-				// None
-				Some(Change::ReplaceOne(Instruction::MoveVal {
-					offset: *offset,
-					factor: *value as u8,
-				}))
-			}
+			] => Some(Change::ReplaceOne(Instruction::MoveVal {
+				offset: *offset,
+				factor: *value as u8,
+			})),
 			_ => None,
 		}
 	}

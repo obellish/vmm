@@ -20,6 +20,19 @@ impl PeepholePass for ReorderMoveChangePass {
 				Instruction::inc_val(*value),
 				Instruction::move_ptr_by(*x),
 			])),
+			[
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::SetVal {
+					value,
+					offset: Some(Offset::Relative(y)),
+				},
+			] if *x == -y => Some(Change::Replace(vec![
+				Instruction::SetVal {
+					value: *value,
+					offset: None,
+				},
+				Instruction::move_ptr_by(*x),
+			])),
 			_ => None,
 		}
 	}

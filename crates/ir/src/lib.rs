@@ -196,7 +196,7 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn offset(&self) -> Option<isize> {
+	pub fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::MoveVal { .. }
 			| Self::IncVal { .. }
@@ -208,7 +208,7 @@ impl Instruction {
 				let mut sum = 0;
 
 				for instr in instrs {
-					sum += instr.offset()?;
+					sum += instr.ptr_movement()?;
 				}
 
 				Some(sum)
@@ -219,7 +219,8 @@ impl Instruction {
 
 	#[must_use]
 	pub fn might_move_ptr(&self) -> bool {
-		self.offset().is_none_or(|offset| !matches!(offset, 0))
+		self.ptr_movement()
+			.is_none_or(|offset| !matches!(offset, 0))
 	}
 }
 
