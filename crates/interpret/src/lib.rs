@@ -206,6 +206,16 @@ where
 
 				tape[dst_offset] += *value as u8;
 			}
+			Instruction::SetVal {
+				value,
+				offset: Some(Offset::Relative(x)),
+			} => {
+				let dst_offset = (*self.ptr() + *x).value();
+
+				let tape = self.tape_mut();
+
+				tape[dst_offset].0 = value.map_or(0, NonZero::get);
+			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 

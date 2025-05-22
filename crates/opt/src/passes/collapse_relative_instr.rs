@@ -1,3 +1,5 @@
+use std::num::NonZero;
+
 use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
@@ -21,6 +23,17 @@ impl PeepholePass for CollapseRelativeInstrPass {
 				value: *value,
 				offset: Some(Offset::Relative(*x)),
 			})),
+			[
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::SetVal {
+					value,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(y)),
+			] if *x == -y => Some(Change::ReplaceOne(Instruction::set_val_relative(
+				value.map_or(0, NonZero::get),
+				*x,
+			))),
 			_ => None,
 		}
 	}
@@ -30,7 +43,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			window,
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
 				Instruction::MovePtr(Offset::Relative(y))
 			]
 			if *x == -y
