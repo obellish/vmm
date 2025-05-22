@@ -14,6 +14,7 @@ use std::{
 use vmm_ir::{Instruction, Offset, Simc};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
+use vmm_utils::IsClosedRange;
 
 pub use self::profiler::*;
 
@@ -231,10 +232,20 @@ where
 				count,
 				offset: None,
 			} => {
-				for i in 0..=*count {
-					let src_offset = dbg!((*self.ptr() + i).value());
+				let indices = (0..=*count)
+					.map(|i| (*self.ptr() + i).value())
+					.collect::<Vec<_>>();
 
-					mem::take(&mut self.tape_mut()[src_offset].0);
+				if let Some(range) = indices.to_range() {
+					let cells = self.tape_mut().as_mut_slice().get_disjoint_mut([range])?;
+
+					for arr in cells {
+						arr.fill(Wrapping(0));
+					}
+				} else {
+					for src_offset in indices {
+						mem::take(&mut self.tape_mut()[src_offset].0);
+					}
 				}
 			}
 			i => return Err(RuntimeError::Unimplemented((*i).into())),

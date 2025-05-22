@@ -782,6 +782,7 @@ dependencies = [
  "vmm_ir",
  "vmm_program",
  "vmm_tape",
+ "vmm_utils",
 ]
 
 [[package]]

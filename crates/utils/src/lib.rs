@@ -3,18 +3,7 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
+mod insert_or_push;
+mod is_closed_range;
 
-pub trait InsertOrPush<T> {
-	fn insert_or_push(&mut self, index: usize, value: T);
-}
-
-impl<T> InsertOrPush<T> for Vec<T> {
-	fn insert_or_push(&mut self, index: usize, value: T) {
-		if index >= self.len() {
-			self.push(value);
-		} else {
-			self.insert(index, value);
-		}
-	}
-}
+pub use self::{insert_or_push::InsertOrPush, is_closed_range::IsClosedRange};
