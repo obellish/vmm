@@ -48,7 +48,7 @@ impl Add<usize> for TapePointer {
 	fn add(self, rhs: usize) -> Self::Output {
 		let mut out = Self(self.0 + rhs);
 
-		if out.0 >= TAPE_SIZE {
+		while out.0 >= TAPE_SIZE {
 			out.0 -= TAPE_SIZE;
 		}
 
