@@ -7,12 +7,13 @@ use std::{
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	io::{Error as IoError, ErrorKind as IoErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
 	mem,
-	num::{NonZero, Wrapping},
+	num::NonZero,
 };
 
 use vmm_ir::{Instruction, Offset};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
+use vmm_wrap::Wrapping;
 
 pub use self::profiler::*;
 
@@ -154,7 +155,7 @@ where
 			Instruction::IncVal {
 				value: i,
 				offset: None,
-			} => *self.cell_mut() += *i as u8,
+			} => *self.cell_mut() += *i,
 			Instruction::SetVal {
 				value: i,
 				offset: None,
@@ -194,7 +195,7 @@ where
 
 				let src_val = mem::take(&mut tape[src_offset]);
 
-				tape[dst_offset] += src_val.0.wrapping_mul(*multiplier);
+				tape[dst_offset] += (src_val * *multiplier).0;
 			}
 			Instruction::IncVal {
 				value,
@@ -224,7 +225,7 @@ where
 
 				let value = mem::take(&mut self.tape_mut()[src_offset]);
 
-				*self.cell_mut() += value.0.wrapping_mul(*factor);
+				*self.cell_mut() += (value * *factor).0;
 			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}

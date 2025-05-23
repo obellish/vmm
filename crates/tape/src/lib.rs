@@ -5,12 +5,12 @@ mod ptr;
 
 use core::{
 	fmt::{Debug, Formatter, Result as FmtResult},
-	num::Wrapping,
 	ops::{Index, IndexMut},
 };
 
 use serde::{Deserialize, Serialize};
 use serde_array::BigArray;
+use vmm_wrap::Wrapping;
 
 pub use self::ptr::*;
 

@@ -10,3 +10,4 @@ version.workspace = true
 [dependencies]
 serde = { workspace = true, default-features = false, features = ["derive"] }
 serde_array.workspace = true
+vmm_wrap.workspace = true

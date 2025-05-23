@@ -782,6 +782,7 @@ dependencies = [
  "vmm_ir",
  "vmm_program",
  "vmm_tape",
+ "vmm_wrap",
 ]
 
 [[package]]
@@ -835,6 +836,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_array",
+ "vmm_wrap",
 ]
 
 [[package]]
