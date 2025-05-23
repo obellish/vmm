@@ -72,6 +72,26 @@ impl<T: LowerHex> LowerHex for Wrapping<T> {
 	}
 }
 
+impl<T, Rhs> Mul<Rhs> for Wrapping<T>
+where
+	T: WrappingMul<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn mul(self, rhs: Rhs) -> Self::Output {
+		Wrapping(self.0.wrapping_mul(rhs))
+	}
+}
+
+impl<T, Rhs> MulAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingMulAssign<Rhs>,
+{
+	fn mul_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_mul_assign(rhs);
+	}
+}
+
 impl<T: Octal> Octal for Wrapping<T> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		Octal::fmt(&self.0, f)
