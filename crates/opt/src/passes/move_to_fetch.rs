@@ -3,9 +3,9 @@ use vmm_ir::{Instruction, Offset};
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct MoveValToFetchPass;
+pub struct FetchValPass;
 
-impl PeepholePass for MoveValToFetchPass {
+impl PeepholePass for FetchValPass {
 	const SIZE: usize = 3;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
