@@ -122,7 +122,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_pass::<FetchValPass>(progress);
 
 		self.run_default_pass::<ReorderMoveChangePass>(progress);
-		self.run_default_pass::<ReorderChangeChangeRelativeChangeInstrsPass>(progress);
+		self.run_default_pass::<ReorderRelativeChangesPass>(progress);
 		self.run_default_pass::<CombineMoveChangePass>(progress);
 
 		self.run_default_pass::<RemoveRedundantChangeValBasicPass>(progress);
