@@ -224,52 +224,92 @@ impl WrappingAddAssign<i8> for u8 {
 	}
 }
 
+impl WrappingAddAssign for i16 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<u16> for i16 {
+	fn wrapping_add_assign(&mut self, rhs: u16) {
+		*self = self.wrapping_add_unsigned(rhs);
+	}
+}
+
+impl WrappingAddAssign for u16 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<i16> for u16 {
+	fn wrapping_add_assign(&mut self, rhs: i16) {
+		*self = self.wrapping_add_signed(rhs);
+	}
+}
+
 #[cfg(test)]
 mod tests {
-	use crate::Wrapping;
+	macro_rules! test_type {
+		($signed:ty, $unsigned:ty) => {{
+			let value: $crate::Wrapping<$signed> = $crate::Wrapping(10);
 
-	#[test]
-	fn add_i8() {
-		let value = Wrapping(0i8);
+			let result = value + <$signed>::MAX;
 
-		let result = value + -1i8;
+			let result = result + <$signed>::MAX;
 
-		assert_eq!(result.0, -1);
+			assert_eq!(result.0, 8);
+		}
+
+		{
+			let value: $crate::Wrapping<$signed> = $crate::Wrapping(0);
+
+			let result = value + <$unsigned>::MAX;
+
+			assert_eq!(result.0, -1);
+		}
+
+		{
+			let value: $crate::Wrapping<$unsigned> = $crate::Wrapping(10);
+
+			let result = value + <$unsigned>::MAX;
+
+			assert_eq!(result.0, 9);
+		}
+
+		{
+			let value: $crate::Wrapping<$unsigned> = $crate::Wrapping(0);
+
+			let result = value + <$signed>::MIN;
+
+			assert_eq!(result.0, <$signed>::MAX as $unsigned + 1);
+		}};
 	}
 
 	#[test]
-	fn add_u8_to_i8() {
-		let value = Wrapping(0i8);
+	fn additions() {
+		{
+			test_type!(i8, u8);
+		}
 
-		let result = value + u8::MAX;
+		{
+			test_type!(i16, u16);
+		}
 
-		assert_eq!(result.0, -1);
-	}
+		{
+			test_type!(i32, u32);
+		}
 
-	#[test]
-	fn add_u8() {
-		let value = Wrapping(0u8);
+		{
+			test_type!(i64, u64);
+		}
 
-		let result = value + 1u8;
+		{
+			test_type!(i128, u128);
+		}
 
-		assert_eq!(result.0, 1);
-	}
-
-	#[test]
-	fn add_i8_to_u8() {
-		let value = Wrapping(0u8);
-
-		let result = value + -1i8;
-
-		assert_eq!(result.0, u8::MAX);
-	}
-
-	#[test]
-	fn add_i16() {
-		let value = Wrapping(0i16);
-
-		let result = value + -1i16;
-
-		assert_eq!(result.0, -1);
+		{
+			test_type!(isize, usize);
+		}
 	}
 }
