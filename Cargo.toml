@@ -32,7 +32,8 @@ members = [
     "crates/serde_array",
     "crates/tape",
     "crates/type_name",
-    "crates/utils"
+    "crates/utils",
+    "crates/wrap"
 ]
 resolver = "3"
 

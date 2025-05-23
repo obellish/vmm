@@ -14,10 +14,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
+	/// Increment the value at the current cell (offset = None) or at an offset
 	IncVal {
 		value: i8,
 		offset: Option<Offset>,
 	},
+	/// Set the value at the current cell (offset = None) or at an offset
 	SetVal {
 		value: Option<NonZeroU8>,
 		offset: Option<Offset>,
