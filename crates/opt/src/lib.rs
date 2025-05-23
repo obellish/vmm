@@ -114,7 +114,6 @@ impl<S: MetadataStore> Optimizer<S> {
 	fn run_all_passes(&mut self, progress: &mut bool) {
 		self.run_default_pass::<CollapseStackedInstrPass>(progress);
 		self.run_default_pass::<CollapseRelativeInstrPass>(progress);
-		// self.run_default_pass::<SetUntouchedCellsPass>(progress);
 
 		self.run_default_pass::<ClearCellPass>(progress);
 		self.run_default_pass::<ClearLoopPass>(progress);
@@ -123,6 +122,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_pass::<FetchValPass>(progress);
 
 		self.run_default_pass::<ReorderMoveChangePass>(progress);
+		self.run_default_pass::<ReorderChangeChangeRelativeChangeInstrsPass>(progress);
 		self.run_default_pass::<CombineMoveChangePass>(progress);
 
 		self.run_default_pass::<RemoveRedundantChangeValBasicPass>(progress);
