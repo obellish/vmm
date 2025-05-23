@@ -848,6 +848,9 @@ version = "0.1.0"
 [[package]]
 name = "vmm_wrap"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "winapi"
