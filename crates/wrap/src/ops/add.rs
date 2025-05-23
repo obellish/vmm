@@ -8,150 +8,6 @@ pub trait WrappingAddAssign<Rhs = Self> {
 	fn wrapping_add_assign(&mut self, rhs: Rhs);
 }
 
-impl WrappingAddAssign for i8 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<u8> for i8 {
-	fn wrapping_add_assign(&mut self, rhs: u8) {
-		*self = self.wrapping_add_unsigned(rhs);
-	}
-}
-
-impl WrappingAddAssign for u8 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<i8> for u8 {
-	fn wrapping_add_assign(&mut self, rhs: i8) {
-		*self = self.wrapping_add_signed(rhs);
-	}
-}
-
-impl WrappingAddAssign for i16 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<u16> for i16 {
-	fn wrapping_add_assign(&mut self, rhs: u16) {
-		*self = self.wrapping_add_unsigned(rhs);
-	}
-}
-
-impl WrappingAddAssign for u16 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<i16> for u16 {
-	fn wrapping_add_assign(&mut self, rhs: i16) {
-		*self = self.wrapping_add_signed(rhs);
-	}
-}
-
-impl WrappingAddAssign for i32 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<u32> for i32 {
-	fn wrapping_add_assign(&mut self, rhs: u32) {
-		*self = self.wrapping_add_unsigned(rhs);
-	}
-}
-
-impl WrappingAddAssign for u32 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<i32> for u32 {
-	fn wrapping_add_assign(&mut self, rhs: i32) {
-		*self = self.wrapping_add_signed(rhs);
-	}
-}
-
-impl WrappingAddAssign for i64 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<u64> for i64 {
-	fn wrapping_add_assign(&mut self, rhs: u64) {
-		*self = self.wrapping_add_unsigned(rhs);
-	}
-}
-
-impl WrappingAddAssign for u64 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<i64> for u64 {
-	fn wrapping_add_assign(&mut self, rhs: i64) {
-		*self = self.wrapping_add_signed(rhs);
-	}
-}
-
-impl WrappingAddAssign for i128 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<u128> for i128 {
-	fn wrapping_add_assign(&mut self, rhs: u128) {
-		*self = self.wrapping_add_unsigned(rhs);
-	}
-}
-
-impl WrappingAddAssign for u128 {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<i128> for u128 {
-	fn wrapping_add_assign(&mut self, rhs: i128) {
-		*self = self.wrapping_add_signed(rhs);
-	}
-}
-
-impl WrappingAddAssign for isize {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<usize> for isize {
-	fn wrapping_add_assign(&mut self, rhs: usize) {
-		*self = self.wrapping_add_unsigned(rhs);
-	}
-}
-
-impl WrappingAddAssign for usize {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<isize> for usize {
-	fn wrapping_add_assign(&mut self, rhs: isize) {
-		*self = self.wrapping_add_signed(rhs);
-	}
-}
-
 macro_rules! impl_wrapping_add {
 	($signed:ty, $unsigned:ty) => {
 		impl $crate::ops::WrappingAdd for $signed {
@@ -183,6 +39,30 @@ macro_rules! impl_wrapping_add {
 
 			fn wrapping_add(self, rhs: $signed) -> Self {
 				self.wrapping_add_signed(rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAddAssign for $signed {
+			fn wrapping_add_assign(&mut self, rhs: Self) {
+				*self = self.wrapping_add(rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingAddAssign<$unsigned> for $signed {
+			fn wrapping_add_assign(&mut self, rhs: $unsigned) {
+				*self = self.wrapping_add_unsigned(rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingAddAssign for $unsigned {
+			fn wrapping_add_assign(&mut self, rhs: Self) {
+				*self = self.wrapping_add(rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingAddAssign<$signed> for $unsigned {
+			fn wrapping_add_assign(&mut self, rhs: $signed) {
+				*self = self.wrapping_add_signed(rhs);
 			}
 		}
 	};
