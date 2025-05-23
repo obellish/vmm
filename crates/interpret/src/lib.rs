@@ -130,8 +130,10 @@ where
 				continue;
 			}
 
+			self.cell_mut().0 = buf[0];
 			break;
 		}
+
 		Ok(())
 	}
 
