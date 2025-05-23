@@ -19,10 +19,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: Some(Offset::Relative(y)),
 					value: Some(value),
 				},
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::set_val_relative(
-				value.get(),
-				*x,
-			))),
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::set_val_at(value.get(), *x))),
 			[
 				Instruction::IncVal {
 					offset: Some(Offset::Relative(x)),
@@ -32,7 +29,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: Some(Offset::Relative(y)),
 					value: None,
 				},
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::clear_val_relative(*x))),
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::clear_val_at(*x))),
 			_ => None,
 		}
 	}

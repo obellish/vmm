@@ -17,10 +17,7 @@ impl PeepholePass for FetchValPass {
 					factor,
 				},
 				Instruction::MovePtr(Offset::Relative(z)),
-			] if *y == *z && -x == *y => Some(Change::ReplaceOne(Instruction::FetchAndAddVal {
-				offset: Offset::Relative(*x),
-				factor: *factor,
-			})),
+			] if *y == *z && -x == *y => Some(Change::ReplaceOne(Instruction::fetch_val_from(x, *factor))),
 			_ => None,
 		}
 	}

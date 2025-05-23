@@ -23,14 +23,21 @@ impl PeepholePass for ReorderMoveChangePass {
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
 				Instruction::SetVal {
-					value,
+					value: Some(value),
 					offset: Some(Offset::Relative(y)),
 				},
 			] if *x == -y => Some(Change::Replace(vec![
+				Instruction::set_val(value.get()),
+				Instruction::move_ptr_by(*x),
+			])),
+			[
+				Instruction::MovePtr(Offset::Relative(x)),
 				Instruction::SetVal {
-					value: *value,
-					offset: None,
+					value: None,
+					offset: Some(Offset::Relative(y)),
 				},
+			] if *x == -y => Some(Change::Replace(vec![
+				Instruction::clear_val(),
 				Instruction::move_ptr_by(*x),
 			])),
 			_ => None,

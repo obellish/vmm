@@ -3,9 +3,9 @@ use vmm_ir::Offset;
 use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Default)]
-pub struct MoveValuePass;
+pub struct MoveValPass;
 
-impl LoopPass for MoveValuePass {
+impl LoopPass for MoveValPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
@@ -32,13 +32,9 @@ impl LoopPass for MoveValuePass {
 				},
 				Instruction::MovePtr(Offset::Relative(x)),
 			] if *x == -y => {
-				let j = *j;
 				let x = *x;
 
-				Some(Change::ReplaceOne(Instruction::MoveAndAddVal {
-					offset: x.into(),
-					factor: j as u8,
-				}))
+				Some(Change::ReplaceOne(Instruction::move_val_by(x, *j as u8)))
 			}
 			[
 				Instruction::IncVal {
@@ -47,22 +43,22 @@ impl LoopPass for MoveValuePass {
 				},
 				Instruction::IncVal {
 					value: value @ 0..=i8::MAX,
-					offset: Some(offset @ Offset::Relative(_)),
+					offset: Some(Offset::Relative(x)),
 				},
 			]
 			| [
 				Instruction::IncVal {
 					value: value @ 0..=i8::MAX,
-					offset: Some(offset @ Offset::Relative(_)),
+					offset: Some(Offset::Relative(x)),
 				},
 				Instruction::IncVal {
 					value: -1,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::MoveAndAddVal {
-				offset: *offset,
-				factor: *value as u8,
-			})),
+			] => Some(Change::ReplaceOne(Instruction::move_val_by(
+				*x,
+				*value as u8,
+			))),
 			_ => None,
 		}
 	}

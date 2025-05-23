@@ -47,10 +47,10 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn inc_val_relative(v: i8, offset: isize) -> Self {
+	pub fn inc_val_at(v: i8, offset: impl Into<Offset>) -> Self {
 		Self::IncVal {
 			value: v,
-			offset: Some(Offset::Relative(offset)),
+			offset: Some(offset.into()),
 		}
 	}
 
@@ -63,10 +63,10 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn set_val_relative(v: u8, offset: isize) -> Self {
+	pub fn set_val_at(v: u8, offset: impl Into<Offset>) -> Self {
 		Self::SetVal {
 			value: NonZeroU8::new(v),
-			offset: Some(Offset::Relative(offset)),
+			offset: Some(offset.into()),
 		}
 	}
 
@@ -79,10 +79,18 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn clear_val_relative(offset: isize) -> Self {
+	pub fn clear_val_at(offset: impl Into<Offset>) -> Self {
 		Self::SetVal {
 			value: None,
-			offset: Some(Offset::Relative(offset)),
+			offset: Some(offset.into()),
+		}
+	}
+
+	#[must_use]
+	pub fn move_val(offset: impl Into<Offset>, factor: u8) -> Self {
+		Self::MoveAndAddVal {
+			offset: offset.into(),
+			factor,
 		}
 	}
 
@@ -100,6 +108,19 @@ impl Instruction {
 			offset: Offset::Absolute(index),
 			factor,
 		}
+	}
+
+	#[must_use]
+	pub fn fetch_val_from(offset: impl Into<Offset>, factor: u8) -> Self {
+		Self::FetchAndAddVal {
+			offset: offset.into(),
+			factor,
+		}
+	}
+
+	#[must_use]
+	pub fn move_ptr(offset: impl Into<Offset>) -> Self {
+		Self::MovePtr(offset.into())
 	}
 
 	#[must_use]
@@ -374,8 +395,20 @@ impl From<isize> for Offset {
 	}
 }
 
+impl From<&isize> for Offset {
+	fn from(value: &isize) -> Self {
+		(*value).into()
+	}
+}
+
 impl From<usize> for Offset {
 	fn from(value: usize) -> Self {
 		Self::Absolute(value)
+	}
+}
+
+impl From<&usize> for Offset {
+	fn from(value: &usize) -> Self {
+		(*value).into()
 	}
 }

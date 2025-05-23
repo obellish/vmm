@@ -43,6 +43,8 @@ where
 				progress = true;
 			} else {
 				i += 1;
+
+				// If the pass changed state due to the current run, we don't want to warn
 				if P::should_run(self, window) {
 					warn!("pass {self:?}::should_ran was true but didn't make changes");
 					tracing::trace!("{window:?}");

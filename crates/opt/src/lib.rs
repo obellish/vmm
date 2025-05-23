@@ -119,7 +119,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_pass::<ClearCellPass>(progress);
 		self.run_default_pass::<ClearLoopPass>(progress);
 		self.run_default_pass::<FindZeroPass>(progress);
-		self.run_default_pass::<MoveValuePass>(progress);
+		self.run_default_pass::<MoveValPass>(progress);
 		self.run_default_pass::<FetchValPass>(progress);
 
 		self.run_default_pass::<ReorderMoveChangePass>(progress);
