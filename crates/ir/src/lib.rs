@@ -15,27 +15,25 @@ use serde::{Deserialize, Serialize};
 #[non_exhaustive]
 pub enum Instruction {
 	/// Increment the value at the current cell (offset = None) or at an offset
-	IncVal {
-		value: i8,
-		offset: Option<Offset>,
-	},
+	IncVal { value: i8, offset: Option<Offset> },
 	/// Set the value at the current cell (offset = None) or at an offset
 	SetVal {
 		value: Option<NonZeroU8>,
 		offset: Option<Offset>,
 	},
-	MoveAndAddVal {
-		offset: Offset,
-		factor: u8,
-	},
-	FetchAndAddVal {
-		offset: Offset,
-		factor: u8,
-	},
+	/// Multiply current cell by factor, add result to offset, then zero current cell
+	MoveAndAddVal { offset: Offset, factor: u8 },
+	/// Multiply offset by factor, add result to current cell, then zero offset
+	FetchAndAddVal { offset: Offset, factor: u8 },
+	/// Move the pointer along the tape
 	MovePtr(Offset),
+	/// Find the next zero, jumping by the value
 	FindZero(isize),
+	/// Read a value from the input
 	Read,
+	/// Write the value to an output
 	Write,
+	/// A basic dynamic loop, where the current cell is checked for zero at each iteration
 	DynamicLoop(Vec<Self>),
 }
 
