@@ -14,7 +14,7 @@ use vmm_wrap::Wrapping;
 
 pub use self::ptr::*;
 
-pub const TAPE_SIZE: usize = 1000;
+pub const TAPE_SIZE: usize = 30000;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Tape {
