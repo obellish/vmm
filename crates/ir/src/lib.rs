@@ -263,6 +263,21 @@ impl Instruction {
 		self.ptr_movement()
 			.is_none_or(|offset| !matches!(offset, 0))
 	}
+
+	#[must_use]
+	pub fn nested_loops(&self) -> usize {
+		let mut count = 0;
+
+		if let Self::DynamicLoop(instrs) = self {
+			count += 1;
+
+			for instr in instrs {
+				count += instr.nested_loops();
+			}
+		}
+
+		count
+	}
 }
 
 impl Display for Instruction {

@@ -1,5 +1,7 @@
 use crate::{Change, Instruction, PeepholePass};
 
+const MAX_LOOP_UNROLLING: usize = 5;
+
 #[derive(Debug, Default)]
 pub struct UnrollIncrementLoopsPass;
 
@@ -16,7 +18,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 				raw_loop @ Instruction::DynamicLoop(inner),
 			] if *i > 0
 				&& !raw_loop.might_move_ptr()
-				&& !inner.iter().any(Instruction::is_loop) =>
+				&& (raw_loop.nested_loops() < MAX_LOOP_UNROLLING) =>
 			{
 				match inner.as_slice() {
 					[
@@ -71,7 +73,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 			return false;
 		}
 
-		if inner.iter().any(Instruction::is_loop) {
+		if raw_loop.nested_loops() >= MAX_LOOP_UNROLLING {
 			return false;
 		}
 
