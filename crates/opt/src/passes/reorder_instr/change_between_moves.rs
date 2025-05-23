@@ -21,6 +21,20 @@ impl PeepholePass for ReorderChangeBetweenMovesPass {
 				Instruction::inc_val_at(*value, x),
 				Instruction::move_ptr(*x + *y),
 			])),
+			[
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::SetVal {
+					value,
+					offset: None,
+				},
+				Instruction::MovePtr(Offset::Relative(y)),
+			] => Some(Change::Replace(vec![
+				Instruction::SetVal {
+					value: *value,
+					offset: Some(Offset::Relative(*x)),
+				},
+				Instruction::move_ptr(*x + *y),
+			])),
 			_ => None,
 		}
 	}
@@ -30,7 +44,7 @@ impl PeepholePass for ReorderChangeBetweenMovesPass {
 			window,
 			[
 				Instruction::MovePtr(Offset::Relative(_)),
-				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
 				Instruction::MovePtr(Offset::Relative(_))
 			]
 		)
