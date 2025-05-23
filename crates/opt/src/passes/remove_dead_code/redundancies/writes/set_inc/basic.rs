@@ -1,11 +1,11 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::Instruction;
 
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct RemoveRedundantWritesPass;
+pub struct RemoveRedundantWriteValBasicPass;
 
-impl PeepholePass for RemoveRedundantWritesPass {
+impl PeepholePass for RemoveRedundantWriteValBasicPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
@@ -13,8 +13,8 @@ impl PeepholePass for RemoveRedundantWritesPass {
 			[
 				Instruction::IncVal { offset: None, .. },
 				Instruction::SetVal {
-					value: None,
 					offset: None,
+					value: None,
 				},
 			] => Some(Change::ReplaceOne(Instruction::clear_val())),
 			[
@@ -36,8 +36,8 @@ impl PeepholePass for RemoveRedundantWritesPass {
 			] => Some(Change::ReplaceOne(Instruction::set_val(*y as u8))),
 			[
 				Instruction::SetVal {
-					value: Some(x),
 					offset: None,
+					value: Some(x),
 				},
 				Instruction::IncVal {
 					value: y,
@@ -60,19 +60,6 @@ impl PeepholePass for RemoveRedundantWritesPass {
 				Instruction::SetVal { offset: None, .. },
 				Instruction::IncVal { offset: None, .. }
 			]
-		) || matches!(
-			window,
-			[
-				Instruction::IncVal {
-					offset: Some(Offset::Relative(x)),
-					..
-				},
-				Instruction::SetVal {
-					offset: Some(Offset::Relative(y)),
-					..
-				}
-			]
-			if *x == *y,
 		)
 	}
 }
