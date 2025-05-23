@@ -181,7 +181,7 @@ where
 					}
 				}
 			}
-			Instruction::MoveVal {
+			Instruction::MoveAndAddVal {
 				offset: Offset::Relative(offset),
 				factor: multiplier,
 			} => {
@@ -216,7 +216,7 @@ where
 
 				tape[dst_offset].0 = value.map_or(0, NonZero::get);
 			}
-			Instruction::FetchVal {
+			Instruction::FetchAndAddVal {
 				offset: Offset::Relative(offset),
 				factor,
 			} => {

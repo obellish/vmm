@@ -22,11 +22,11 @@ pub enum Instruction {
 		value: Option<NonZeroU8>,
 		offset: Option<Offset>,
 	},
-	MoveVal {
+	MoveAndAddVal {
 		offset: Offset,
 		factor: u8,
 	},
-	FetchVal {
+	FetchAndAddVal {
 		offset: Offset,
 		factor: u8,
 	},
@@ -88,7 +88,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn move_val_by(offset: isize, factor: u8) -> Self {
-		Self::MoveVal {
+		Self::MoveAndAddVal {
 			offset: Offset::Relative(offset),
 			factor,
 		}
@@ -96,7 +96,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn move_val_to(index: usize, factor: u8) -> Self {
-		Self::MoveVal {
+		Self::MoveAndAddVal {
 			offset: Offset::Absolute(index),
 			factor,
 		}
@@ -169,7 +169,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_move_val(&self) -> bool {
-		matches!(self, Self::MoveVal { .. })
+		matches!(self, Self::MoveAndAddVal { .. })
 	}
 
 	#[must_use]
@@ -217,7 +217,8 @@ impl Instruction {
 	#[must_use]
 	pub fn ptr_movement(&self) -> Option<isize> {
 		match self {
-			Self::MoveVal { .. }
+			Self::MoveAndAddVal { .. }
+			| Self::FetchAndAddVal { .. }
 			| Self::IncVal { .. }
 			| Self::SetVal { .. }
 			| Self::Read
@@ -288,7 +289,7 @@ impl Display for Instruction {
 				display_loop(instrs, f)?;
 				f.write_char(']')?;
 			}
-			Self::MoveVal {
+			Self::MoveAndAddVal {
 				offset: Offset::Relative(offset),
 				factor: multiplier,
 			} => {

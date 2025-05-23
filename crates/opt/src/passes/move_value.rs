@@ -35,7 +35,7 @@ impl LoopPass for MoveValuePass {
 				let j = *j;
 				let x = *x;
 
-				Some(Change::ReplaceOne(Instruction::MoveVal {
+				Some(Change::ReplaceOne(Instruction::MoveAndAddVal {
 					offset: x.into(),
 					factor: j as u8,
 				}))
@@ -59,7 +59,7 @@ impl LoopPass for MoveValuePass {
 					value: -1,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::MoveVal {
+			] => Some(Change::ReplaceOne(Instruction::MoveAndAddVal {
 				offset: *offset,
 				factor: *value as u8,
 			})),

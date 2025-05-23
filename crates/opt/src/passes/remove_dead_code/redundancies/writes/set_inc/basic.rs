@@ -3,9 +3,9 @@ use vmm_ir::Instruction;
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct RemoveRedundantWriteValBasicPass;
+pub struct RemoveRedundantChangeValBasicPass;
 
-impl PeepholePass for RemoveRedundantWriteValBasicPass {
+impl PeepholePass for RemoveRedundantChangeValBasicPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
