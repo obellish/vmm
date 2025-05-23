@@ -216,6 +216,16 @@ where
 
 				tape[dst_offset].0 = value.map_or(0, NonZero::get);
 			}
+			Instruction::FetchVal {
+				offset: Offset::Relative(offset),
+				factor,
+			} => {
+				let src_offset = (*self.ptr() + *offset).value();
+
+				let value = mem::take(&mut self.tape_mut()[src_offset]);
+
+				*self.cell_mut() += value.0.wrapping_mul(*factor);
+			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 

@@ -204,6 +204,16 @@ impl Instruction {
 		}
 	}
 
+	pub fn ptr_movement_of<'a>(iter: impl IntoIterator<Item = &'a Self>) -> Option<isize> {
+		let mut movement = 0;
+
+		for instr in iter {
+			movement += instr.ptr_movement()?;
+		}
+
+		Some(movement)
+	}
+
 	#[must_use]
 	pub fn ptr_movement(&self) -> Option<isize> {
 		match self {
