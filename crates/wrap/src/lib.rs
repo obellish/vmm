@@ -4,6 +4,7 @@
 pub mod ops;
 
 use core::{
+	cmp::Ordering,
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
 	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
@@ -121,6 +122,18 @@ impl<T: Octal> Octal for Wrapping<T> {
 	}
 }
 
+impl<T: PartialEq> PartialEq<T> for Wrapping<T> {
+	fn eq(&self, other: &T) -> bool {
+		self.0.eq(other)
+	}
+}
+
+impl<T: PartialOrd> PartialOrd<T> for Wrapping<T> {
+	fn partial_cmp(&self, other: &T) -> Option<Ordering> {
+		self.0.partial_cmp(other)
+	}
+}
+
 impl<T: Serialize> Serialize for Wrapping<T> {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
@@ -153,5 +166,25 @@ where
 impl<T: UpperHex> UpperHex for Wrapping<T> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		UpperHex::fmt(&self.0, f)
+	}
+}
+
+impl<T, Rhs> WrappingAdd<Rhs> for Wrapping<T>
+where
+	T: WrappingAdd<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_add(self, rhs: Rhs) -> Self::Output {
+		self + rhs
+	}
+}
+
+impl<T, Rhs> WrappingAddAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingAddAssign<Rhs>,
+{
+	fn wrapping_add_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_add_assign(rhs);
 	}
 }
