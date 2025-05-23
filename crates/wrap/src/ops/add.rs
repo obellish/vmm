@@ -248,68 +248,190 @@ impl WrappingAddAssign<i16> for u16 {
 	}
 }
 
+impl WrappingAddAssign for i32 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<u32> for i32 {
+	fn wrapping_add_assign(&mut self, rhs: u32) {
+		*self = self.wrapping_add_unsigned(rhs);
+	}
+}
+
+impl WrappingAddAssign for u32 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<i32> for u32 {
+	fn wrapping_add_assign(&mut self, rhs: i32) {
+		*self = self.wrapping_add_signed(rhs);
+	}
+}
+
+impl WrappingAddAssign for i64 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<u64> for i64 {
+	fn wrapping_add_assign(&mut self, rhs: u64) {
+		*self = self.wrapping_add_unsigned(rhs);
+	}
+}
+
+impl WrappingAddAssign for u64 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<i64> for u64 {
+	fn wrapping_add_assign(&mut self, rhs: i64) {
+		*self = self.wrapping_add_signed(rhs);
+	}
+}
+
+impl WrappingAddAssign for i128 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<u128> for i128 {
+	fn wrapping_add_assign(&mut self, rhs: u128) {
+		*self = self.wrapping_add_unsigned(rhs);
+	}
+}
+
+impl WrappingAddAssign for u128 {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<i128> for u128 {
+	fn wrapping_add_assign(&mut self, rhs: i128) {
+		*self = self.wrapping_add_signed(rhs);
+	}
+}
+
+impl WrappingAddAssign for isize {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<usize> for isize {
+	fn wrapping_add_assign(&mut self, rhs: usize) {
+		*self = self.wrapping_add_unsigned(rhs);
+	}
+}
+
+impl WrappingAddAssign for usize {
+	fn wrapping_add_assign(&mut self, rhs: Self) {
+		*self = self.wrapping_add(rhs);
+	}
+}
+
+impl WrappingAddAssign<isize> for usize {
+	fn wrapping_add_assign(&mut self, rhs: isize) {
+		*self = self.wrapping_add_signed(rhs);
+	}
+}
+
 #[cfg(test)]
 mod tests {
-	macro_rules! test_type {
-		($signed:ty, $unsigned:ty) => {{
-			let value: $crate::Wrapping<$signed> = $crate::Wrapping(10);
+	use core::{fmt::Debug, ops::Add};
 
-			let result = value + <$signed>::MAX;
-
-			let result = result + <$signed>::MAX;
-
-			assert_eq!(result.0, 8);
-		}
-
-		{
-			let value: $crate::Wrapping<$signed> = $crate::Wrapping(0);
-
-			let result = value + <$unsigned>::MAX;
-
-			assert_eq!(result.0, -1);
-		}
-
-		{
-			let value: $crate::Wrapping<$unsigned> = $crate::Wrapping(10);
-
-			let result = value + <$unsigned>::MAX;
-
-			assert_eq!(result.0, 9);
-		}
-
-		{
-			let value: $crate::Wrapping<$unsigned> = $crate::Wrapping(0);
-
-			let result = value + <$signed>::MIN;
-
-			assert_eq!(result.0, <$signed>::MAX as $unsigned + 1);
-		}};
-	}
+	use crate::{Wrapping, ops::WrappingAdd};
 
 	#[test]
 	fn additions() {
+		additions_inner(10i8, 8, 10u8, 9, i8::MAX, u8::MAX, i8::MIN, 1, -1);
+		additions_inner(10i16, 8, 10u16, 9, i16::MAX, u16::MAX, i16::MIN, 1, -1);
+		additions_inner(10i32, 8, 10u32, 9, i32::MAX, u32::MAX, i32::MIN, 1, -1);
+		additions_inner(10i64, 8, 10u64, 9, i64::MAX, u64::MAX, i64::MIN, 1, -1);
+		additions_inner(10i128, 8, 10u128, 9, i128::MAX, u128::MAX, i128::MIN, 1, -1);
+		additions_inner(
+			10isize,
+			8,
+			10usize,
+			9,
+			isize::MAX,
+			usize::MAX,
+			isize::MIN,
+			1,
+			-1,
+		);
+	}
+
+	// Overly complex, however the alternative is macros
+	fn additions_inner<Signed, Unsigned>(
+		signed_ten: Signed,
+		signed_eight: Signed,
+		unsigned_ten: Unsigned,
+		unsigned_nine: Unsigned,
+		signed_max: Signed,
+		unsigned_max: Unsigned,
+		signed_min: Signed,
+		unsigned_one: Unsigned,
+		negative_one: Signed,
+	) where
+		Signed: Copy
+			+ Debug
+			+ Default
+			+ Eq
+			+ WrappingAdd<Output = Signed>
+			+ WrappingAdd<Unsigned, Output = Signed>,
+		Unsigned: Add<Output = Unsigned>
+			+ Copy
+			+ Debug
+			+ Default
+			+ Eq
+			+ WrappingAdd<Output = Unsigned>
+			+ WrappingAdd<Signed, Output = Unsigned>,
+	{
 		{
-			test_type!(i8, u8);
+			let value = Wrapping(signed_ten);
+
+			let result = value + signed_max;
+
+			let result = result + signed_max;
+
+			assert_eq!(result.0, signed_eight);
 		}
 
 		{
-			test_type!(i16, u16);
+			let value: Wrapping<Signed> = Wrapping::default();
+
+			let result = value + unsigned_max;
+
+			assert_eq!(result.0, negative_one);
 		}
 
 		{
-			test_type!(i32, u32);
+			let value = Wrapping(unsigned_ten);
+
+			let result = value + unsigned_max;
+
+			assert_eq!(result.0, unsigned_nine);
 		}
 
 		{
-			test_type!(i64, u64);
-		}
+			let value: Wrapping<Unsigned> = Wrapping::default();
 
-		{
-			test_type!(i128, u128);
-		}
+			let result = value + signed_min;
 
-		{
-			test_type!(isize, usize);
+			assert_eq!(
+				result.0,
+				unsafe { core::mem::transmute_copy::<Signed, Unsigned>(&signed_max) }
+					+ unsigned_one
+			);
 		}
 	}
 }

@@ -1,7 +1,7 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![no_std]
 
-mod add;
+pub mod ops;
 
 use core::{
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
@@ -10,7 +10,7 @@ use core::{
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-pub use self::add::*;
+use self::ops::{WrappingAdd, WrappingAddAssign};
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
