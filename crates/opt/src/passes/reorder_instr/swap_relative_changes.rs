@@ -67,6 +67,24 @@ impl PeepholePass for ReorderRelativeChangesPass {
 					value: *a,
 				},
 			])),
+			[
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(x)),
+					value: a,
+				},
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(y)),
+					value: b,
+				},
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(z)),
+					value: c,
+				},
+			] if *x == *z && *x != *y => Some(Change::Replace(vec![
+				Instruction::inc_val_at(*a, *x),
+				Instruction::inc_val_at(*c, *z),
+				Instruction::inc_val_at(*b, *y),
+			])),
 			_ => None,
 		}
 	}
@@ -96,7 +114,7 @@ impl PeepholePass for ReorderRelativeChangesPass {
 					offset: Some(Offset::Relative(x)),
 					..
 				},
-				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal { .. },
 				Instruction::IncVal {
 					offset: Some(Offset::Relative(y)),
 					..
