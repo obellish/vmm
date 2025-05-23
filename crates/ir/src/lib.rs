@@ -26,6 +26,10 @@ pub enum Instruction {
 		offset: Offset,
 		factor: u8,
 	},
+	FetchVal {
+		offset: Offset,
+		factor: u8,
+	},
 	MovePtr(Offset),
 	FindZero(isize),
 	Read,
