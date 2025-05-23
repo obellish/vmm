@@ -18,6 +18,11 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				if inner.iter().any(Instruction::has_side_effect) {
 					return None;
 				}
+
+				if !matches!(Instruction::ptr_movement_of(inner), Some(0)) {
+					return None;
+				}
+
 				match inner.as_slice() {
 					[
 						Instruction::IncVal {
