@@ -5,12 +5,15 @@ pub mod ops;
 
 use core::{
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
-	ops::*,
+	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use self::ops::*;
+use self::ops::{
+	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingMulAssign,
+	WrappingSub, WrappingSubAssign,
+};
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -63,6 +66,26 @@ where
 impl<T: Display> Display for Wrapping<T> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		Display::fmt(&self.0, f)
+	}
+}
+
+impl<T, Rhs> Div<Rhs> for Wrapping<T>
+where
+	T: WrappingDiv<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn div(self, rhs: Rhs) -> Self::Output {
+		Wrapping(self.0.wrapping_div(rhs))
+	}
+}
+
+impl<T, Rhs> DivAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingDivAssign<Rhs>,
+{
+	fn div_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_div_assign(rhs);
 	}
 }
 
