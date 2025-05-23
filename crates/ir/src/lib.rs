@@ -123,7 +123,7 @@ impl Instruction {
 		Self::Write
 	}
 
-	pub fn raw_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
+	pub fn dynamic_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
 		Self::DynamicLoop(instructions.into_iter().collect())
 	}
 

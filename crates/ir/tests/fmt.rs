@@ -39,7 +39,7 @@ fn read() {
 #[test]
 fn raw_loop() {
 	verify(
-		Instruction::raw_loop([
+		Instruction::dynamic_loop([
 			Instruction::inc_val(-1),
 			Instruction::move_ptr_by(1),
 			Instruction::inc_val(1),
