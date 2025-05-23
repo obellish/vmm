@@ -161,10 +161,39 @@ macro_rules! impl_wrapping_add {
 				self.wrapping_add(rhs)
 			}
 		}
+
+		impl $crate::ops::WrappingAdd<$unsigned> for $signed {
+			type Output = Self;
+
+			fn wrapping_add(self, rhs: $unsigned) -> Self {
+				self.wrapping_add_unsigned(rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAdd for $unsigned {
+			type Output = Self;
+
+			fn wrapping_add(self, rhs: Self) -> Self {
+				self.wrapping_add(rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAdd<$signed> for $unsigned {
+			type Output = Self;
+
+			fn wrapping_add(self, rhs: $signed) -> Self {
+				self.wrapping_add_signed(rhs)
+			}
+		}
 	};
 }
 
 impl_wrapping_add!(i8, u8);
+impl_wrapping_add!(i16, u16);
+impl_wrapping_add!(i32, u32);
+impl_wrapping_add!(i64, u64);
+impl_wrapping_add!(i128, u128);
+impl_wrapping_add!(isize, usize);
 
 #[cfg(test)]
 mod tests {
