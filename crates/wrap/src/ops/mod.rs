@@ -1,4 +1,5 @@
 mod add;
+mod mul;
 mod sub;
 
-pub use self::{add::*, sub::*};
+pub use self::{add::*, mul::*, sub::*};

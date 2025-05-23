@@ -5,12 +5,12 @@ pub mod ops;
 
 use core::{
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
-	ops::{Add, AddAssign},
+	ops::*,
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use self::ops::{WrappingAdd, WrappingAddAssign};
+use self::ops::*;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -84,6 +84,26 @@ impl<T: Serialize> Serialize for Wrapping<T> {
 		S: Serializer,
 	{
 		self.0.serialize(serializer)
+	}
+}
+
+impl<T, Rhs> Sub<Rhs> for Wrapping<T>
+where
+	T: WrappingSub<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn sub(self, rhs: Rhs) -> Self::Output {
+		Wrapping(self.0.wrapping_sub(rhs))
+	}
+}
+
+impl<T, Rhs> SubAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingSubAssign<Rhs>,
+{
+	fn sub_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_sub_assign(rhs);
 	}
 }
 

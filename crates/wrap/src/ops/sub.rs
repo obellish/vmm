@@ -4,6 +4,10 @@ pub trait WrappingSub<Rhs = Self> {
 	fn wrapping_sub(self, rhs: Rhs) -> Self::Output;
 }
 
+pub trait WrappingSubAssign<Rhs = Self> {
+	fn wrapping_sub_assign(&mut self, rhs: Rhs);
+}
+
 macro_rules! impl_wrapping_sub {
 	($signed:ty, $unsigned:ty) => {
 		impl $crate::ops::WrappingSub for $signed {
@@ -27,6 +31,24 @@ macro_rules! impl_wrapping_sub {
 
 			fn wrapping_sub(self, rhs: Self) -> Self::Output {
 				self.wrapping_sub(rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingSubAssign for $signed {
+			fn wrapping_sub_assign(&mut self, rhs: Self) {
+				*self = self.wrapping_sub(rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingSubAssign<$unsigned> for $signed {
+			fn wrapping_sub_assign(&mut self, rhs: $unsigned) {
+				*self = self.wrapping_sub_unsigned(rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingSubAssign for $unsigned {
+			fn wrapping_sub_assign(&mut self, rhs: Self) {
+				*self = self.wrapping_sub(rhs);
 			}
 		}
 	};
