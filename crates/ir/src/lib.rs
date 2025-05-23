@@ -22,9 +22,9 @@ pub enum Instruction {
 		offset: Option<Offset>,
 	},
 	/// Multiply current cell by factor, add result to offset, then zero current cell
-	MoveAndAddVal { offset: Offset, factor: u8 },
+	ScaleAndTransferVal { offset: Offset, factor: u8 },
 	/// Multiply offset by factor, add result to current cell, then zero offset
-	FetchAndAddVal { offset: Offset, factor: u8 },
+	ScaleAndAbsorbVal { offset: Offset, factor: u8 },
 	/// Move the pointer along the tape
 	MovePtr(Offset),
 	/// Find the next zero, jumping by the value
@@ -87,32 +87,32 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn move_val(offset: impl Into<Offset>, factor: u8) -> Self {
-		Self::MoveAndAddVal {
+	pub fn scale_and_transfer_val(offset: impl Into<Offset>, factor: u8) -> Self {
+		Self::ScaleAndTransferVal {
 			offset: offset.into(),
 			factor,
 		}
 	}
 
 	#[must_use]
-	pub const fn move_val_by(offset: isize, factor: u8) -> Self {
-		Self::MoveAndAddVal {
+	pub const fn scale_and_move_val_by(offset: isize, factor: u8) -> Self {
+		Self::ScaleAndTransferVal {
 			offset: Offset::Relative(offset),
 			factor,
 		}
 	}
 
 	#[must_use]
-	pub const fn move_val_to(index: usize, factor: u8) -> Self {
-		Self::MoveAndAddVal {
+	pub const fn scale_and_move_val_to(index: usize, factor: u8) -> Self {
+		Self::ScaleAndTransferVal {
 			offset: Offset::Absolute(index),
 			factor,
 		}
 	}
 
 	#[must_use]
-	pub fn fetch_val_from(offset: impl Into<Offset>, factor: u8) -> Self {
-		Self::FetchAndAddVal {
+	pub fn scale_and_absorb_from(offset: impl Into<Offset>, factor: u8) -> Self {
+		Self::ScaleAndAbsorbVal {
 			offset: offset.into(),
 			factor,
 		}
@@ -190,7 +190,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_move_val(&self) -> bool {
-		matches!(self, Self::MoveAndAddVal { .. })
+		matches!(self, Self::ScaleAndTransferVal { .. })
 	}
 
 	#[must_use]
@@ -238,8 +238,8 @@ impl Instruction {
 	#[must_use]
 	pub fn ptr_movement(&self) -> Option<isize> {
 		match self {
-			Self::MoveAndAddVal { .. }
-			| Self::FetchAndAddVal { .. }
+			Self::ScaleAndTransferVal { .. }
+			| Self::ScaleAndAbsorbVal { .. }
 			| Self::IncVal { .. }
 			| Self::SetVal { .. }
 			| Self::Read
@@ -310,7 +310,7 @@ impl Display for Instruction {
 				display_loop(instrs, f)?;
 				f.write_char(']')?;
 			}
-			Self::MoveAndAddVal {
+			Self::ScaleAndTransferVal {
 				offset: Offset::Relative(offset),
 				factor: multiplier,
 			} => {

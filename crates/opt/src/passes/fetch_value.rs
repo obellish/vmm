@@ -12,12 +12,14 @@ impl PeepholePass for FetchValPass {
 		match window {
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::MoveAndAddVal {
+				Instruction::ScaleAndTransferVal {
 					offset: Offset::Relative(y),
 					factor,
 				},
 				Instruction::MovePtr(Offset::Relative(z)),
-			] if *y == *z && -x == *y => Some(Change::ReplaceOne(Instruction::fetch_val_from(x, *factor))),
+			] if *y == *z && -x == *y => Some(Change::ReplaceOne(Instruction::scale_and_absorb_from(
+				x, *factor,
+			))),
 			_ => None,
 		}
 	}
@@ -27,7 +29,7 @@ impl PeepholePass for FetchValPass {
 			window,
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::MoveAndAddVal {
+				Instruction::ScaleAndTransferVal {
 					offset: Offset::Relative(y),
 					..
 				},

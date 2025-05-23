@@ -18,7 +18,7 @@ impl PeepholePass for SetUntouchedCellsPass {
 		match window {
 			[
 				Instruction::FindZero(_)
-				| Instruction::MoveAndAddVal { .. }
+				| Instruction::ScaleAndTransferVal { .. }
 				| Instruction::DynamicLoop(_),
 			] => {
 				self.hit_pass = true;
@@ -49,7 +49,7 @@ impl PeepholePass for SetUntouchedCellsPass {
 		matches!(
 			window,
 			[Instruction::FindZero(_)
-				| Instruction::MoveAndAddVal { .. }
+				| Instruction::ScaleAndTransferVal { .. }
 				| Instruction::DynamicLoop(_)
 				| Instruction::MovePtr(Offset::Relative(isize::MIN..=0))
 				| Instruction::IncVal { offset: None, .. }]

@@ -34,7 +34,9 @@ impl LoopPass for MoveValPass {
 			] if *x == -y => {
 				let x = *x;
 
-				Some(Change::ReplaceOne(Instruction::move_val_by(x, *j as u8)))
+				Some(Change::ReplaceOne(Instruction::scale_and_move_val_by(
+					x, *j as u8,
+				)))
 			}
 			[
 				Instruction::IncVal {
@@ -55,7 +57,7 @@ impl LoopPass for MoveValPass {
 					value: -1,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::move_val_by(
+			] => Some(Change::ReplaceOne(Instruction::scale_and_move_val_by(
 				*x,
 				*value as u8,
 			))),

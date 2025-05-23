@@ -42,7 +42,7 @@ impl Profiler {
 			Instruction::Write => self.output += 1,
 			Instruction::FindZero(..) => self.find_zero += 1,
 			Instruction::DynamicLoop(_) => self.while_loop += 1,
-			Instruction::MoveAndAddVal { .. } => self.move_val += 1,
+			Instruction::ScaleAndTransferVal { .. } => self.move_val += 1,
 			_ => self.unknown += 1,
 		}
 	}
