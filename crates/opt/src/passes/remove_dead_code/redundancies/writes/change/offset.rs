@@ -30,6 +30,16 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					value: None,
 				},
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::clear_val_at(*x))),
+			[
+				Instruction::SetVal {
+					value: None,
+					offset: Some(Offset::Relative(x)),
+				},
+				Instruction::IncVal {
+					offset: Some(Offset::Relative(y)),
+					value,
+				},
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::set_val_at(*value as u8, x))),
 			_ => None,
 		}
 	}
