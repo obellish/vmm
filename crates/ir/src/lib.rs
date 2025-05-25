@@ -14,6 +14,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
+	/// The start of the program
+	/// Is a no-op, but allows for other optimizations to be applied
+	Start,
 	/// Increment the value at the current cell (offset = None) or at an offset
 	IncVal { value: i8, offset: Option<Offset> },
 	/// Set the value at the current cell (offset = None) or at an offset
@@ -372,6 +375,7 @@ impl Display for Instruction {
 				)?;
 				Display::fmt(&Self::MovePtr((-offset).into()), f)?;
 			}
+			Self::Start => {}
 			_ => f.write_char('*')?,
 		}
 

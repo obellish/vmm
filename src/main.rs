@@ -31,7 +31,10 @@ fn main() -> Result<()> {
 		.collect::<String>();
 
 	let program = {
-		let unoptimized = BfParser::new(&filtered_data).scan()?.collect::<Program>();
+		let unoptimized = BfParser::new(&filtered_data)
+			.scan()?
+			.into_iter()
+			.collect::<Program>();
 		if args.optimize {
 			let mut optimizer = Optimizer::new(
 				unoptimized,

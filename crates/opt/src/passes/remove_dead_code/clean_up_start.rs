@@ -1,28 +1,43 @@
-use crate::{Change, Instruction, Pass};
+use std::num::NonZeroU8;
+
+use vmm_ir::Instruction;
+
+use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
 pub struct CleanUpStartPass;
 
-impl Pass for CleanUpStartPass {
-	fn run_pass(&mut self, program: &mut Vec<Instruction>) -> bool {
-		let Some(instr) = program.first().cloned() else {
-			return false;
-		};
+impl PeepholePass for CleanUpStartPass {
+	const SIZE: usize = 2;
 
-		match instr {
-			Instruction::DynamicLoop(_)
-			| Instruction::SetVal {
-				value: None,
-				offset: None,
-			} => {
-				Change::Remove.apply(program, 0, 1);
-				true
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
+		match window {
+			[
+				Instruction::Start,
+				Instruction::DynamicLoop(_) | Instruction::SetVal { value: None, .. },
+			] => Some(Change::ReplaceOne(Instruction::Start)),
+			[Instruction::Start, Instruction::IncVal { value, offset }] => {
+				Some(Change::Replace(vec![
+					Instruction::Start,
+					Instruction::SetVal {
+						value: NonZeroU8::new(*value as u8),
+						offset: *offset,
+					},
+				]))
 			}
-			_ => false,
+			_ => None,
 		}
 	}
 
-	fn should_run_on_loop(&self) -> bool {
-		false
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		matches!(
+			window,
+			[
+				Instruction::Start,
+				Instruction::DynamicLoop(_)
+					| Instruction::SetVal { value: None, .. }
+					| Instruction::IncVal { .. }
+			]
+		)
 	}
 }

@@ -31,9 +31,16 @@ impl<'source> Parser<'source> {
 	}
 
 	#[tracing::instrument(skip(self))]
-	pub fn scan(self) -> Result<impl Iterator<Item = Instruction>, ParseError> {
+	pub fn scan(self) -> Result<Vec<Instruction>, ParseError> {
 		info!("scanning {} chars", self.inner.source().len());
-		parse(self.inner.filter_map(Result::ok), 0).map(IntoIterator::into_iter)
+		// parse(self.inner.filter_map(Result::ok), 0).map(IntoIterator::into_iter)
+		// parse(self.inner.filter_map(Result::ok), 0)
+
+		let mut parsed = parse(self.inner.filter_map(Result::ok), 0)?;
+
+		parsed.insert(0, Instruction::Start);
+
+		Ok(parsed)
 	}
 }
 

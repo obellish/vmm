@@ -154,6 +154,7 @@ where
 		}
 
 		match instr {
+			Instruction::Start => {}
 			Instruction::IncVal {
 				value: i,
 				offset: None,
