@@ -53,7 +53,7 @@ impl Instruction {
 	pub const fn changes_current_cell(&self) -> bool {
 		matches!(
 			self,
-			Self::SetVal { offset: None, .. } | Instruction::IncVal { offset: None, .. }
+			Self::SetVal { offset: None, .. } | Self::IncVal { offset: None, .. }
 		)
 	}
 
