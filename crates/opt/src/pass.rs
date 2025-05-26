@@ -1,6 +1,9 @@
-use std::fmt::Debug;
+use std::{
+	fmt::Debug,
+	ops::{Bound, RangeBounds},
+};
 
-use tracing::warn;
+use tracing::{trace, warn};
 use vmm_ir::Instruction;
 
 use super::Change;
@@ -21,37 +24,54 @@ where
 		let mut i = 0;
 		let mut progress = false;
 
-		while program.len() >= P::SIZE && i < program.len() - (P::SIZE - 1) {
-			let window = &program[i..(P::SIZE + i)].to_vec();
+		let range = self.window_sizes();
 
-			assert_eq!(window.len(), P::SIZE);
+		let start = match range.start_bound() {
+			Bound::Unbounded => unreachable!(),
+			Bound::Excluded(e) | Bound::Included(e) => *e,
+		};
 
-			if !P::should_run(self, window) {
-				i += 1;
-				continue;
-			}
+		let end = match range.end_bound() {
+			Bound::Unbounded => unreachable!(),
+			Bound::Excluded(e) => *e,
+			Bound::Included(e) => *e - 1,
+		};
 
-			let change = P::run_pass(self, window);
+		drop(range);
 
-			let (changed, removed) = change
-				.map(|c| c.apply(program, i, P::SIZE))
-				.unwrap_or_default();
+		for size in start..end {
+			trace!("running pass {self:?} with size {size}");
+			while program.len() >= size && i < program.len() - (size - 1) {
+				let window = &program[i..(size + i)].to_vec();
 
-			i -= removed;
+				assert_eq!(window.len(), size);
 
-			if changed {
-				progress = true;
-			} else {
-				i += 1;
+				if !P::should_run(self, window) {
+					i += 1;
+					continue;
+				}
 
-				// If the pass changed state due to the current run, we don't want to warn
-				if P::should_run(self, window) {
-					warn!("pass {self:?}::should_ran was true but didn't make changes");
-					tracing::trace!("{window:?}");
+				let change = P::run_pass(self, window);
+
+				let (changed, removed) = change
+					.map(|c| c.apply(program, i, size))
+					.unwrap_or_default();
+
+				i -= removed;
+
+				if changed {
+					progress = true;
+				} else {
+					i += 1;
+
+					// If the pass changed state due to the current run, we don't want to warn
+					if P::should_run(self, window) {
+						warn!("pass {self:?}::should_ran was true but didn't make changes");
+						tracing::trace!("{window:?}");
+					}
 				}
 			}
 		}
-
 		progress
 	}
 
@@ -68,6 +88,10 @@ pub trait PeepholePass {
 	#[allow(unused)]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		true
+	}
+
+	fn window_sizes(&self) -> impl RangeBounds<usize> {
+		Self::SIZE..(Self::SIZE + 1)
 	}
 
 	fn should_run_on_loop(&self) -> bool {
