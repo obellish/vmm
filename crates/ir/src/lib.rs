@@ -50,6 +50,14 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub const fn changes_current_cell(&self) -> bool {
+		matches!(
+			self,
+			Self::SetVal { offset: None, .. } | Instruction::IncVal { offset: None, .. }
+		)
+	}
+
+	#[must_use]
 	pub fn inc_val_at(v: i8, offset: impl Into<Offset>) -> Self {
 		Self::IncVal {
 			value: v,
