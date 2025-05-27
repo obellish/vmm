@@ -3,9 +3,9 @@ use vmm_ir::{Instruction, Offset};
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct FetchValPass;
+pub struct OptimizeFetchValPass;
 
-impl PeepholePass for FetchValPass {
+impl PeepholePass for OptimizeFetchValPass {
 	const SIZE: usize = 3;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {

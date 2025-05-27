@@ -4,9 +4,9 @@ use vmm_wrap::Wrapping;
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct ScaleValPass;
+pub struct OptimizeScaleValPass;
 
-impl PeepholePass for ScaleValPass {
+impl PeepholePass for OptimizeScaleValPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {

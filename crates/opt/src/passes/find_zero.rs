@@ -3,9 +3,9 @@ use vmm_ir::Offset;
 use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Default)]
-pub struct FindZeroPass;
+pub struct OptimizeFindZeroPass;
 
-impl LoopPass for FindZeroPass {
+impl LoopPass for OptimizeFindZeroPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[Instruction::MovePtr(Offset::Relative(x))] => {

@@ -3,9 +3,9 @@ use vmm_ir::Offset;
 use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Default)]
-pub struct MoveValPass;
+pub struct OptimizeMoveValPass;
 
-impl LoopPass for MoveValPass {
+impl LoopPass for OptimizeMoveValPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
