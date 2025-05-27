@@ -35,7 +35,7 @@ pub enum Instruction {
 	/// Read a value from the input
 	Read,
 	/// Write the value to an output
-	Write,
+	Write { offset: Option<Offset> },
 	/// A basic dynamic loop, where the current cell is checked for zero at each iteration
 	DynamicLoop(Vec<Self>),
 }
@@ -156,7 +156,14 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn write() -> Self {
-		Self::Write
+		Self::Write { offset: None }
+	}
+
+	#[must_use]
+	pub fn write_at(offset: impl Into<Offset>) -> Self {
+		Self::Write {
+			offset: Some(offset.into()),
+		}
 	}
 
 	pub fn dynamic_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
@@ -173,7 +180,7 @@ impl Instruction {
 
 	pub fn has_side_effect(&self) -> bool {
 		match self {
-			Self::Read | Self::Write => true,
+			Self::Read | Self::Write { .. } => true,
 			Self::DynamicLoop(instrs) => instrs.iter().any(Self::has_side_effect),
 			_ => false,
 		}
@@ -226,7 +233,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_write(&self) -> bool {
-		matches!(self, Self::Write)
+		matches!(self, Self::Write { .. })
 	}
 
 	pub fn rough_estimate(&self) -> usize {
@@ -247,6 +254,15 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub const fn offset(&self) -> Option<Offset> {
+		match self {
+			Self::SetVal { offset, .. } | Self::IncVal { offset, .. } => *offset,
+			Self::ScaleAndMoveVal { offset, .. } => Some(*offset),
+			_ => None,
+		}
+	}
+
+	#[must_use]
 	pub fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::ScaleAndMoveVal { .. }
@@ -254,7 +270,7 @@ impl Instruction {
 			| Self::IncVal { .. }
 			| Self::SetVal { .. }
 			| Self::Read
-			| Self::Write => Some(0),
+			| Self::Write { .. } => Some(0),
 			Self::MovePtr(Offset::Relative(i)) => Some(*i),
 			Self::DynamicLoop(instrs) => {
 				let mut sum = 0;
@@ -330,7 +346,7 @@ impl Display for Instruction {
 				f.write_char(']')?;
 			}
 			Self::Read => f.write_char(',')?,
-			Self::Write => f.write_char('.')?,
+			Self::Write { offset: None } => f.write_char('.')?,
 			Self::DynamicLoop(instrs) => {
 				f.write_char('[')?;
 				display_loop(instrs, f)?;
@@ -399,7 +415,7 @@ fn display_loop(i: &[Instruction], f: &mut Formatter<'_>) -> FmtResult {
 	Ok(())
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Offset {
 	Relative(isize),
 	Absolute(usize),

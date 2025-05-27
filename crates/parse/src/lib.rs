@@ -81,10 +81,10 @@ fn parse(
 			if let Some(instr) = match op {
 				OpCode::Increment => Some(Instruction::inc_val(1)),
 				OpCode::Decrement => Some(Instruction::inc_val(-1)),
-				OpCode::Output => Some(Instruction::Write),
-				OpCode::MoveRight => Some(Instruction::MovePtr(1isize.into())),
-				OpCode::MoveLeft => Some(Instruction::MovePtr((-1isize).into())),
-				OpCode::Input => Some(Instruction::Read),
+				OpCode::Output => Some(Instruction::write()),
+				OpCode::MoveRight => Some(Instruction::move_ptr_by(1)),
+				OpCode::MoveLeft => Some(Instruction::move_ptr_by(-1)),
+				OpCode::Input => Some(Instruction::read()),
 				OpCode::JumpRight => {
 					loop_start = i;
 					loop_stack += 1;

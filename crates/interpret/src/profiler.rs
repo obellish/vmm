@@ -39,7 +39,7 @@ impl Profiler {
 			Instruction::SetVal { value: None, .. } => self.clear += 1,
 			Instruction::SetVal { .. } => self.set += 1,
 			Instruction::Read => self.input += 1,
-			Instruction::Write => self.output += 1,
+			Instruction::Write { .. } => self.output += 1,
 			Instruction::FindZero(..) => self.find_zero += 1,
 			Instruction::DynamicLoop(_) => self.while_loop += 1,
 			Instruction::ScaleAndMoveVal { .. } => self.move_val += 1,

@@ -7,7 +7,7 @@ use std::{
 	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	io::{Error as IoError, ErrorKind as IoErrorKind, Stdin, Stdout, prelude::*, stdin, stdout},
 	mem,
-	num::NonZero,
+	num::NonZeroU8,
 };
 
 use vmm_ir::{Instruction, Offset};
@@ -86,6 +86,7 @@ impl<R, W> Interpreter<R, W> {
 	}
 }
 
+#[allow(clippy::unused_self)]
 impl<R, W> Interpreter<R, W>
 where
 	R: Read + 'static,
@@ -137,13 +138,97 @@ where
 		Ok(())
 	}
 
-	fn write_char(&mut self) -> Result<(), RuntimeError> {
-		let ch = self.cell().0;
+	fn write_char(&mut self, offset: Option<Offset>) -> Result<(), RuntimeError> {
+		let idx = self.calculate_index(offset);
+
+		let ch = self.tape()[idx].0;
 
 		if !cfg!(target_os = "windows") || ch < 128 {
 			self.output.write_all(&[ch])?;
 			self.output.flush()?;
 		}
+
+		Ok(())
+	}
+
+	const fn start(&self) -> Result<(), RuntimeError> {
+		Ok(())
+	}
+
+	fn inc_val(&mut self, value: i8, offset: Option<Offset>) -> Result<(), RuntimeError> {
+		let idx = self.calculate_index(offset);
+
+		self.tape_mut()[idx] += value;
+
+		Ok(())
+	}
+
+	fn set_val(
+		&mut self,
+		value: Option<NonZeroU8>,
+		offset: Option<Offset>,
+	) -> Result<(), RuntimeError> {
+		let idx = self.calculate_index(offset);
+
+		self.tape_mut()[idx].0 = value.map_or(0, NonZeroU8::get);
+
+		Ok(())
+	}
+
+	fn move_ptr(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		match offset {
+			Offset::Relative(i) => *self.ptr_mut() += i,
+			Offset::Absolute(i) => self.ptr_mut().set(i),
+		}
+
+		Ok(())
+	}
+
+	fn find_zero(&mut self, offset: isize) -> Result<(), RuntimeError> {
+		while !matches!(self.cell().0, 0) {
+			*self.ptr_mut() += offset;
+		}
+
+		Ok(())
+	}
+
+	fn dyn_loop(&mut self, instructions: &[Instruction]) -> Result<(), RuntimeError> {
+		let mut iterations = 0usize;
+
+		while !matches!(self.cell().0, 0) {
+			iterations += 1;
+
+			if matches!(iterations, ITERATION_LIMIT) {
+				return Err(RuntimeError::TooManyIterations(self.ptr().value()));
+			}
+
+			for instr in instructions {
+				self.execute_instruction(instr)?;
+			}
+		}
+
+		Ok(())
+	}
+
+	fn scale_and_move_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
+		let src_offset = self.ptr().value();
+		let dst_offset = self.calculate_index(Some(offset));
+
+		let tape = self.tape_mut();
+
+		let src_val = mem::take(&mut tape[src_offset]);
+
+		tape[dst_offset] += (src_val * factor).0;
+
+		Ok(())
+	}
+
+	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
+		let src_offset = self.calculate_index(Some(offset));
+
+		let value = mem::take(&mut self.tape_mut()[src_offset]);
+
+		*self.cell_mut() += (value * factor).0;
 
 		Ok(())
 	}
@@ -154,86 +239,39 @@ where
 		}
 
 		match instr {
-			Instruction::Start => {}
-			Instruction::IncVal {
-				value: i,
-				offset: None,
-			} => *self.cell_mut() += *i,
-			Instruction::SetVal {
-				value: i,
-				offset: None,
-			} => self.cell_mut().0 = i.map_or(0, NonZero::get),
-			Instruction::MovePtr(Offset::Relative(i)) => *self.ptr_mut() += *i,
-			Instruction::Write => self.write_char()?,
+			Instruction::Start => self.start()?,
+			Instruction::IncVal { value, offset } => self.inc_val(*value, *offset)?,
+			Instruction::SetVal { value, offset } => self.set_val(*value, *offset)?,
+			Instruction::MovePtr(offset) => self.move_ptr(*offset)?,
+			Instruction::Write { offset } => self.write_char(*offset)?,
 			Instruction::Read => self.read_char()?,
-			Instruction::FindZero(i) => {
-				while !matches!(self.cell().0, 0) {
-					*self.ptr_mut() += *i;
-				}
+			Instruction::FindZero(i) => self.find_zero(*i)?,
+			Instruction::DynamicLoop(instructions) => self.dyn_loop(instructions)?,
+			Instruction::ScaleAndMoveVal { offset, factor } => {
+				self.scale_and_move_val(*factor, *offset)?;
 			}
-			Instruction::DynamicLoop(instructions) => {
-				let mut iterations = 0usize;
-				while !matches!(self.cell().0, 0) {
-					iterations += 1;
-
-					if matches!(iterations, ITERATION_LIMIT) {
-						return Err(RuntimeError::TooManyIterations(self.ptr().value()));
-					}
-
-					for instr in instructions {
-						self.execute_instruction(instr)?;
-					}
-				}
-			}
-			Instruction::ScaleAndMoveVal {
-				offset: Offset::Relative(offset),
-				factor: multiplier,
-			} => {
-				let (src_offset, dst_offset) = {
-					let src_offset = self.ptr();
-					(src_offset.value(), (*src_offset + *offset).value())
-				};
-
-				let tape = self.tape_mut();
-
-				let src_val = mem::take(&mut tape[src_offset]);
-
-				tape[dst_offset] += (src_val * *multiplier).0;
-			}
-			Instruction::IncVal {
-				value,
-				offset: Some(Offset::Relative(x)),
-			} => {
-				let dst_offset = (*self.ptr() + *x).value();
-
-				let tape = self.tape_mut();
-
-				tape[dst_offset] += *value as u8;
-			}
-			Instruction::SetVal {
-				value,
-				offset: Some(Offset::Relative(x)),
-			} => {
-				let dst_offset = (*self.ptr() + *x).value();
-
-				let tape = self.tape_mut();
-
-				tape[dst_offset].0 = value.map_or(0, NonZero::get);
-			}
-			Instruction::FetchAndScaleVal {
-				offset: Offset::Relative(offset),
-				factor,
-			} => {
-				let src_offset = (*self.ptr() + *offset).value();
-
-				let value = mem::take(&mut self.tape_mut()[src_offset]);
-
-				*self.cell_mut() += (value * *factor).0;
+			Instruction::FetchAndScaleVal { offset, factor } => {
+				self.fetch_and_scale_val(*factor, *offset)?;
 			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
 		Ok(())
+	}
+
+	#[expect(clippy::missing_const_for_fn)]
+	fn calculate_index(&self, offset: Option<Offset>) -> usize {
+		match offset {
+			None => self.ptr().value(),
+			Some(Offset::Relative(offset)) => (*self.ptr() + offset).value(),
+			Some(Offset::Absolute(i)) => {
+				let mut ptr = *self.ptr();
+
+				ptr.set(i);
+
+				ptr.value()
+			}
+		}
 	}
 }
 
