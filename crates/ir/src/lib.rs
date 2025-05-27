@@ -28,6 +28,8 @@ pub enum Instruction {
 	ScaleAndMoveVal { offset: Offset, factor: u8 },
 	/// Multiply offset by factor, add result to current cell, then zero offset
 	FetchAndScaleVal { offset: Offset, factor: u8 },
+	/// Multiply self by factor
+	ScaleVal { factor: u8 },
 	/// Move the pointer along the tape
 	MovePtr(Offset),
 	/// Find the next zero, jumping by the value
@@ -187,6 +189,11 @@ impl Instruction {
 			offset: Some(offset.into()),
 			count,
 		}
+	}
+
+	#[must_use]
+	pub const fn scale_val(factor: u8) -> Self {
+		Self::ScaleVal { factor }
 	}
 
 	pub fn dynamic_loop(instructions: impl IntoIterator<Item = Self>) -> Self {

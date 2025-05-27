@@ -235,6 +235,12 @@ where
 		Ok(())
 	}
 
+	fn scale_val(&mut self, factor: u8) -> Result<(), RuntimeError> {
+		*self.cell_mut() *= factor;
+
+		Ok(())
+	}
+
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -249,6 +255,7 @@ where
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => self.find_zero(*i)?,
 			Instruction::DynamicLoop(instructions) => self.dyn_loop(instructions)?,
+			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
 			Instruction::ScaleAndMoveVal { offset, factor } => {
 				self.scale_and_move_val(*factor, *offset)?;
 			}
