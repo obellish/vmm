@@ -115,7 +115,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_pass::<CollapseStackedInstrPass>(progress);
 		self.run_default_pass::<CollapseRelativeInstrPass>(progress);
 
-		self.run_default_pass::<ClearCellPass>(progress);
+		self.run_default_pass::<OptimizeClearCellPass>(progress);
 		self.run_default_pass::<ClearLoopPass>(progress);
 		self.run_default_pass::<OptimizeFindZeroPass>(progress);
 		self.run_default_pass::<OptimizeMoveValPass>(progress);
