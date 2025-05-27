@@ -1,4 +1,4 @@
-use std::{fmt::Debug, fs, path::PathBuf};
+use std::{alloc::System, fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::Result;
@@ -9,10 +9,14 @@ use tracing_subscriber::{
 	fmt::{self, format::FmtSpan},
 	prelude::*,
 };
+use vmm_alloc::{AllocChain, SyncStalloc};
 use vmm_interpret::{Interpreter, Profiler};
 use vmm_opt::{HashMetadataStore, Optimizer, OutputMetadataStore};
 use vmm_parse::Parser as BfParser;
 use vmm_program::Program;
+
+#[global_allocator]
+static ALLOC: AllocChain<'static, SyncStalloc<8192, 4>, System> = SyncStalloc::new().chain(&System);
 
 fn main() -> Result<()> {
 	_ = fs::remove_dir_all("./out");

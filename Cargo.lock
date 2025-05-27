@@ -763,6 +763,7 @@ dependencies = [
  "tracing-error",
  "tracing-flame",
  "tracing-subscriber",
+ "vmm_alloc",
  "vmm_interpret",
  "vmm_ir",
  "vmm_opt",

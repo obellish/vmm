@@ -1,33 +1,33 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![no_std]
 
+extern crate alloc;
+
 mod ptr;
 
+use alloc::boxed::Box;
 use core::{
 	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Index, IndexMut},
 };
 
-use serde::{Deserialize, Serialize};
-use serde_array::BigArray;
 use vmm_wrap::Wrapping;
 
 pub use self::ptr::*;
 
 pub const TAPE_SIZE: usize = 30000;
 
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Tape {
-	#[serde(with = "BigArray")]
-	cells: [Wrapping<u8>; TAPE_SIZE],
+	cells: Box<[Wrapping<u8>; TAPE_SIZE]>,
 	ptr: TapePointer,
 }
 
 impl Tape {
 	#[must_use]
-	pub const fn new() -> Self {
+	pub fn new() -> Self {
 		Self {
-			cells: [Wrapping(0); TAPE_SIZE],
+			cells: Box::new([Wrapping(0); TAPE_SIZE]),
 			ptr: unsafe { TapePointer::new_unchecked(0) },
 		}
 	}
@@ -52,11 +52,11 @@ impl Tape {
 
 	#[must_use]
 	pub const fn as_slice(&self) -> &[Wrapping<u8>] {
-		&self.cells
+		&*self.cells
 	}
 
 	pub const fn as_mut_slice(&mut self) -> &mut [Wrapping<u8>] {
-		&mut self.cells
+		&mut *self.cells
 	}
 
 	#[must_use]

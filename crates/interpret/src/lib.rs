@@ -29,7 +29,7 @@ pub struct Interpreter<R = Stdin, W = Stdout> {
 }
 
 impl<R, W> Interpreter<R, W> {
-	pub const fn new(program: Program, input: R, output: W) -> Self {
+	pub fn new(program: Program, input: R, output: W) -> Self {
 		Self {
 			program,
 			input,
@@ -39,7 +39,7 @@ impl<R, W> Interpreter<R, W> {
 		}
 	}
 
-	pub const fn with_profiler(program: Program, input: R, output: W) -> Self {
+	pub fn with_profiler(program: Program, input: R, output: W) -> Self {
 		Self::new(program, input, output).and_with_profiler()
 	}
 

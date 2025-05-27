@@ -5,9 +5,9 @@ use core::{
 	ptr::NonNull,
 };
 
-pub struct AllocChain<'a, A, B>(A, &'a B);
+pub struct AllocChain<'a, A, B: ?Sized>(A, &'a B);
 
-impl<'a, A, B> AllocChain<'a, A, B> {
+impl<'a, A, B: ?Sized> AllocChain<'a, A, B> {
 	pub const fn new(a: A, b: &'a B) -> Self {
 		Self(a, b)
 	}
@@ -21,9 +21,10 @@ impl<'a, A, B> AllocChain<'a, A, B> {
 }
 
 #[cfg(feature = "nightly")]
-unsafe impl<A, B: Allocator> Allocator for AllocChain<'_, A, B>
+unsafe impl<A, B> Allocator for AllocChain<'_, A, B>
 where
 	A: Allocator + ChainableAlloc,
+	B: ?Sized + Allocator,
 {
 	fn allocate(&self, layout: Layout) -> Result<NonNull<[u8]>, AllocError> {
 		self.0.allocate(layout).or_else(|_| self.1.allocate(layout))
@@ -119,9 +120,10 @@ where
 	}
 }
 
-unsafe impl<A, B: GlobalAlloc> GlobalAlloc for AllocChain<'_, A, B>
+unsafe impl<A, B> GlobalAlloc for AllocChain<'_, A, B>
 where
 	A: ChainableAlloc + GlobalAlloc,
+	B: ?Sized + GlobalAlloc,
 {
 	unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
 		let ptr_a = unsafe { self.0.alloc(layout) };
