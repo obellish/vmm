@@ -3,18 +3,7 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
+mod get_or_zero;
+mod insert_or_push;
 
-pub trait InsertOrPush<T> {
-	fn insert_or_push(&mut self, index: usize, value: T);
-}
-
-impl<T> InsertOrPush<T> for Vec<T> {
-	fn insert_or_push(&mut self, index: usize, value: T) {
-		if index >= self.len() {
-			self.push(value);
-		} else {
-			self.insert(index, value);
-		}
-	}
-}
+pub use self::{get_or_zero::GetOrZero, insert_or_push::InsertOrPush};

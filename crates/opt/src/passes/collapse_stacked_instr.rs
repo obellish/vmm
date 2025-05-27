@@ -39,8 +39,8 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::MovePtr(Offset::Relative(i1)),
 				Instruction::MovePtr(Offset::Relative(i2)),
-			] => Some(Change::ReplaceOne(Instruction::MovePtr(
-				i1.wrapping_add(*i2).into(),
+			] => Some(Change::ReplaceOne(Instruction::move_ptr_by(
+				i1.wrapping_add(*i2),
 			))),
 			[
 				Instruction::SetVal { offset: None, .. },

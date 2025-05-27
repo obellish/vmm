@@ -1,4 +1,5 @@
 use vmm_ir::{Instruction, Offset};
+use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
 
@@ -23,21 +24,11 @@ impl PeepholePass for ReorderMoveChangePass {
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
 				Instruction::SetVal {
-					value: Some(value),
+					value,
 					offset: Some(Offset::Relative(y)),
 				},
 			] if *x == -y => Some(Change::Replace(vec![
-				Instruction::set_val(value.get()),
-				Instruction::move_ptr_by(*x),
-			])),
-			[
-				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::SetVal {
-					value: None,
-					offset: Some(Offset::Relative(y)),
-				},
-			] if *x == -y => Some(Change::Replace(vec![
-				Instruction::clear_val(),
+				Instruction::set_val(value.get_or_zero()),
 				Instruction::move_ptr_by(*x),
 			])),
 			_ => None,

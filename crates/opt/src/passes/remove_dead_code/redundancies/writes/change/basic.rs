@@ -1,6 +1,5 @@
-use std::num::NonZeroU8;
-
 use vmm_ir::Instruction;
+use vmm_utils::GetOrZero as _;
 use vmm_wrap::Wrapping;
 
 use crate::{Change, PeepholePass};
@@ -20,7 +19,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					offset: None,
 				},
 			] => Some(Change::ReplaceOne(Instruction::set_val(
-				value.map_or(0, NonZeroU8::get),
+				value.get_or_zero(),
 			))),
 			[
 				Instruction::SetVal {
