@@ -14,9 +14,6 @@ impl PeepholePass for InspectInstrPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[lop @ Instruction::DynamicLoop(_)] => {
-				// println!("{}", lop.might_move_ptr());
-
-				// None
 				if lop.might_move_ptr() {
 					self.moves += 1;
 				} else {

@@ -9,7 +9,7 @@ impl PeepholePass for RemoveRedundantScaleValInstrPass {
 	const SIZE: usize = 1;
 
 	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
-		Some(Change::Remove)
+		Some(Change::ReplaceOne(Instruction::clear_val()))
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
