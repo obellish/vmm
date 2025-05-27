@@ -21,6 +21,10 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 			] => Some(Change::ReplaceOne(Instruction::scale_and_move_val(
 				*offset, *factor,
 			))),
+			[
+				dyn_loop @ Instruction::DynamicLoop(..),
+				Instruction::DynamicLoop(..),
+			] => Some(Change::ReplaceOne(dyn_loop.clone())),
 			_ => None,
 		}
 	}
@@ -32,7 +36,8 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 				Instruction::SetVal {
 					value: None,
 					offset: None
-				} | Instruction::ScaleAndMoveVal { .. },
+				} | Instruction::ScaleAndMoveVal { .. }
+					| Instruction::DynamicLoop(..),
 				Instruction::DynamicLoop(..)
 			]
 		)
