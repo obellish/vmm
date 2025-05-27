@@ -1,5 +1,5 @@
-mod change_between_moves;
 mod move_change_relative;
+mod offset_between_moves;
 mod swap_relative_changes;
 
-pub use self::{change_between_moves::*, move_change_relative::*, swap_relative_changes::*};
+pub use self::{move_change_relative::*, offset_between_moves::*, swap_relative_changes::*};

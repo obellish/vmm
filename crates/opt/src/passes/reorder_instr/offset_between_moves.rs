@@ -4,9 +4,9 @@ use vmm_utils::GetOrZero as _;
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct ReorderChangeBetweenMovesPass;
+pub struct ReorderOffsetBetweenMovesPass;
 
-impl PeepholePass for ReorderChangeBetweenMovesPass {
+impl PeepholePass for ReorderOffsetBetweenMovesPass {
 	const SIZE: usize = 3;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
@@ -33,6 +33,14 @@ impl PeepholePass for ReorderChangeBetweenMovesPass {
 				Instruction::set_val_at(value.get_or_zero(), x),
 				Instruction::move_ptr(*x + *y),
 			])),
+			[
+				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::Write { offset: None },
+				Instruction::MovePtr(Offset::Relative(y)),
+			] => Some(Change::Replace(vec![
+				Instruction::write_at(x),
+				Instruction::move_ptr(*x + *y),
+			])),
 			_ => None,
 		}
 	}
@@ -42,7 +50,9 @@ impl PeepholePass for ReorderChangeBetweenMovesPass {
 			window,
 			[
 				Instruction::MovePtr(Offset::Relative(_)),
-				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
+				Instruction::IncVal { offset: None, .. }
+					| Instruction::SetVal { offset: None, .. }
+					| Instruction::Write { offset: None },
 				Instruction::MovePtr(Offset::Relative(_))
 			]
 		)
