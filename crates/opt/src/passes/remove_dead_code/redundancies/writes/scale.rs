@@ -8,11 +8,17 @@ pub struct RemoveRedundantScaleValInstrPass;
 impl PeepholePass for RemoveRedundantScaleValInstrPass {
 	const SIZE: usize = 1;
 
-	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
-		Some(Change::ReplaceOne(Instruction::clear_val()))
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
+		match window {
+			[Instruction::ScaleVal { factor: 0 }] => {
+				Some(Change::ReplaceOne(Instruction::clear_val()))
+			}
+			[Instruction::ScaleVal { factor: 1 }] => Some(Change::Remove),
+			_ => None,
+		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [Instruction::ScaleVal { factor: 0 }])
+		matches!(window, [Instruction::ScaleVal { factor: 0 | 1 }])
 	}
 }
