@@ -139,7 +139,6 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_default_pass::<UnrollConstantLoopsPass>(progress);
 		self.run_default_pass::<UnrollIncrementLoopsPass>(progress);
-		self.run_default_pass::<UnrollOneOffLoopsPass>(progress);
 	}
 }
 
