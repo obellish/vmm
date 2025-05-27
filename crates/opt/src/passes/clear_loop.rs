@@ -1,9 +1,9 @@
 use crate::{Change, Instruction, LoopPass};
 
 #[derive(Debug, Default)]
-pub struct ClearLoopPass;
+pub struct OptimizeClearLoopPass;
 
-impl LoopPass for ClearLoopPass {
+impl LoopPass for OptimizeClearLoopPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[

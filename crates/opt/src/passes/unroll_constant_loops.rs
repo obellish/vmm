@@ -66,6 +66,10 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			return false;
 		}
 
+		if !matches!(Instruction::ptr_movement_of(inner), Some(0)) {
+			return false;
+		}
+
 		matches!(
 			inner.as_slice(),
 			[
