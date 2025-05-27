@@ -19,6 +19,7 @@ pub const TAPE_SIZE: usize = 30000;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Tape {
+	// We use a custom allocator, so we put this on the heap
 	cells: Box<[Wrapping<u8>; TAPE_SIZE]>,
 	ptr: TapePointer,
 }
