@@ -115,6 +115,16 @@ impl PeepholePass for CollapseStackedInstrPass {
 				value: *value,
 				offset: None,
 			})),
+			[
+				Instruction::Write {
+					offset: None,
+					count: a,
+				},
+				Instruction::Write {
+					offset: None,
+					count: b,
+				},
+			] => Some(Change::ReplaceOne(Instruction::write_many(a + b))),
 			_ => None,
 		}
 	}
@@ -131,6 +141,9 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] | [
 				Instruction::SetVal { offset: None, .. },
 				Instruction::SetVal { offset: None, .. }
+			] | [
+				Instruction::Write { offset: None, .. },
+				Instruction::Write { offset: None, .. }
 			]
 		) || matches!(
 			window,
@@ -149,6 +162,15 @@ impl PeepholePass for CollapseStackedInstrPass {
 					..
 				},
 				Instruction::SetVal {
+					offset: Some(Offset::Relative(y)),
+					..
+				}
+			] | [
+				Instruction::Write {
+					offset: Some(Offset::Relative(x)),
+					..
+				},
+				Instruction::Write {
 					offset: Some(Offset::Relative(y)),
 					..
 				}

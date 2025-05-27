@@ -32,9 +32,12 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			))),
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::Write { offset: None },
+				Instruction::Write {
+					offset: None,
+					count,
+				},
 				Instruction::MovePtr(Offset::Relative(y)),
-			] if *x == -y => Some(Change::ReplaceOne(Instruction::write_at(*x))),
+			] if *x == -y => Some(Change::ReplaceOne(Instruction::write_many_at(*count, *x))),
 			_ => None,
 		}
 	}
@@ -46,7 +49,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 				Instruction::MovePtr(Offset::Relative(x)),
 				Instruction::IncVal { offset: None, .. }
 					| Instruction::SetVal { offset: None, .. }
-					| Instruction::Write { offset: None },
+					| Instruction::Write { offset: None, .. },
 				Instruction::MovePtr(Offset::Relative(y))
 			]
 			if *x == -y

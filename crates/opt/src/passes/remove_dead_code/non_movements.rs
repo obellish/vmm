@@ -25,6 +25,12 @@ impl PeepholePass for RemoveNonMovementOffsetsPass {
 					offset: Some(Offset::Relative(0)),
 				},
 			] => Some(Change::ReplaceOne(Instruction::inc_val(*value))),
+			[
+				Instruction::Write {
+					offset: Some(Offset::Relative(0)),
+					count,
+				},
+			] => Some(Change::ReplaceOne(Instruction::write_many(*count))),
 			_ => None,
 		}
 	}
@@ -36,6 +42,9 @@ impl PeepholePass for RemoveNonMovementOffsetsPass {
 				offset: Some(Offset::Relative(0)),
 				..
 			} | Instruction::SetVal {
+				offset: Some(Offset::Relative(0)),
+				..
+			} | Instruction::Write {
 				offset: Some(Offset::Relative(0)),
 				..
 			}]

@@ -81,7 +81,7 @@ fn parse(
 			if let Some(instr) = match op {
 				OpCode::Increment => Some(Instruction::inc_val(1)),
 				OpCode::Decrement => Some(Instruction::inc_val(-1)),
-				OpCode::Output => Some(Instruction::write()),
+				OpCode::Output => Some(Instruction::write_once()),
 				OpCode::MoveRight => Some(Instruction::move_ptr_by(1)),
 				OpCode::MoveLeft => Some(Instruction::move_ptr_by(-1)),
 				OpCode::Input => Some(Instruction::read()),

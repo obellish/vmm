@@ -35,10 +35,13 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			])),
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::Write { offset: None },
+				Instruction::Write {
+					offset: None,
+					count,
+				},
 				Instruction::MovePtr(Offset::Relative(y)),
 			] => Some(Change::Replace(vec![
-				Instruction::write_at(x),
+				Instruction::write_many_at(*count, x),
 				Instruction::move_ptr(*x + *y),
 			])),
 			_ => None,
@@ -52,7 +55,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 				Instruction::MovePtr(Offset::Relative(_)),
 				Instruction::IncVal { offset: None, .. }
 					| Instruction::SetVal { offset: None, .. }
-					| Instruction::Write { offset: None },
+					| Instruction::Write { offset: None, .. },
 				Instruction::MovePtr(Offset::Relative(_))
 			]
 		)

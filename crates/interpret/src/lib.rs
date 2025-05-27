@@ -138,13 +138,15 @@ where
 		Ok(())
 	}
 
-	fn write_char(&mut self, offset: Option<Offset>) -> Result<(), RuntimeError> {
+	fn write_char(&mut self, count: usize, offset: Option<Offset>) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
 		let ch = self.tape()[idx].0;
 
+		let o = vec![ch; count];
+
 		if !cfg!(target_os = "windows") || ch < 128 {
-			self.output.write_all(&[ch])?;
+			self.output.write_all(&o)?;
 			self.output.flush()?;
 		}
 
@@ -243,7 +245,7 @@ where
 			Instruction::IncVal { value, offset } => self.inc_val(*value, *offset)?,
 			Instruction::SetVal { value, offset } => self.set_val(*value, *offset)?,
 			Instruction::MovePtr(offset) => self.move_ptr(*offset)?,
-			Instruction::Write { offset } => self.write_char(*offset)?,
+			Instruction::Write { offset, count } => self.write_char(*count, *offset)?,
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => self.find_zero(*i)?,
 			Instruction::DynamicLoop(instructions) => self.dyn_loop(instructions)?,

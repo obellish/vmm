@@ -28,7 +28,7 @@ fn find_zero() {
 
 #[test]
 fn write() {
-	verify(Instruction::write(), ".");
+	verify(Instruction::write_once(), ".");
 }
 
 #[test]

@@ -35,7 +35,10 @@ pub enum Instruction {
 	/// Read a value from the input
 	Read,
 	/// Write the value to an output
-	Write { offset: Option<Offset> },
+	Write {
+		count: usize,
+		offset: Option<Offset>,
+	},
 	/// A basic dynamic loop, where the current cell is checked for zero at each iteration
 	DynamicLoop(Vec<Self>),
 }
@@ -155,14 +158,34 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn write() -> Self {
-		Self::Write { offset: None }
+	pub const fn write_once() -> Self {
+		Self::Write {
+			offset: None,
+			count: 1,
+		}
 	}
 
 	#[must_use]
-	pub fn write_at(offset: impl Into<Offset>) -> Self {
+	pub fn write_once_at(offset: impl Into<Offset>) -> Self {
 		Self::Write {
 			offset: Some(offset.into()),
+			count: 1,
+		}
+	}
+
+	#[must_use]
+	pub const fn write_many(count: usize) -> Self {
+		Self::Write {
+			offset: None,
+			count,
+		}
+	}
+
+	#[must_use]
+	pub fn write_many_at(count: usize, offset: impl Into<Offset>) -> Self {
+		Self::Write {
+			offset: Some(offset.into()),
+			count,
 		}
 	}
 
@@ -351,7 +374,10 @@ impl Display for Instruction {
 				f.write_char(']')?;
 			}
 			Self::Read => f.write_char(',')?,
-			Self::Write { offset: None } => f.write_char('.')?,
+			Self::Write {
+				offset: None,
+				count: 1,
+			} => f.write_char('.')?,
 			Self::DynamicLoop(instrs) => {
 				f.write_char('[')?;
 				display_loop(instrs, f)?;
