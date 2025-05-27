@@ -66,6 +66,21 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			return false;
 		}
 
-		true
+		matches!(
+			inner.as_slice(),
+			[
+				Instruction::IncVal {
+					offset: None,
+					value: -1
+				},
+				..
+			] | [
+				..,
+				Instruction::IncVal {
+					offset: None,
+					value: -1
+				}
+			]
+		)
 	}
 }
