@@ -1,6 +1,4 @@
-use std::num::NonZeroU8;
-
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -16,15 +14,26 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 				Instruction::Start,
 				Instruction::DynamicLoop(_) | Instruction::SetVal { value: None, .. },
 			] => Some(Change::ReplaceOne(Instruction::Start)),
-			[Instruction::Start, Instruction::IncVal { value, offset }] => {
-				Some(Change::Replace(vec![
-					Instruction::Start,
-					Instruction::SetVal {
-						value: NonZeroU8::new(*value as u8),
-						offset: *offset,
-					},
-				]))
-			}
+			[
+				Instruction::Start,
+				Instruction::IncVal {
+					value,
+					offset: Some(Offset::Relative(offset)),
+				},
+			] => Some(Change::Replace(vec![
+				Instruction::Start,
+				Instruction::set_val_at(*value as u8, offset),
+			])),
+			[
+				Instruction::Start,
+				Instruction::IncVal {
+					value,
+					offset: None,
+				},
+			] => Some(Change::Replace(vec![
+				Instruction::Start,
+				Instruction::set_val(*value as u8),
+			])),
 			_ => None,
 		}
 	}

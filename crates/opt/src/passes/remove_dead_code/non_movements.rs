@@ -1,3 +1,5 @@
+use std::num::NonZeroU8;
+
 use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
@@ -15,10 +17,9 @@ impl PeepholePass for RemoveNonMovementOffsetsPass {
 					value,
 					offset: Some(Offset::Relative(0)),
 				},
-			] => Some(Change::ReplaceOne(Instruction::SetVal {
-				value: *value,
-				offset: None,
-			})),
+			] => Some(Change::ReplaceOne(Instruction::set_val(
+				value.map_or(0, NonZeroU8::get),
+			))),
 			[
 				Instruction::IncVal {
 					value,
