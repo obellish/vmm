@@ -125,6 +125,16 @@ impl PeepholePass for CollapseStackedInstrPass {
 					count: b,
 				},
 			] => Some(Change::ReplaceOne(Instruction::write_many(a + b))),
+			[
+				Instruction::Write {
+					count: a,
+					offset: Some(Offset::Relative(x)),
+				},
+				Instruction::Write {
+					count: b,
+					offset: Some(Offset::Relative(y)),
+				},
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::write_many_at(*a + *b, x))),
 			_ => None,
 		}
 	}
