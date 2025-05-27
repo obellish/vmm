@@ -129,6 +129,7 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_default_pass::<RemoveRedundantChangeValBasicPass>(progress);
 		self.run_default_pass::<RemoveRedundantChangeValOffsetPass>(progress);
+		self.run_default_pass::<RemoveRedundantScaleValInstrPass>(progress);
 		self.run_default_pass::<RemovePointlessInstrPass>(progress);
 		self.run_default_pass::<RemoveNonMovementOffsetsPass>(progress);
 

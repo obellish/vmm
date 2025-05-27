@@ -1,3 +1,4 @@
 mod change;
+mod scale;
 
-pub use self::change::*;
+pub use self::{change::*, scale::*};
