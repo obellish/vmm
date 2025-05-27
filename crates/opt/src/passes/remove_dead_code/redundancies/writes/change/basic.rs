@@ -80,6 +80,9 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 						offset: None,
 						value: None
 					}
+				] | [
+					Instruction::FetchAndScaleVal { .. } | Instruction::IncVal { offset: None, .. },
+					Instruction::Read
 				]
 			)
 	}
