@@ -809,6 +809,7 @@ dependencies = [
  "vmm_tape",
  "vmm_type_name",
  "vmm_utils",
+ "vmm_wrap",
 ]
 
 [[package]]

@@ -1,4 +1,7 @@
+use std::num::NonZeroU8;
+
 use vmm_ir::Instruction;
+use vmm_wrap::Wrapping;
 
 use crate::{Change, PeepholePass};
 
@@ -13,17 +16,12 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 			[
 				Instruction::IncVal { offset: None, .. },
 				Instruction::SetVal {
-					offset: None,
-					value: None,
-				},
-			] => Some(Change::ReplaceOne(Instruction::clear_val())),
-			[
-				Instruction::IncVal { offset: None, .. },
-				Instruction::SetVal {
-					value: Some(x),
+					value,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::set_val(x.get()))),
+			] => Some(Change::ReplaceOne(Instruction::set_val(
+				value.map_or(0, NonZeroU8::get),
+			))),
 			[
 				Instruction::SetVal {
 					value: None,
@@ -44,11 +42,12 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					offset: None,
 				},
 			] => Some(Change::ReplaceOne(Instruction::set_val(
-				(x.get() as i8).wrapping_add(*y) as u8,
+				(Wrapping(x.get()) + *y).0,
 			))),
-			[Instruction::IncVal { offset: None, .. }, Instruction::Read] => {
-				Some(Change::ReplaceOne(Instruction::Read))
-			}
+			[
+				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
+				Instruction::Read,
+			] => Some(Change::ReplaceOne(Instruction::read())),
 			[
 				dyn_loop @ Instruction::DynamicLoop(..),
 				Instruction::SetVal {
@@ -56,29 +55,24 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					offset: None,
 				},
 			] => Some(Change::ReplaceOne(dyn_loop.clone())),
-			[Instruction::SetVal { offset: None, .. }, Instruction::Read] => {
-				Some(Change::ReplaceOne(Instruction::read()))
-			}
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(
-			window,
-			[
-				Instruction::IncVal { offset: None, .. },
-				Instruction::SetVal { offset: None, .. } | Instruction::Read
-			] | [
-				Instruction::SetVal { offset: None, .. },
-				Instruction::IncVal { offset: None, .. } | Instruction::Read
-			] | [
-				Instruction::DynamicLoop(..),
-				Instruction::SetVal {
-					value: None,
-					offset: None
-				}
-			]
-		)
+		matches!(window, [Instruction::IncVal {offset: None, ..}, i] if i.is_overwriting_current_cell())
+			|| matches!(
+				window,
+				[
+					Instruction::SetVal { offset: None, .. },
+					Instruction::IncVal { offset: None, .. } | Instruction::Read
+				] | [
+					Instruction::DynamicLoop(..),
+					Instruction::SetVal {
+						offset: None,
+						value: None
+					}
+				]
+			)
 	}
 }

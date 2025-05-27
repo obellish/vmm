@@ -170,6 +170,11 @@ impl Instruction {
 		Self::DynamicLoop(instructions.into_iter().collect())
 	}
 
+	#[must_use]
+	pub const fn is_overwriting_current_cell(&self) -> bool {
+		matches!(self, Self::SetVal { offset: None, .. } | Self::Read)
+	}
+
 	pub fn needs_input(&self) -> bool {
 		match self {
 			Self::Read => true,

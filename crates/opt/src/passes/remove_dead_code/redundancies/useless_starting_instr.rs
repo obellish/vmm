@@ -5,9 +5,9 @@ use vmm_ir::Instruction;
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct CleanUpStartPass;
+pub struct RemoveUnusedStartingInstrPass;
 
-impl PeepholePass for CleanUpStartPass {
+impl PeepholePass for RemoveUnusedStartingInstrPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
