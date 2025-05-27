@@ -69,7 +69,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 			return false;
 		}
 
-		if raw_loop.might_move_ptr() {
+		if Instruction::ptr_movement_of(inner.iter()) != Some(0) {
 			return false;
 		}
 
