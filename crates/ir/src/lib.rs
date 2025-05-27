@@ -271,6 +271,18 @@ impl Instruction {
 		matches!(self, Self::Write { .. })
 	}
 
+	#[must_use]
+	pub const fn is_zeroing_cell(&self) -> bool {
+		matches!(
+			self,
+			Self::SetVal {
+				value: None,
+				offset: None
+			} | Self::DynamicLoop(..)
+				| Self::ScaleAndMoveVal { .. }
+		)
+	}
+
 	pub fn rough_estimate(&self) -> usize {
 		match self {
 			Self::DynamicLoop(l) => l.iter().map(Self::rough_estimate).sum::<usize>() + 2,

@@ -8,38 +8,14 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[
-				Instruction::SetVal {
-					offset: None,
-					value: None,
-				},
-				Instruction::DynamicLoop(..),
-			] => Some(Change::ReplaceOne(Instruction::clear_val())),
-			[
-				Instruction::ScaleAndMoveVal { offset, factor },
-				Instruction::DynamicLoop(..),
-			] => Some(Change::ReplaceOne(Instruction::scale_and_move_val(
-				*offset, *factor,
-			))),
-			[
-				dyn_loop @ Instruction::DynamicLoop(..),
-				Instruction::DynamicLoop(..),
-			] => Some(Change::ReplaceOne(dyn_loop.clone())),
+			[i, Instruction::DynamicLoop(..)] if i.is_zeroing_cell() => {
+				Some(Change::ReplaceOne(i.clone()))
+			}
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(
-			window,
-			[
-				Instruction::SetVal {
-					value: None,
-					offset: None
-				} | Instruction::ScaleAndMoveVal { .. }
-					| Instruction::DynamicLoop(..),
-				Instruction::DynamicLoop(..)
-			]
-		)
+		matches!(window, [i, Instruction::DynamicLoop(..)] if i.is_zeroing_cell())
 	}
 }
