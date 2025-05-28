@@ -12,7 +12,7 @@ use core::{
 };
 
 use logos::{Lexer, Logos};
-use tracing::{info, trace, trace_span};
+use tracing::{debug, info, trace, trace_span};
 use vmm_ir::Instruction;
 
 pub use self::opcode::*;
@@ -25,6 +25,7 @@ pub struct Parser<'source> {
 impl<'source> Parser<'source> {
 	#[must_use]
 	pub fn new(source: &'source <OpCode as Logos<'source>>::Source) -> Self {
+		debug!("got source with length {}", source.len());
 		Self {
 			inner: Lexer::new(source),
 		}
@@ -33,8 +34,6 @@ impl<'source> Parser<'source> {
 	#[tracing::instrument(skip(self))]
 	pub fn scan(self) -> Result<Vec<Instruction>, ParseError> {
 		info!("scanning {} chars", self.inner.source().len());
-		// parse(self.inner.filter_map(Result::ok), 0).map(IntoIterator::into_iter)
-		// parse(self.inner.filter_map(Result::ok), 0)
 
 		let mut parsed = parse(self.inner.filter_map(Result::ok), 0)?;
 
