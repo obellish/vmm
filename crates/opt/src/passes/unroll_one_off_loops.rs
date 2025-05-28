@@ -10,14 +10,16 @@ impl LoopPass for UnrollOneOffLoopsPass {
 		match loop_values {
 			[
 				rest @ ..,
-				Instruction::SetVal {
-					value: None,
+				i @ (Instruction::SetVal {
 					offset: None,
-				},
+					value: None,
+				}
+				| Instruction::FindZero(..)
+				| Instruction::ScaleAndMoveVal { .. }),
 			] if !rest.iter().any(|i| i.is_loop() || i.has_side_effect()) => {
 				let mut out = rest.to_vec();
 
-				out.push(Instruction::clear_val());
+				out.push(i.clone());
 
 				Some(Change::Replace(out))
 			}
@@ -28,10 +30,12 @@ impl LoopPass for UnrollOneOffLoopsPass {
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		let [
 			rest @ ..,
-			Instruction::SetVal {
+			Instruction::FindZero(..)
+			| Instruction::SetVal {
 				offset: None,
 				value: None,
-			},
+			}
+			| Instruction::ScaleAndMoveVal { .. },
 		] = loop_values
 		else {
 			return false;
