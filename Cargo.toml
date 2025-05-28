@@ -27,6 +27,7 @@ members = [
     "crates/alloc",
     "crates/interpret",
     "crates/ir",
+    "crates/jit",
     "crates/opt",
     "crates/parse",
     "crates/program",

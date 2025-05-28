@@ -1,0 +1,29 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_jit"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+arbitrary = { version = "1", optional = true }
+cranelift-bitset = "0.120"
+tracing.workspace = true
+wasmtime-math = { version = "33", optional = true }
+tap = "1"
+
+[features]
+arbitrary = [
+    "arbitrary/derive",
+    "cranelift-bitset/arbitrary",
+    "dep:arbitrary",
+    "std"
+]
+decode = []
+disas = ["decode"]
+encode = []
+interp = ["decode", "dep:wasmtime-math", "encode"]
+profile = ["std"]
+std = ["wasmtime-math?/std"]
