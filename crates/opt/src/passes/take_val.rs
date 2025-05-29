@@ -16,7 +16,7 @@ impl PeepholePass for OptimizeTakeValPass {
 					factor,
 				},
 				Instruction::MovePtr(Offset::Relative(y)),
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::take_val_to(*factor, x))),
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::scale_and_take_val(*factor, x))),
 			_ => None,
 		}
 	}

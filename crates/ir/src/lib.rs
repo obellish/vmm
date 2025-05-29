@@ -29,7 +29,7 @@ pub enum Instruction {
 	/// Multiply offset by factor, add result to current cell, then zero offset
 	FetchAndScaleVal { offset: Offset, factor: u8 },
 	/// Multiply current cell by factor, add result to offset, zero current cell, then move to offset
-	TakeValTo { offset: Offset, factor: u8 },
+	ScaleAndTakeVal { offset: Offset, factor: u8 },
 	/// Multiply self by factor
 	ScaleVal { factor: u8 },
 	/// Move the pointer along the tape
@@ -65,8 +65,8 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn take_val_to(factor: u8, offset: impl Into<Offset>) -> Self {
-		Self::TakeValTo {
+	pub fn scale_and_take_val(factor: u8, offset: impl Into<Offset>) -> Self {
+		Self::ScaleAndTakeVal {
 			offset: offset.into(),
 			factor,
 		}
@@ -333,6 +333,10 @@ impl Instruction {
 			| Self::SetVal { .. }
 			| Self::Read
 			| Self::Write { .. } => Some(0),
+			Self::ScaleAndTakeVal {
+				offset: Offset::Relative(offset),
+				..
+			} => Some(*offset),
 			Self::MovePtr(Offset::Relative(i)) => Some(*i),
 			Self::DynamicLoop(instrs) => {
 				let mut sum = 0;
