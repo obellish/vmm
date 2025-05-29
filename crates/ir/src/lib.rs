@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
+use alloc::{string::ToString, vec::Vec};
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
@@ -301,6 +301,11 @@ impl Instruction {
 		}
 	}
 
+	#[must_use]
+	pub fn raw_rough_estimate(&self) -> usize {
+		self.to_string().len()
+	}
+
 	pub fn ptr_movement_of<'a>(iter: impl IntoIterator<Item = &'a Self>) -> Option<isize> {
 		let mut movement = 0;
 
@@ -406,8 +411,12 @@ impl Display for Instruction {
 			Self::Read => f.write_char(',')?,
 			Self::Write {
 				offset: None,
-				count: 1,
-			} => f.write_char('.')?,
+				count,
+			} => {
+				for _ in 0..=*count {
+					f.write_char('.')?;
+				}
+			}
 			Self::DynamicLoop(instrs) => {
 				f.write_char('[')?;
 				display_loop(instrs, f)?;
@@ -459,6 +468,40 @@ impl Display for Instruction {
 					f,
 				)?;
 				Display::fmt(&Self::MovePtr((-offset).into()), f)?;
+			}
+			Self::FetchAndScaleVal {
+				offset: Offset::Relative(offset),
+				factor,
+			} => {
+				f.write_char('[')?;
+
+				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
+
+				f.write_char('-')?;
+
+				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
+
+				for _ in 0..*factor {
+					f.write_char('+')?;
+				}
+
+				f.write_char(']')?;
+			}
+			Self::Write {
+				offset: Some(Offset::Relative(offset)),
+				count,
+			} => {
+				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
+
+				Display::fmt(
+					&Self::Write {
+						offset: None,
+						count: *count,
+					},
+					f,
+				)?;
+
+				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
 			}
 			Self::Start => {}
 			_ => f.write_char('*')?,

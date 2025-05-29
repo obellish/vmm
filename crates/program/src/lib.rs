@@ -44,6 +44,10 @@ impl Program {
 		self.iter().map(Instruction::rough_estimate).sum()
 	}
 
+	pub fn raw_rough_estimate(&self) -> usize {
+		self.iter().map(Instruction::raw_rough_estimate).sum()
+	}
+
 	pub fn needs_input(&self) -> bool {
 		self.iter().any(Instruction::needs_input)
 	}

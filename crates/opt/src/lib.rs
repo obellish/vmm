@@ -78,6 +78,7 @@ impl<S: MetadataStore> Optimizer<S> {
 	#[tracing::instrument("run pass", skip(self))]
 	fn optimization_pass(&mut self, iteration: usize) -> Result<bool, OptimizerError> {
 		let starting_instruction_count = self.program.rough_estimate();
+		let raw_starting_instruction_count = self.program.raw_rough_estimate();
 
 		let mut progress = false;
 
@@ -87,8 +88,9 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_all_passes(&mut progress);
 
 		info!(
-			"{starting_instruction_count} -> {}",
-			self.program.rough_estimate()
+			"{starting_instruction_count} ({raw_starting_instruction_count}) -> {} ({})",
+			self.program.rough_estimate(),
+			self.program.raw_rough_estimate()
 		);
 
 		Ok(progress)
