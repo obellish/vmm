@@ -153,10 +153,12 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	const fn start(&self) -> Result<(), RuntimeError> {
 		Ok(())
 	}
 
+	#[inline]
 	fn inc_val(&mut self, value: i8, offset: Option<Offset>) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
@@ -165,6 +167,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn set_val(
 		&mut self,
 		value: Option<NonZeroU8>,
@@ -177,6 +180,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn move_ptr(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		match offset {
 			Offset::Relative(i) => *self.ptr_mut() += i,
@@ -186,6 +190,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn find_zero(&mut self, offset: isize) -> Result<(), RuntimeError> {
 		while !matches!(self.cell().0, 0) {
 			*self.ptr_mut() += offset;
@@ -194,6 +199,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn dyn_loop(&mut self, instructions: &[Instruction]) -> Result<(), RuntimeError> {
 		let mut iterations = 0usize;
 
@@ -212,6 +218,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn scale_and_move_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.ptr().value();
 		let dst_offset = self.calculate_index(Some(offset));
@@ -225,6 +232,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(Some(offset));
 
@@ -235,12 +243,14 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn scale_val(&mut self, factor: u8) -> Result<(), RuntimeError> {
 		*self.cell_mut() *= factor;
 
 		Ok(())
 	}
 
+	#[inline]
 	fn take_val_to(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let current_value = mem::take(self.cell_mut());
 
