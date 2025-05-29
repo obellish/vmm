@@ -241,6 +241,16 @@ where
 		Ok(())
 	}
 
+	fn take_val_to(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
+		let current_value = mem::take(self.cell_mut());
+
+		self.move_ptr(offset)?;
+
+		*self.cell_mut() += Wrapping::mul(current_value.0, factor);
+
+		Ok(())
+	}
+
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -262,6 +272,7 @@ where
 			Instruction::FetchAndScaleVal { offset, factor } => {
 				self.fetch_and_scale_val(*factor, *offset)?;
 			}
+			Instruction::TakeValTo { offset, factor } => self.take_val_to(*factor, *offset)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 

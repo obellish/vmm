@@ -28,6 +28,8 @@ pub enum Instruction {
 	ScaleAndMoveVal { offset: Offset, factor: u8 },
 	/// Multiply offset by factor, add result to current cell, then zero offset
 	FetchAndScaleVal { offset: Offset, factor: u8 },
+	/// Multiply current cell by factor, add result to offset, zero current cell, then move to offset
+	TakeValTo { offset: Offset, factor: u8 },
 	/// Multiply self by factor
 	ScaleVal { factor: u8 },
 	/// Move the pointer along the tape
@@ -60,6 +62,14 @@ impl Instruction {
 			self,
 			Self::SetVal { offset: None, .. } | Self::IncVal { offset: None, .. }
 		)
+	}
+
+	#[must_use]
+	pub fn take_val_to(factor: u8, offset: impl Into<Offset>) -> Self {
+		Self::TakeValTo {
+			offset: offset.into(),
+			factor,
+		}
 	}
 
 	#[must_use]
