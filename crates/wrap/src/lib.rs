@@ -71,6 +71,16 @@ where
 	}
 }
 
+#[cfg(feature = "arbitrary")]
+impl<'a, T> arbitrary::Arbitrary<'a> for Wrapping<T>
+where
+	T: arbitrary::Arbitrary<'a>,
+{
+	fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+		T::arbitrary(u).map(Self)
+	}
+}
+
 impl<T: Binary> Binary for Wrapping<T> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		Binary::fmt(&self.0, f)
