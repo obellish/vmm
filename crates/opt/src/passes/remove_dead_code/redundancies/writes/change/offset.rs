@@ -45,7 +45,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					value: b,
 				},
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::set_val_at(
-				(Wrapping(a.get()) + *b).0,
+				Wrapping::add(a.get(), *b),
 				x,
 			))),
 			[

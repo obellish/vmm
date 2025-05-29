@@ -21,7 +21,7 @@ impl PeepholePass for OptimizeScaleValPass {
 					factor: b,
 				},
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::scale_val(
-				(Wrapping(*a) * *b).0,
+				Wrapping::mul(*a, *b)
 			))),
 			_ => None,
 		}

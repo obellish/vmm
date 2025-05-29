@@ -19,6 +19,8 @@ pub enum Instruction {
 	Start,
 	/// Increment the value at the current cell (offset = None) or at an offset
 	IncVal { value: i8, offset: Option<Offset> },
+	/// Subtract the cell at the offset by the current cell
+	SubVal { dec: i8, offset: Offset },
 	/// Set the value at the current cell (offset = None) or at an offset
 	SetVal {
 		value: Option<NonZeroU8>,
@@ -51,6 +53,14 @@ impl Instruction {
 		Self::IncVal {
 			value: v,
 			offset: None,
+		}
+	}
+
+	#[must_use]
+	pub fn sub_val(v: i8, offset: impl Into<Offset>) -> Self {
+		Self::SubVal {
+			offset: offset.into(),
+			dec: v,
 		}
 	}
 
@@ -213,10 +223,10 @@ impl Instruction {
 		}
 	}
 
-	pub fn has_side_effect(&self) -> bool {
+	pub fn has_io(&self) -> bool {
 		match self {
 			Self::Read | Self::Write { .. } => true,
-			Self::DynamicLoop(instrs) => instrs.iter().any(Self::has_side_effect),
+			Self::DynamicLoop(instrs) => instrs.iter().any(Self::has_io),
 			_ => false,
 		}
 	}
@@ -280,6 +290,7 @@ impl Instruction {
 				offset: None
 			} | Self::DynamicLoop(..)
 				| Self::ScaleAndMoveVal { .. }
+				| Self::SubVal { .. }
 		)
 	}
 

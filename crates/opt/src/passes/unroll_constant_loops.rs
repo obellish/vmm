@@ -15,7 +15,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				},
 				Instruction::DynamicLoop(inner),
 			] => {
-				if inner.iter().any(Instruction::has_side_effect) {
+				if inner.iter().any(Instruction::has_io) {
 					return None;
 				}
 
@@ -62,7 +62,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			return false;
 		};
 
-		if inner.iter().any(Instruction::has_side_effect) {
+		if inner.iter().any(Instruction::has_io) {
 			return false;
 		}
 

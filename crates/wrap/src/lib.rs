@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
+#![cfg_attr(feature = "nightly", feature(mixed_integer_ops_unsigned_sub))]
 #![no_std]
 
 pub mod ops;
@@ -19,6 +20,36 @@ use self::ops::{
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
 pub struct Wrapping<T>(pub T);
+
+impl<T> Wrapping<T> {
+	pub fn add<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	where
+		T: WrappingAdd<Rhs>,
+	{
+		(Self(lhs) + rhs).0
+	}
+
+	pub fn sub<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	where
+		T: WrappingSub<Rhs>,
+	{
+		(Self(lhs) - rhs).0
+	}
+
+	pub fn mul<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	where
+		T: WrappingMul<Rhs>,
+	{
+		(Self(lhs) * rhs).0
+	}
+
+	pub fn div<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	where
+		T: WrappingDiv<Rhs>,
+	{
+		(Self(lhs) / rhs).0
+	}
+}
 
 impl<T, Rhs> Add<Rhs> for Wrapping<T>
 where

@@ -16,7 +16,7 @@ impl LoopPass for UnrollOneOffLoopsPass {
 				}
 				| Instruction::FindZero(..)
 				| Instruction::ScaleAndMoveVal { .. }),
-			] if !rest.iter().any(|i| i.is_loop() || i.has_side_effect()) => {
+			] if !rest.iter().any(|i| i.is_loop() || i.has_io()) => {
 				let mut out = rest.to_vec();
 
 				out.push(i.clone());
@@ -41,7 +41,7 @@ impl LoopPass for UnrollOneOffLoopsPass {
 			return false;
 		};
 
-		if rest.iter().any(|i| i.is_loop() || i.has_side_effect()) {
+		if rest.iter().any(|i| i.is_loop() || i.has_io()) {
 			return false;
 		}
 

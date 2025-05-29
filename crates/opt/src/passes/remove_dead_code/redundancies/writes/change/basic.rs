@@ -41,7 +41,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					offset: None,
 				},
 			] => Some(Change::ReplaceOne(Instruction::set_val(
-				(Wrapping(x.get()) + *y).0,
+				Wrapping::add(x.get(), *y),
 			))),
 			[
 				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },

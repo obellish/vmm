@@ -34,6 +34,15 @@ macro_rules! impl_wrapping_sub {
 			}
 		}
 
+		#[cfg(feature = "nightly")]
+		impl $crate::ops::WrappingSub<$signed> for $unsigned {
+			type Output = Self;
+
+			fn wrapping_sub(self, rhs: $signed) -> Self::Output {
+				self.wrapping_sub_signed(rhs)
+			}
+		}
+
 		impl $crate::ops::WrappingSubAssign for $signed {
 			fn wrapping_sub_assign(&mut self, rhs: Self) {
 				*self = self.wrapping_sub(rhs);
@@ -49,6 +58,13 @@ macro_rules! impl_wrapping_sub {
 		impl $crate::ops::WrappingSubAssign for $unsigned {
 			fn wrapping_sub_assign(&mut self, rhs: Self) {
 				*self = self.wrapping_sub(rhs);
+			}
+		}
+
+		#[cfg(feature = "nightly")]
+		impl $crate::ops::WrappingSubAssign<$signed> for $unsigned {
+			fn wrapping_sub_assign(&mut self, rhs: $signed) {
+				*self = self.wrapping_sub_signed(rhs);
 			}
 		}
 	};
