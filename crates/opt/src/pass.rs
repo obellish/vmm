@@ -105,7 +105,8 @@ where
 pub trait LoopPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change>;
 
-	fn should_run(&self, _loop_values: &[Instruction]) -> bool {
+	#[allow(unused)]
+	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		true
 	}
 }
