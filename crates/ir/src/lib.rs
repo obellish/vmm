@@ -333,11 +333,11 @@ impl Instruction {
 			| Self::SetVal { .. }
 			| Self::Read
 			| Self::Write { .. } => Some(0),
-			Self::ScaleAndTakeVal {
-				offset: Offset::Relative(offset),
+			Self::MovePtr(Offset::Relative(i))
+			| Self::ScaleAndTakeVal {
+				offset: Offset::Relative(i),
 				..
-			} => Some(*offset),
-			Self::MovePtr(Offset::Relative(i)) => Some(*i),
+			} => Some(*i),
 			Self::DynamicLoop(instrs) => {
 				let mut sum = 0;
 
