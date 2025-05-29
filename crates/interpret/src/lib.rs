@@ -282,7 +282,9 @@ where
 			Instruction::FetchAndScaleVal { offset, factor } => {
 				self.fetch_and_scale_val(*factor, *offset)?;
 			}
-			Instruction::ScaleAndTakeVal { offset, factor } => self.take_val_to(*factor, *offset)?,
+			Instruction::ScaleAndTakeVal { offset, factor } => {
+				self.take_val_to(*factor, *offset)?
+			}
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
