@@ -77,6 +77,22 @@ impl Display for SuperInstruction {
 
 				f.write_char(']')?;
 			}
+			Self::ScaleAnd {
+				action: ScaleAnd::Take,
+				offset: Offset::Relative(offset),
+				factor,
+			} => {
+				Display::fmt(
+					&Self::ScaleAnd {
+						action: ScaleAnd::Move,
+						offset: Offset::Relative(offset),
+						factor,
+					},
+					f,
+				)?;
+
+				Display::fmt(&Instruction::MovePtr(Offset::Relative(offset)), f)?;
+			}
 			_ => f.write_char('*')?,
 		}
 
