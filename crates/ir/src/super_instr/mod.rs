@@ -5,7 +5,7 @@ use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 use serde::{Deserialize, Serialize};
 
 pub use self::scale::*;
-use super::{Instruction, Offset};
+use super::{Instruction, Offset, PtrMovement};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -97,5 +97,22 @@ impl Display for SuperInstruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl PtrMovement for SuperInstruction {
+	fn ptr_movement(&self) -> Option<isize> {
+		match self {
+			Self::ScaleAnd {
+				action: ScaleAnd::Move | ScaleAnd::Fetch,
+				..
+			} => Some(0),
+			Self::ScaleAnd {
+				action: ScaleAnd::Take,
+				offset: Offset::Relative(offset),
+				..
+			} => Some(*offset),
+			_ => None,
+		}
 	}
 }

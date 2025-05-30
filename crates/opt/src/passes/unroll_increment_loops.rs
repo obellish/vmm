@@ -1,4 +1,4 @@
-use vmm_ir::LoopInstruction;
+use vmm_ir::{LoopInstruction, PtrMovement};
 
 use crate::{Change, Instruction, PeepholePass};
 
@@ -71,7 +71,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 			return false;
 		}
 
-		if Instruction::ptr_movement_of(inner.iter()) != Some(0) {
+		if !matches!(inner.ptr_movement(), Some(0)) {
 			return false;
 		}
 

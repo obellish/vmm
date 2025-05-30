@@ -4,6 +4,7 @@
 extern crate alloc;
 
 mod loop_instr;
+mod ptr_movement;
 mod super_instr;
 
 use alloc::string::ToString;
@@ -14,7 +15,7 @@ use core::{
 
 use serde::{Deserialize, Serialize};
 
-pub use self::{loop_instr::*, super_instr::*};
+pub use self::{loop_instr::*, ptr_movement::*, super_instr::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -312,58 +313,12 @@ impl Instruction {
 		self.to_string().len()
 	}
 
-	pub fn ptr_movement_of<'a>(iter: impl IntoIterator<Item = &'a Self>) -> Option<isize> {
-		let mut movement = 0;
-
-		for instr in iter {
-			movement += instr.ptr_movement()?;
-		}
-
-		Some(movement)
-	}
-
 	#[must_use]
 	pub const fn offset(&self) -> Option<Offset> {
 		match self {
 			Self::SetVal { offset, .. } | Self::IncVal { offset, .. } => *offset,
 			_ => None,
 		}
-	}
-
-	#[must_use]
-	pub fn ptr_movement(&self) -> Option<isize> {
-		match self {
-			Self::IncVal { .. }
-			| Self::SetVal { .. }
-			| Self::Read
-			| Self::Write { .. }
-			| Self::Super(SuperInstruction::ScaleAnd {
-				action: ScaleAnd::Fetch | ScaleAnd::Move,
-				..
-			}) => Some(0),
-			Self::MovePtr(Offset::Relative(i))
-			| Self::Super(SuperInstruction::ScaleAnd {
-				action: ScaleAnd::Take,
-				offset: Offset::Relative(i),
-				..
-			}) => Some(*i),
-			Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) => {
-				let mut sum = 0;
-
-				for i in instrs {
-					sum += i.ptr_movement()?;
-				}
-
-				Some(sum)
-			}
-			_ => None,
-		}
-	}
-
-	#[must_use]
-	pub fn might_move_ptr(&self) -> bool {
-		self.ptr_movement()
-			.is_none_or(|offset| !matches!(offset, 0))
 	}
 
 	#[must_use]
@@ -497,6 +452,23 @@ impl From<LoopInstruction> for Instruction {
 impl From<SuperInstruction> for Instruction {
 	fn from(value: SuperInstruction) -> Self {
 		Self::Super(value)
+	}
+}
+
+impl PtrMovement for Instruction {
+	fn ptr_movement(&self) -> Option<isize> {
+		match self {
+			Self::Super(s) => s.ptr_movement(),
+			Self::Loop(l) => l.ptr_movement(),
+			Self::ScaleVal { .. }
+			| Self::SetVal { .. }
+			| Self::IncVal { .. }
+			| Self::Start
+			| Self::Read
+			| Self::Write { .. } => Some(0),
+			Self::MovePtr(Offset::Relative(offset)) => Some(*offset),
+			_ => None,
+		}
 	}
 }
 
