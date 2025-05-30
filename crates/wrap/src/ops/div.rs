@@ -15,13 +15,43 @@ macro_rules! impl_wrapping_div {
                 type Output = Self;
 
                 fn wrapping_div(self, rhs: Self) -> Self {
-                    self.wrapping_div(rhs)
+                    <$ty>::wrapping_div(self, rhs)
+                }
+            }
+
+            impl $crate::ops::WrappingDiv<&$ty> for $ty {
+                type Output = Self;
+
+                fn wrapping_div(self, rhs: &Self) -> Self {
+                    <$ty>::wrapping_div(self, *rhs)
+                }
+            }
+
+            impl $crate::ops::WrappingDiv<$ty> for &$ty {
+                type Output = $ty;
+
+                fn wrapping_div(self, rhs: $ty) -> $ty {
+                    <$ty>::wrapping_div(*self, rhs)
+                }
+            }
+
+            impl $crate::ops::WrappingDiv for &$ty {
+                type Output = $ty;
+
+                fn wrapping_div(self, rhs: Self) -> $ty {
+                    <$ty>::wrapping_div(*self, *rhs)
                 }
             }
 
             impl $crate::ops::WrappingDivAssign for $ty {
                 fn wrapping_div_assign(&mut self, rhs: Self) {
-                    *self = self.wrapping_div(rhs);
+                    *self = <$ty>::wrapping_div(*self, rhs);
+                }
+            }
+
+            impl $crate::ops::WrappingDivAssign<&$ty> for $ty {
+                fn wrapping_div_assign(&mut self, rhs: &Self) {
+                    *self = <$ty>::wrapping_div(*self, *rhs);
                 }
             }
         )*

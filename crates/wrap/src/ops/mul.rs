@@ -45,13 +45,13 @@ macro_rules! impl_wrapping_mul {
 
             impl $crate::ops::WrappingMulAssign for $ty {
                 fn wrapping_mul_assign(&mut self, rhs: Self) {
-                    *self = <$ty>::wrapping_mul(*self, rhs)
+                    *self = <$ty>::wrapping_mul(*self, rhs);
                 }
             }
 
             impl $crate::ops::WrappingMulAssign<&$ty> for $ty {
                 fn wrapping_mul_assign(&mut self, rhs: &Self) {
-                    *self = <$ty>::wrapping_mul(*self, *rhs)
+                    *self = <$ty>::wrapping_mul(*self, *rhs);
                 }
             }
         )*
