@@ -5,6 +5,7 @@ mod collapse_stacked_instr;
 mod combine_move_change;
 mod fetch_value;
 mod find_zero;
+mod if_nz;
 mod move_value;
 mod remove_dead_code;
 mod reorder_instr;
@@ -17,7 +18,7 @@ mod zeroed_cell_inc;
 
 pub use self::{
 	clear_cell::*, clear_loop::*, collapse_relative_instr::*, collapse_stacked_instr::*,
-	combine_move_change::*, fetch_value::*, find_zero::*, move_value::*, remove_dead_code::*,
-	reorder_instr::*, scale_val::*, set_scale::*, take_val::*, unroll_constant_loops::*,
-	unroll_increment_loops::*, zeroed_cell_inc::*,
+	combine_move_change::*, fetch_value::*, find_zero::*, if_nz::*, move_value::*,
+	remove_dead_code::*, reorder_instr::*, scale_val::*, set_scale::*, take_val::*,
+	unroll_constant_loops::*, unroll_increment_loops::*, zeroed_cell_inc::*,
 };

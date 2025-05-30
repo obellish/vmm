@@ -286,6 +286,17 @@ where
 	fn execute_loop_instruction(&mut self, instr: &LoopInstruction) -> Result<(), RuntimeError> {
 		match instr {
 			LoopInstruction::Dynamic(instrs) => self.dyn_loop(instrs)?,
+			LoopInstruction::IfNz(instrs) => {
+				if matches!(self.cell().0, 0) {
+					return Ok(());
+				}
+
+				for i in instrs {
+					self.execute_instruction(i)?;
+				}
+				mem::take(self.cell_mut());
+			}
+			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
 
 		Ok(())

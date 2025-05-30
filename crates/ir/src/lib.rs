@@ -182,8 +182,14 @@ impl Instruction {
 		Self::ScaleVal { factor }
 	}
 
+	#[must_use]
 	pub fn dynamic_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
 		LoopInstruction::dynamic(instructions).into()
+	}
+
+	#[must_use]
+	pub fn if_nz(instructions: impl IntoIterator<Item = Self>) -> Self {
+		LoopInstruction::if_nz(instructions).into()
 	}
 
 	#[must_use]
