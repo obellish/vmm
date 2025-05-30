@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, SimdInstruction};
 use vmm_utils::GetOrZero;
 
 use crate::{Change, PeepholePass};
@@ -14,16 +14,31 @@ impl PeepholePass for OptimizeSimdSetInstrPass {
 			[
 				Instruction::SetVal {
 					value: a,
-					offset: Some(Offset::Relative(x)),
+					offset: x,
 				},
 				Instruction::SetVal {
 					value: b,
-					offset: Some(Offset::Relative(y)),
+					offset: y,
 				},
 			] if *a == *b && *x != *y => Some(Change::ReplaceOne(Instruction::simd_set_vals(
 				a.get_or_zero(),
-				vec![Some(x.into()), Some(y.into())],
+				{
+					let mut offsets = vec![*x, *y];
+					offsets.sort();
+					offsets
+				},
 			))),
+			[
+				Instruction::Simd(SimdInstruction::SetVals { value: a, offsets }),
+				Instruction::SetVal { value: b, offset },
+			] if *a == *b && !offsets.contains(offset) => Some(Change::ReplaceOne(
+				Instruction::simd_set_vals(a.get_or_zero(), {
+					let mut offsets = offsets.to_owned();
+					offsets.push(*offset);
+					offsets.sort();
+					offsets
+				}),
+			)),
 			_ => None,
 		}
 	}
@@ -34,14 +49,21 @@ impl PeepholePass for OptimizeSimdSetInstrPass {
 			[
 				Instruction::SetVal {
 					value: a,
-					offset: Some(Offset::Relative(x))
+					offset: x
 				},
 				Instruction::SetVal {
 					value: b,
-					offset: Some(Offset::Relative(y))
+					offset: y
 				}
 			]
 			if *a == *b && *x != *y
+		) || matches!(
+			window,
+			[
+				Instruction::Simd(SimdInstruction::SetVals { value: a, offsets }),
+				Instruction::SetVal { value: b, offset }
+			]
+			if *a == *b && !offsets.contains(offset)
 		)
 	}
 }

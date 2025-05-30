@@ -274,7 +274,11 @@ where
 	}
 
 	#[inline]
-	fn set_vals(&mut self, v: Option<NonZeroU8>, offsets: &[Option<Offset>]) -> Result<(), RuntimeError> {
+	fn set_vals(
+		&mut self,
+		v: Option<NonZeroU8>,
+		offsets: &[Option<Offset>],
+	) -> Result<(), RuntimeError> {
 		for offset in offsets {
 			let idx = self.calculate_index(*offset);
 
