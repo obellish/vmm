@@ -10,7 +10,7 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{Instruction, LoopInstruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::{Instruction, LoopInstruction, Offset, ScaleAnd, SimdInstruction, SuperInstruction};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 use vmm_wrap::Wrapping;
@@ -277,6 +277,7 @@ where
 			Instruction::Loop(l) => self.execute_loop_instruction(l)?,
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
 			Instruction::Super(s) => self.execute_super_instruction(*s)?,
+			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -320,6 +321,21 @@ where
 				factor,
 			} => self.scale_and_take_val(factor, offset)?,
 			i => return Err(RuntimeError::Unimplemented(i.into())),
+		}
+
+		Ok(())
+	}
+
+	fn execute_simd_instruction(&mut self, instr: &SimdInstruction) -> Result<(), RuntimeError> {
+		match instr {
+			SimdInstruction::IncBy { value, offsets } => {
+				for offset in offsets {
+					let idx = self.calculate_index(Some(*offset));
+
+					self.tape_mut()[idx] += value;
+				}
+			}
+			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
 
 		Ok(())

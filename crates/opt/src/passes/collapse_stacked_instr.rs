@@ -1,4 +1,5 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, SimdInstruction};
+use vmm_wrap::Wrapping;
 
 use crate::{Change, PeepholePass};
 
@@ -135,6 +136,19 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: Some(Offset::Relative(y)),
 				},
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::write_many_at(*a + *b, x))),
+			[
+				Instruction::Simd(SimdInstruction::IncBy {
+					value: a,
+					offsets: x,
+				}),
+				Instruction::Simd(SimdInstruction::IncBy {
+					value: b,
+					offsets: y,
+				}),
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::simd_inc_by(
+				Wrapping::add(a, b),
+				x.clone(),
+			))),
 			_ => None,
 		}
 	}
@@ -186,6 +200,13 @@ impl PeepholePass for CollapseStackedInstrPass {
 				}
 			]
 			if *x == *y
+		) || matches!(
+			window,
+			[
+				Instruction::Simd(SimdInstruction::IncBy { offsets: a, .. }),
+				Instruction::Simd(SimdInstruction::IncBy { offsets: b, .. })
+			]
+			if *a == *b
 		)
 	}
 }

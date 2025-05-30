@@ -5,9 +5,10 @@ extern crate alloc;
 
 mod loop_instr;
 mod ptr_movement;
+mod simd_instr;
 mod super_instr;
 
-use alloc::string::ToString;
+use alloc::{string::ToString, vec::Vec};
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
@@ -16,7 +17,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-pub use self::{loop_instr::*, ptr_movement::*, super_instr::*};
+pub use self::{loop_instr::*, ptr_movement::*, simd_instr::*, super_instr::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -25,14 +26,19 @@ pub enum Instruction {
 	/// Is a no-op, but allows for other optimizations to be applied
 	Start,
 	/// Increment the value at the current cell (offset = None) or at an offset
-	IncVal { value: i8, offset: Option<Offset> },
+	IncVal {
+		value: i8,
+		offset: Option<Offset>,
+	},
 	/// Set the value at the current cell (offset = None) or at an offset
 	SetVal {
 		value: Option<NonZeroU8>,
 		offset: Option<Offset>,
 	},
 	/// Multiply self by factor
-	ScaleVal { factor: u8 },
+	ScaleVal {
+		factor: u8,
+	},
 	/// Move the pointer along the tape
 	MovePtr(Offset),
 	/// Find the next zero, jumping by the value
@@ -44,10 +50,11 @@ pub enum Instruction {
 		count: usize,
 		offset: Option<Offset>,
 	},
-	/// A basic dynamic loop, where the current cell is checked for zero at each iteration
+	/// A loop-like instruction.
 	Loop(LoopInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
+	Simd(SimdInstruction),
 }
 
 impl Instruction {
@@ -78,6 +85,11 @@ impl Instruction {
 			value: v,
 			offset: Some(offset.into()),
 		}
+	}
+
+	#[must_use]
+	pub const fn simd_inc_by(v: i8, offsets: Vec<Offset>) -> Self {
+		Self::Simd(SimdInstruction::inc_by(v, offsets))
 	}
 
 	#[must_use]
@@ -396,6 +408,12 @@ impl Display for Instruction {
 impl From<LoopInstruction> for Instruction {
 	fn from(value: LoopInstruction) -> Self {
 		Self::Loop(value)
+	}
+}
+
+impl From<SimdInstruction> for Instruction {
+	fn from(value: SimdInstruction) -> Self {
+		Self::Simd(value)
 	}
 }
 
