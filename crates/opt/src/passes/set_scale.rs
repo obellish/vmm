@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
+use vmm_ir::Instruction;
 use vmm_wrap::Wrapping;
 
 use crate::{Change, PeepholePass};
