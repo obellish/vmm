@@ -18,6 +18,14 @@ macro_rules! impl_wrapping_sub {
 			}
 		}
 
+		impl $crate::ops::WrappingSub for &$signed {
+			type Output = $signed;
+
+			fn wrapping_sub(self, rhs: Self) -> $signed {
+				<$signed>::wrapping_sub(*self, *rhs)
+			}
+		}
+
 		impl $crate::ops::WrappingSub<$unsigned> for $signed {
 			type Output = Self;
 
@@ -26,11 +34,43 @@ macro_rules! impl_wrapping_sub {
 			}
 		}
 
+		impl $crate::ops::WrappingSub<$unsigned> for &$signed {
+			type Output = $signed;
+
+			fn wrapping_sub(self, rhs: $unsigned) -> Self::Output {
+				<$signed>::wrapping_sub_unsigned(*self, rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingSub<&$unsigned> for $signed {
+			type Output = Self;
+
+			fn wrapping_sub(self, rhs: &$unsigned) -> Self::Output {
+				self.wrapping_sub_unsigned(*rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingSub<&$unsigned> for &$signed {
+			type Output = $signed;
+
+			fn wrapping_sub(self, rhs: &$unsigned) -> Self::Output {
+				<$signed>::wrapping_sub_unsigned(*self, *rhs)
+			}
+		}
+
 		impl $crate::ops::WrappingSub for $unsigned {
 			type Output = Self;
 
 			fn wrapping_sub(self, rhs: Self) -> Self::Output {
 				self.wrapping_sub(rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingSub for &$unsigned {
+			type Output = $unsigned;
+
+			fn wrapping_sub(self, rhs: Self) -> $unsigned {
+				<$unsigned>::wrapping_sub(*self, *rhs)
 			}
 		}
 
