@@ -82,9 +82,39 @@ macro_rules! impl_wrapping_add {
 			}
 		}
 
+		impl $crate::ops::WrappingAdd<$signed> for &$unsigned {
+			type Output = $unsigned;
+
+			fn wrapping_add(self, rhs: $signed) -> $unsigned {
+				<$unsigned>::wrapping_add_signed(*self, rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAdd<&$signed> for $unsigned {
+			type Output = Self;
+
+			fn wrapping_add(self, rhs: &$signed) -> Self {
+				self.wrapping_add_signed(*rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAdd<&$signed> for &$unsigned {
+			type Output = $unsigned;
+
+			fn wrapping_add(self, rhs: &$signed) -> $unsigned {
+				<$unsigned>::wrapping_add_signed(*self, *rhs)
+			}
+		}
+
 		impl $crate::ops::WrappingAddAssign for $signed {
 			fn wrapping_add_assign(&mut self, rhs: Self) {
 				*self = self.wrapping_add(rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingAddAssign<&$signed> for $signed {
+			fn wrapping_add_assign(&mut self, rhs: &Self) {
+				*self = self.wrapping_add(*rhs);
 			}
 		}
 
@@ -94,15 +124,33 @@ macro_rules! impl_wrapping_add {
 			}
 		}
 
+		impl $crate::ops::WrappingAddAssign<&$unsigned> for $signed {
+			fn wrapping_add_assign(&mut self, rhs: &$unsigned) {
+				*self = self.wrapping_add_unsigned(*rhs);
+			}
+		}
+
 		impl $crate::ops::WrappingAddAssign for $unsigned {
 			fn wrapping_add_assign(&mut self, rhs: Self) {
 				*self = self.wrapping_add(rhs);
 			}
 		}
 
+		impl $crate::ops::WrappingAddAssign<&$unsigned> for $unsigned {
+			fn wrapping_add_assign(&mut self, rhs: &Self) {
+				*self = self.wrapping_add(*rhs);
+			}
+		}
+
 		impl $crate::ops::WrappingAddAssign<$signed> for $unsigned {
 			fn wrapping_add_assign(&mut self, rhs: $signed) {
 				*self = self.wrapping_add_signed(rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingAddAssign<&$signed> for $unsigned {
+			fn wrapping_add_assign(&mut self, rhs: &$signed) {
+				*self = self.wrapping_add_signed(*rhs);
 			}
 		}
 	};
