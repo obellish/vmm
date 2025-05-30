@@ -288,6 +288,19 @@ where
 		Ok(())
 	}
 
+	#[inline]
+	fn dupe_val(&mut self, offsets: &[Offset]) -> Result<(), RuntimeError> {
+		let value = mem::take(self.cell_mut()).0;
+
+		for offset in offsets {
+			let idx = self.calculate_index(Some(*offset));
+
+			self.tape_mut()[idx] += value;
+		}
+
+		Ok(())
+	}
+
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -303,7 +316,7 @@ where
 			Instruction::FindZero(i) => self.find_zero(*i)?,
 			Instruction::Loop(l) => self.execute_loop_instruction(l)?,
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
-			Instruction::Super(s) => self.execute_super_instruction(*s)?,
+			Instruction::Super(s) => self.execute_super_instruction(s)?,
 			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
@@ -330,24 +343,25 @@ where
 		Ok(())
 	}
 
-	fn execute_super_instruction(&mut self, instr: SuperInstruction) -> Result<(), RuntimeError> {
+	fn execute_super_instruction(&mut self, instr: &SuperInstruction) -> Result<(), RuntimeError> {
 		match instr {
 			SuperInstruction::ScaleAnd {
 				action: ScaleAnd::Move,
 				offset,
 				factor,
-			} => self.scale_and_move_val(factor, offset)?,
+			} => self.scale_and_move_val(*factor, *offset)?,
 			SuperInstruction::ScaleAnd {
 				action: ScaleAnd::Fetch,
 				offset,
 				factor,
-			} => self.fetch_and_scale_val(factor, offset)?,
+			} => self.fetch_and_scale_val(*factor, *offset)?,
 			SuperInstruction::ScaleAnd {
 				action: ScaleAnd::Take,
 				offset,
 				factor,
-			} => self.scale_and_take_val(factor, offset)?,
-			i => return Err(RuntimeError::Unimplemented(i.into())),
+			} => self.scale_and_take_val(*factor, *offset)?,
+			SuperInstruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
+			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
 
 		Ok(())

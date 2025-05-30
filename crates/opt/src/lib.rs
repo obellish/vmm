@@ -130,6 +130,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_pass::<OptimizeZeroedCellIncValPass>(progress);
 		self.run_default_pass::<OptimizeTakeValPass>(progress);
 		self.run_default_pass::<OptimizeSetScaleValPass>(progress);
+		self.run_default_pass::<OptimizeDuplicateValPass>(progress);
 
 		self.run_default_pass::<OptimizeSimdIncInstrPass>(progress);
 		self.run_default_pass::<OptimizeSimdSetInstrPass>(progress);

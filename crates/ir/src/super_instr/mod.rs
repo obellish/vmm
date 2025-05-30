@@ -1,5 +1,6 @@
 mod scale;
 
+use alloc::vec::Vec;
 use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
 use serde::{Deserialize, Serialize};
@@ -7,13 +8,16 @@ use serde::{Deserialize, Serialize};
 pub use self::scale::*;
 use super::{Offset, PtrMovement};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum SuperInstruction {
 	ScaleAnd {
 		action: ScaleAnd,
 		offset: Offset,
 		factor: u8,
+	},
+	DuplicateVal {
+		offsets: Vec<Offset>,
 	},
 }
 
@@ -36,6 +40,11 @@ impl SuperInstruction {
 
 	pub fn fetch_and_scale_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		Self::scale_and(factor, offset, ScaleAnd::Fetch)
+	}
+
+	#[must_use]
+	pub const fn dupe_val(offsets: Vec<Offset>) -> Self {
+		Self::DuplicateVal { offsets }
 	}
 }
 

@@ -80,6 +80,11 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub const fn dupe_val(offsets: Vec<Offset>) -> Self {
+		Self::Super(SuperInstruction::dupe_val(offsets))
+	}
+
+	#[must_use]
 	pub fn inc_val_at(v: i8, offset: impl Into<Offset>) -> Self {
 		Self::IncVal {
 			value: v,
