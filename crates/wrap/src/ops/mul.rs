@@ -15,13 +15,43 @@ macro_rules! impl_wrapping_mul {
                 type Output = Self;
 
                 fn wrapping_mul(self, rhs: Self) -> Self {
-                    self.wrapping_mul(rhs)
+                    <$ty>::wrapping_mul(self, rhs)
+                }
+            }
+
+            impl $crate::ops::WrappingMul<&$ty> for $ty {
+                type Output = Self;
+
+                fn wrapping_mul(self, rhs: &Self) -> Self {
+                    <$ty>::wrapping_mul(self, *rhs)
+                }
+            }
+
+            impl $crate::ops::WrappingMul<$ty> for &$ty {
+                type Output = $ty;
+
+                fn wrapping_mul(self, rhs: $ty) -> $ty {
+                    <$ty>::wrapping_mul(*self, rhs)
+                }
+            }
+
+            impl $crate::ops::WrappingMul for &$ty {
+                type Output = $ty;
+
+                fn wrapping_mul(self, rhs: Self) -> $ty {
+                    <$ty>::wrapping_mul(*self, *rhs)
                 }
             }
 
             impl $crate::ops::WrappingMulAssign for $ty {
                 fn wrapping_mul_assign(&mut self, rhs: Self) {
-                    *self = self.wrapping_mul(rhs);
+                    *self = <$ty>::wrapping_mul(*self, rhs)
+                }
+            }
+
+            impl $crate::ops::WrappingMulAssign<&$ty> for $ty {
+                fn wrapping_mul_assign(&mut self, rhs: &Self) {
+                    *self = <$ty>::wrapping_mul(*self, *rhs)
                 }
             }
         )*
