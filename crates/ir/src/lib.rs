@@ -6,7 +6,7 @@ extern crate alloc;
 mod loop_instr;
 mod super_instr;
 
-use alloc::{string::ToString, vec::Vec};
+use alloc::string::ToString;
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
