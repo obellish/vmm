@@ -10,7 +10,7 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, ScaleAnd, SuperInstruction};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 use vmm_wrap::Wrapping;
@@ -251,7 +251,7 @@ where
 	}
 
 	#[inline]
-	fn take_val_to(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
+	fn scale_and_take_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let current_value = mem::take(self.cell_mut());
 
 		self.move_ptr(offset)?;
@@ -276,16 +276,31 @@ where
 			Instruction::FindZero(i) => self.find_zero(*i)?,
 			Instruction::DynamicLoop(instructions) => self.dyn_loop(instructions)?,
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
-			Instruction::ScaleAndMoveVal { offset, factor } => {
-				self.scale_and_move_val(*factor, *offset)?;
-			}
-			Instruction::FetchAndScaleVal { offset, factor } => {
-				self.fetch_and_scale_val(*factor, *offset)?;
-			}
-			Instruction::ScaleAndTakeVal { offset, factor } => {
-				self.take_val_to(*factor, *offset)?
-			}
+			Instruction::Super(s) => self.execute_super_instruction(*s)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
+		}
+
+		Ok(())
+	}
+
+	fn execute_super_instruction(&mut self, instr: SuperInstruction) -> Result<(), RuntimeError> {
+		match instr {
+			SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Move,
+				offset,
+				factor,
+			} => self.scale_and_move_val(factor, offset)?,
+			SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Fetch,
+				offset,
+				factor,
+			} => self.fetch_and_scale_val(factor, offset)?,
+			SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Take,
+				offset,
+				factor,
+			} => self.scale_and_take_val(factor, offset)?,
+			i => return Err(RuntimeError::Unimplemented(i.into())),
 		}
 
 		Ok(())
