@@ -18,6 +18,14 @@ macro_rules! impl_wrapping_add {
 			}
 		}
 
+		impl $crate::ops::WrappingAdd for &$signed {
+			type Output = $signed;
+
+			fn wrapping_add(self, rhs: Self) -> $signed {
+				<$signed>::wrapping_add(*self, *rhs)
+			}
+		}
+
 		impl $crate::ops::WrappingAdd<$unsigned> for $signed {
 			type Output = Self;
 
@@ -26,11 +34,43 @@ macro_rules! impl_wrapping_add {
 			}
 		}
 
+		impl $crate::ops::WrappingAdd<$unsigned> for &$signed {
+			type Output = $signed;
+
+			fn wrapping_add(self, rhs: $unsigned) -> $signed {
+				<$signed>::wrapping_add_unsigned(*self, rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAdd<&$unsigned> for $signed {
+			type Output = Self;
+
+			fn wrapping_add(self, rhs: &$unsigned) -> Self {
+				self.wrapping_add_unsigned(*rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAdd<&$unsigned> for &$signed {
+			type Output = $signed;
+
+			fn wrapping_add(self, rhs: &$unsigned) -> $signed {
+				<$signed>::wrapping_add_unsigned(*self, *rhs)
+			}
+		}
+
 		impl $crate::ops::WrappingAdd for $unsigned {
 			type Output = Self;
 
 			fn wrapping_add(self, rhs: Self) -> Self {
 				self.wrapping_add(rhs)
+			}
+		}
+
+		impl $crate::ops::WrappingAdd for &$unsigned {
+			type Output = $unsigned;
+
+			fn wrapping_add(self, rhs: Self) -> $unsigned {
+				<$unsigned>::wrapping_add(*self, *rhs)
 			}
 		}
 
