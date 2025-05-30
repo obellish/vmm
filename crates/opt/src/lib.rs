@@ -13,7 +13,7 @@ use std::{
 
 use tap::prelude::*;
 use tracing::{debug, info, warn};
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, LoopInstruction};
 use vmm_program::Program;
 
 #[allow(clippy::wildcard_imports)]
@@ -181,7 +181,7 @@ fn run_pass<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool
 
 	if pass.should_run_on_loop() {
 		for instr in v {
-			if let Instruction::DynamicLoop(i) = instr {
+			if let Instruction::Loop(LoopInstruction::Dynamic(i)) = instr {
 				run_pass(pass, i, progress);
 			}
 		}

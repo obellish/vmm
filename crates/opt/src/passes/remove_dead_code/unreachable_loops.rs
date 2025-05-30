@@ -1,3 +1,5 @@
+use vmm_ir::LoopInstruction;
+
 use crate::{Change, Instruction, PeepholePass};
 
 #[derive(Debug, Default)]
@@ -8,7 +10,7 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[i, Instruction::DynamicLoop(..)] if i.is_zeroing_cell() => {
+			[i, Instruction::Loop(LoopInstruction::Dynamic(..))] if i.is_zeroing_cell() => {
 				Some(Change::RemoveOffset(1))
 			}
 			_ => None,
@@ -16,6 +18,6 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [i, Instruction::DynamicLoop(..)] if i.is_zeroing_cell())
+		matches!(window, [i, Instruction::Loop(LoopInstruction::Dynamic(..))] if i.is_zeroing_cell())
 	}
 }

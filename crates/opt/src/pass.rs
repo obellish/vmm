@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use tracing::warn;
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, LoopInstruction};
 
 use super::Change;
 
@@ -82,7 +82,7 @@ where
 	const SIZE: usize = 1;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		if let [Instruction::DynamicLoop(instructions)] = window {
+		if let [Instruction::Loop(LoopInstruction::Dynamic(instructions))] = window {
 			<P as LoopPass>::run_pass(self, instructions)
 		} else {
 			None
@@ -90,7 +90,7 @@ where
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		let [Instruction::DynamicLoop(instrs)] = window else {
+		let [Instruction::Loop(LoopInstruction::Dynamic(instrs))] = window else {
 			return false;
 		};
 

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
+use vmm_ir::{Instruction, LoopInstruction, ScaleAnd, SuperInstruction};
 use vmm_wrap::Wrapping;
 
 use crate::{Change, PeepholePass};
@@ -43,7 +43,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				Instruction::Read,
 			] => Some(Change::ReplaceOne(Instruction::read())),
 			[
-				Instruction::DynamicLoop(..)
+				Instruction::Loop(LoopInstruction::Dynamic(..))
 				| Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
 					..
@@ -64,7 +64,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				Instruction::SetVal { offset: None, .. },
 				Instruction::IncVal { offset: None, .. } | Instruction::Read
 			] | [
-				Instruction::DynamicLoop(..)
+				Instruction::Loop(LoopInstruction::Dynamic(..))
 					| Instruction::Super(SuperInstruction::ScaleAnd {
 						action: ScaleAnd::Move,
 						..

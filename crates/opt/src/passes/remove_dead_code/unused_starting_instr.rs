@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, LoopInstruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -12,7 +12,8 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 		match window {
 			[
 				Instruction::Start,
-				Instruction::DynamicLoop(_) | Instruction::SetVal { value: None, .. },
+				Instruction::Loop(LoopInstruction::Dynamic(..))
+				| Instruction::SetVal { value: None, .. },
 			] => Some(Change::RemoveOffset(1)),
 			[
 				Instruction::Start,
@@ -43,7 +44,7 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 			window,
 			[
 				Instruction::Start,
-				Instruction::DynamicLoop(_)
+				Instruction::Loop(LoopInstruction::Dynamic(..))
 					| Instruction::SetVal { value: None, .. }
 					| Instruction::IncVal { .. }
 			]

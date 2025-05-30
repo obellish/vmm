@@ -3,6 +3,7 @@
 
 extern crate alloc;
 
+mod loop_instr;
 mod super_instr;
 
 use alloc::{string::ToString, vec::Vec};
@@ -13,7 +14,7 @@ use core::{
 
 use serde::{Deserialize, Serialize};
 
-pub use self::super_instr::*;
+pub use self::{loop_instr::*, super_instr::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -42,7 +43,7 @@ pub enum Instruction {
 		offset: Option<Offset>,
 	},
 	/// A basic dynamic loop, where the current cell is checked for zero at each iteration
-	DynamicLoop(Vec<Self>),
+	Loop(LoopInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
 }
@@ -182,7 +183,7 @@ impl Instruction {
 	}
 
 	pub fn dynamic_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
-		Self::DynamicLoop(instructions.into_iter().collect())
+		LoopInstruction::dynamic(instructions).into()
 	}
 
 	#[must_use]
@@ -200,7 +201,7 @@ impl Instruction {
 	pub fn needs_input(&self) -> bool {
 		match self {
 			Self::Read => true,
-			Self::DynamicLoop(instrs) => instrs.iter().any(Self::needs_input),
+			Self::Loop(LoopInstruction::Dynamic(instrs)) => instrs.iter().any(Self::needs_input),
 			_ => false,
 		}
 	}
@@ -208,7 +209,7 @@ impl Instruction {
 	pub fn has_io(&self) -> bool {
 		match self {
 			Self::Read | Self::Write { .. } => true,
-			Self::DynamicLoop(instrs) => instrs.iter().any(Self::has_io),
+			Self::Loop(LoopInstruction::Dynamic(instrs)) => instrs.iter().any(Self::has_io),
 			_ => false,
 		}
 	}
@@ -245,13 +246,13 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn is_loop(&self) -> bool {
-		matches!(self, Self::DynamicLoop(_))
+	pub const fn is_dynamic_loop(&self) -> bool {
+		matches!(self, Self::Loop(LoopInstruction::Dynamic(_)))
 	}
 
 	#[must_use]
-	pub fn is_empty_loop(&self) -> bool {
-		matches!(self, Self::DynamicLoop(l) if l.is_empty())
+	pub fn is_empty_dynamic_loop(&self) -> bool {
+		matches!(self, Self::Loop(LoopInstruction::Dynamic(l)) if l.is_empty())
 	}
 
 	#[must_use]
@@ -276,7 +277,7 @@ impl Instruction {
 			Self::SetVal {
 				value: None,
 				offset: None
-			} | Self::DynamicLoop(..)
+			} | Self::Loop(LoopInstruction::Dynamic(..))
 				| Self::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
 					..
@@ -286,7 +287,9 @@ impl Instruction {
 
 	pub fn rough_estimate(&self) -> usize {
 		match self {
-			Self::DynamicLoop(l) => l.iter().map(Self::rough_estimate).sum::<usize>() + 2,
+			Self::Loop(LoopInstruction::Dynamic(l)) => {
+				l.iter().map(Self::rough_estimate).sum::<usize>() + 2
+			}
 			_ => 1,
 		}
 	}
@@ -331,11 +334,11 @@ impl Instruction {
 				offset: Offset::Relative(i),
 				..
 			}) => Some(*i),
-			Self::DynamicLoop(instrs) => {
+			Self::Loop(LoopInstruction::Dynamic(instrs)) => {
 				let mut sum = 0;
 
-				for instr in instrs {
-					sum += instr.ptr_movement()?;
+				for i in instrs {
+					sum += i.ptr_movement()?;
 				}
 
 				Some(sum)
@@ -354,7 +357,7 @@ impl Instruction {
 	pub fn nested_loops(&self) -> usize {
 		let mut count = 0;
 
-		if let Self::DynamicLoop(instrs) = self {
+		if let Self::Loop(LoopInstruction::Dynamic(instrs)) = self {
 			count += 1;
 
 			for instr in instrs {
@@ -413,7 +416,7 @@ impl Display for Instruction {
 					f.write_char('.')?;
 				}
 			}
-			Self::DynamicLoop(instrs) => {
+			Self::Loop(LoopInstruction::Dynamic(instrs)) => {
 				f.write_char('[')?;
 				display_loop(instrs, f)?;
 				f.write_char(']')?;
@@ -469,6 +472,12 @@ impl Display for Instruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl From<LoopInstruction> for Instruction {
+	fn from(value: LoopInstruction) -> Self {
+		Self::Loop(value)
 	}
 }
 

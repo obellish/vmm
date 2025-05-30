@@ -1,3 +1,5 @@
+use vmm_ir::LoopInstruction;
+
 use crate::{Change, Instruction, PeepholePass};
 
 const MAX_LOOP_UNROLLING: usize = 5;
@@ -15,7 +17,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 					value: i,
 					offset: None,
 				},
-				raw_loop @ Instruction::DynamicLoop(inner),
+				raw_loop @ Instruction::Loop(LoopInstruction::Dynamic(inner)),
 			] if *i > 0
 				&& !raw_loop.might_move_ptr()
 				&& (raw_loop.nested_loops() < MAX_LOOP_UNROLLING) =>
@@ -42,7 +44,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 							output.extend_from_slice(rest);
 						}
 
-						output.push(Instruction::DynamicLoop(inner.clone()));
+						output.push(Instruction::Loop(LoopInstruction::Dynamic(inner.clone())));
 
 						Some(Change::Replace(output))
 					}
@@ -59,7 +61,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 				value: i,
 				offset: None,
 			},
-			raw_loop @ Instruction::DynamicLoop(inner),
+			raw_loop @ Instruction::Loop(LoopInstruction::Dynamic(inner)),
 		] = window
 		else {
 			return false;

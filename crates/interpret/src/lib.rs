@@ -10,7 +10,7 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{Instruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::{Instruction, LoopInstruction, Offset, ScaleAnd, SuperInstruction};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 use vmm_wrap::Wrapping;
@@ -274,10 +274,18 @@ where
 			Instruction::Write { offset, count } => self.write_char(*count, *offset)?,
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => self.find_zero(*i)?,
-			Instruction::DynamicLoop(instructions) => self.dyn_loop(instructions)?,
+			Instruction::Loop(l) => self.execute_loop_instruction(l)?,
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
 			Instruction::Super(s) => self.execute_super_instruction(*s)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
+		}
+
+		Ok(())
+	}
+
+	fn execute_loop_instruction(&mut self, instr: &LoopInstruction) -> Result<(), RuntimeError> {
+		match instr {
+			LoopInstruction::Dynamic(instrs) => self.dyn_loop(instrs)?,
 		}
 
 		Ok(())
