@@ -403,6 +403,7 @@ impl Display for Instruction {
 			Self::Start => f.write_str("start")?,
 			Self::Super(s) => Display::fmt(&s, f)?,
 			Self::Loop(l) => Display::fmt(&l, f)?,
+			Self::Simd(s) => Display::fmt(&s, f)?,
 			_ => f.write_char('*')?,
 		}
 
@@ -433,6 +434,7 @@ impl PtrMovement for Instruction {
 		match self {
 			Self::Super(s) => s.ptr_movement(),
 			Self::Loop(l) => l.ptr_movement(),
+			Self::Simd(s) => s.ptr_movement(),
 			Self::ScaleVal { .. }
 			| Self::SetVal { .. }
 			| Self::IncVal { .. }
