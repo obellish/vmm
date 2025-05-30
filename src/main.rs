@@ -51,6 +51,13 @@ fn main() -> Result<()> {
 		}
 	};
 
+	let ir = program
+		.iter()
+		.map(|i| i.to_string() + "\n")
+		.collect::<String>();
+
+	fs::write("./out/ir.txt", ir)?;
+
 	let profiler = if program.needs_input() {
 		let mut vm = Interpreter::stdio(program).and_with_profiler();
 

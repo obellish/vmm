@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +19,31 @@ impl LoopInstruction {
 
 	pub fn if_nz(i: impl IntoIterator<Item = Instruction>) -> Self {
 		Self::IfNz(i.into_iter().collect())
+	}
+}
+
+impl Display for LoopInstruction {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		match self {
+			Self::Dynamic(instrs) => {
+				f.write_str("dylop\n")?;
+				for i in instrs {
+					Display::fmt(&i, f)?;
+					f.write_char('\n')?;
+				}
+				f.write_str("end dylop")?;
+			}
+			Self::IfNz(instrs) => {
+				f.write_str("ifnz\n")?;
+				for i in instrs {
+					Display::fmt(&i, f)?;
+					f.write_char('\n')?;
+				}
+				f.write_str("end ifnz")?;
+			}
+		}
+
+		Ok(())
 	}
 }
 

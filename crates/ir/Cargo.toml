@@ -12,3 +12,4 @@ serde = { workspace = true, features = [
     "alloc",
     "derive"
 ], default-features = false }
+vmm_utils.workspace = true

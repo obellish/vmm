@@ -803,6 +803,7 @@ name = "vmm_ir"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "vmm_utils",
 ]
 
 [[package]]

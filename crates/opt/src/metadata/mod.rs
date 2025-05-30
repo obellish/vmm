@@ -142,7 +142,6 @@ pub trait MetadataStore {
 		iteration: usize,
 		program: &vmm_program::Program,
 	) -> Result<(), MetadataStoreError> {
-		self.insert(iteration, &program.into_iter().collect::<RawProgram>())?;
 		let program = Program(program.into_iter().cloned().collect());
 
 		self.insert(iteration, &program)?;

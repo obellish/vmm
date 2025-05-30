@@ -5,7 +5,7 @@ use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 use serde::{Deserialize, Serialize};
 
 pub use self::scale::*;
-use super::{Instruction, Offset, PtrMovement};
+use super::{Offset, PtrMovement};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -39,59 +39,24 @@ impl SuperInstruction {
 	}
 }
 
+#[allow(unreachable_patterns)]
 impl Display for SuperInstruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match *self {
 			Self::ScaleAnd {
-				action: ScaleAnd::Move,
-				offset: Offset::Relative(offset),
+				action,
+				offset,
 				factor,
 			} => {
-				f.write_str("[-")?;
-				Display::fmt(&Instruction::MovePtr(Offset::Relative(offset)), f)?;
-
-				for _ in 0..factor {
-					f.write_char('+')?;
+				f.write_str("scaleand")?;
+				Display::fmt(&action, f)?;
+				f.write_char(' ')?;
+				Display::fmt(&factor, f)?;
+				if let Offset::Relative(offset) = offset {
+					f.write_str(" [")?;
+					Display::fmt(&offset, f)?;
+					f.write_char(']')?;
 				}
-
-				Display::fmt(&Instruction::MovePtr(Offset::Relative(-offset)), f)?;
-
-				f.write_char(']')?;
-			}
-			Self::ScaleAnd {
-				action: ScaleAnd::Fetch,
-				offset: Offset::Relative(offset),
-				factor,
-			} => {
-				f.write_char('[')?;
-
-				Display::fmt(&Instruction::MovePtr(Offset::Relative(offset)), f)?;
-
-				f.write_char('-')?;
-
-				Display::fmt(&Instruction::MovePtr(Offset::Relative(-offset)), f)?;
-
-				for _ in 0..factor {
-					f.write_char('+')?;
-				}
-
-				f.write_char(']')?;
-			}
-			Self::ScaleAnd {
-				action: ScaleAnd::Take,
-				offset: Offset::Relative(offset),
-				factor,
-			} => {
-				Display::fmt(
-					&Self::ScaleAnd {
-						action: ScaleAnd::Move,
-						offset: Offset::Relative(offset),
-						factor,
-					},
-					f,
-				)?;
-
-				Display::fmt(&Instruction::MovePtr(Offset::Relative(offset)), f)?;
 			}
 			_ => f.write_char('*')?,
 		}

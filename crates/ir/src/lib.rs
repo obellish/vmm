@@ -14,6 +14,7 @@ use core::{
 };
 
 use serde::{Deserialize, Serialize};
+use vmm_utils::GetOrZero as _;
 
 pub use self::{loop_instr::*, ptr_movement::*, super_instr::*};
 
@@ -341,101 +342,50 @@ impl Display for Instruction {
 	#[allow(unreachable_patterns)] // For when we add more instructions.
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::IncVal {
-				value: i,
-				offset: None,
-			} => {
-				let c = if *i < 0 { '-' } else { '+' };
-				for _ in 0..i.unsigned_abs() {
-					f.write_char(c)?;
+			Self::IncVal { value, offset } => {
+				f.write_str("inc ")?;
+				Display::fmt(&value, f)?;
+				if let Some(Offset::Relative(offset)) = *offset {
+					f.write_str(" [")?;
+					Display::fmt(&offset, f)?;
+					f.write_char(']')?;
 				}
 			}
-			Self::MovePtr(Offset::Relative(i)) => {
-				let c = if *i < 0 { '<' } else { '>' };
-				for _ in 0..i.unsigned_abs() {
-					f.write_char(c)?;
+			Self::SetVal { value, offset } => {
+				f.write_str("set ")?;
+				Display::fmt(&value.get_or_zero(), f)?;
+				if let Some(Offset::Relative(offset)) = *offset {
+					f.write_str(" [")?;
+					Display::fmt(&offset, f)?;
+					f.write_char(']')?;
 				}
 			}
-			Self::SetVal {
-				value: i,
-				offset: None,
-			} => {
-				f.write_str("[-]")?;
-				if let Some(i) = i {
-					for _ in 0..i.get() {
-						f.write_char('+')?;
-					}
+			Self::MovePtr(Offset::Relative(offset)) => {
+				f.write_str("movby ")?;
+				Display::fmt(&offset, f)?;
+			}
+			Self::ScaleVal { factor } => {
+				f.write_str("scale ")?;
+				Display::fmt(&factor, f)?;
+			}
+			Self::Write { count, offset } => {
+				f.write_str("putc ")?;
+				Display::fmt(&count, f)?;
+				if let Some(Offset::Relative(offset)) = *offset {
+					f.write_str(" [")?;
+					Display::fmt(&offset, f)?;
+					f.write_char(']')?;
 				}
 			}
-			Self::FindZero(i) => {
-				f.write_char('[')?;
-				let c = if *i < 0 { '<' } else { '>' };
-				for _ in 0..i.unsigned_abs() {
-					f.write_char(c)?;
-				}
+			Self::FindZero(offset) => {
+				f.write_str("findz [")?;
+				Display::fmt(&offset, f)?;
 				f.write_char(']')?;
 			}
-			Self::Read => f.write_char(',')?,
-			Self::Write {
-				offset: None,
-				count,
-			} => {
-				for _ in 0..=*count {
-					f.write_char('.')?;
-				}
-			}
-			Self::Loop(LoopInstruction::Dynamic(instrs)) => {
-				f.write_char('[')?;
-				display_loop(instrs, f)?;
-				f.write_char(']')?;
-			}
-			Self::IncVal {
-				value,
-				offset: Some(Offset::Relative(offset)),
-			} => {
-				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
-				Display::fmt(
-					&Self::IncVal {
-						value: *value,
-						offset: None,
-					},
-					f,
-				)?;
-
-				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
-			}
-			Self::SetVal {
-				value,
-				offset: Some(Offset::Relative(offset)),
-			} => {
-				Display::fmt(&Self::MovePtr((*offset).into()), f)?;
-				Display::fmt(
-					&Self::SetVal {
-						value: *value,
-						offset: None,
-					},
-					f,
-				)?;
-				Display::fmt(&Self::MovePtr((-offset).into()), f)?;
-			}
-			Self::Write {
-				offset: Some(Offset::Relative(offset)),
-				count,
-			} => {
-				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
-
-				Display::fmt(
-					&Self::Write {
-						offset: None,
-						count: *count,
-					},
-					f,
-				)?;
-
-				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
-			}
-			Self::Start => {}
+			Self::Read => f.write_str("getc")?,
+			Self::Start => f.write_str("start")?,
 			Self::Super(s) => Display::fmt(&s, f)?,
+			Self::Loop(l) => Display::fmt(&l, f)?,
 			_ => f.write_char('*')?,
 		}
 
@@ -470,14 +420,6 @@ impl PtrMovement for Instruction {
 			_ => None,
 		}
 	}
-}
-
-fn display_loop(i: &[Instruction], f: &mut Formatter<'_>) -> FmtResult {
-	for instr in i {
-		Display::fmt(&instr, f)?;
-	}
-
-	Ok(())
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
