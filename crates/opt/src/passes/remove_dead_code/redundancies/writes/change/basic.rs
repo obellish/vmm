@@ -73,29 +73,28 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [Instruction::IncVal {offset: None, ..}, i] if i.is_overwriting_current_cell())
-			|| matches!(
-				window,
-				[
-					Instruction::SetVal { offset: None, .. },
-					Instruction::IncVal { offset: None, .. } | Instruction::Read
-				] | [
-					Instruction::DynamicLoop(..)
-						| Instruction::Super(SuperInstruction::ScaleAnd {
-							action: ScaleAnd::Move,
-							..
-						}),
-					Instruction::SetVal {
-						offset: None,
-						value: None
-					}
-				] | [
-					Instruction::Super(SuperInstruction::ScaleAnd {
-						action: ScaleAnd::Fetch,
+		matches!(
+			window,
+			[
+				Instruction::SetVal { offset: None, .. },
+				Instruction::IncVal { offset: None, .. } | Instruction::Read
+			] | [
+				Instruction::DynamicLoop(..)
+					| Instruction::Super(SuperInstruction::ScaleAnd {
+						action: ScaleAnd::Move,
 						..
-					}) | Instruction::IncVal { offset: None, .. },
-					Instruction::Read
-				]
-			)
+					}),
+				Instruction::SetVal {
+					offset: None,
+					value: None
+				}
+			] | [
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Fetch,
+					..
+				}) | Instruction::IncVal { offset: None, .. },
+				Instruction::Read
+			]
+		)
 	}
 }
