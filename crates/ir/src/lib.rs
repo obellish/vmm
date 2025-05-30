@@ -187,7 +187,14 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_overwriting_current_cell(&self) -> bool {
-		matches!(self, Self::SetVal { offset: None, .. } | Self::Read)
+		matches!(
+			self,
+			Self::SetVal { offset: None, .. }
+				| Self::Read | Self::Super(SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Move,
+				..
+			})
+		)
 	}
 
 	pub fn needs_input(&self) -> bool {
@@ -270,6 +277,10 @@ impl Instruction {
 				value: None,
 				offset: None
 			} | Self::DynamicLoop(..)
+				| Self::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Move,
+					..
+				})
 		)
 	}
 
@@ -306,8 +317,20 @@ impl Instruction {
 	#[must_use]
 	pub fn ptr_movement(&self) -> Option<isize> {
 		match self {
-			Self::IncVal { .. } | Self::SetVal { .. } | Self::Read | Self::Write { .. } => Some(0),
-			Self::MovePtr(Offset::Relative(i)) => Some(*i),
+			Self::IncVal { .. }
+			| Self::SetVal { .. }
+			| Self::Read
+			| Self::Write { .. }
+			| Self::Super(SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Fetch | ScaleAnd::Move,
+				..
+			}) => Some(0),
+			Self::MovePtr(Offset::Relative(i))
+			| Self::Super(SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Take,
+				offset: Offset::Relative(i),
+				..
+			}) => Some(*i),
 			Self::DynamicLoop(instrs) => {
 				let mut sum = 0;
 
