@@ -3,6 +3,8 @@
 
 extern crate alloc;
 
+mod super_instr;
+
 use alloc::{string::ToString, vec::Vec};
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
@@ -11,7 +13,9 @@ use core::{
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub use self::super_instr::*;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
 	/// The start of the program
@@ -24,12 +28,6 @@ pub enum Instruction {
 		value: Option<NonZeroU8>,
 		offset: Option<Offset>,
 	},
-	/// Multiply current cell by factor, add result to offset, then zero current cell
-	ScaleAndMoveVal { offset: Offset, factor: u8 },
-	/// Multiply offset by factor, add result to current cell, then zero offset
-	FetchAndScaleVal { offset: Offset, factor: u8 },
-	/// Multiply current cell by factor, add result to offset, zero current cell, then move to offset
-	ScaleAndTakeVal { offset: Offset, factor: u8 },
 	/// Multiply self by factor
 	ScaleVal { factor: u8 },
 	/// Move the pointer along the tape
@@ -45,6 +43,8 @@ pub enum Instruction {
 	},
 	/// A basic dynamic loop, where the current cell is checked for zero at each iteration
 	DynamicLoop(Vec<Self>),
+	/// A "Super" instruction, which is an instruction that does more than one action
+	Super(SuperInstruction),
 }
 
 impl Instruction {
@@ -66,10 +66,7 @@ impl Instruction {
 
 	#[must_use]
 	pub fn scale_and_take_val(factor: u8, offset: impl Into<Offset>) -> Self {
-		Self::ScaleAndTakeVal {
-			offset: offset.into(),
-			factor,
-		}
+		SuperInstruction::scale_and_take_val(factor, offset).into()
 	}
 
 	#[must_use]
@@ -113,35 +110,13 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn scale_and_move_val(offset: impl Into<Offset>, factor: u8) -> Self {
-		Self::ScaleAndMoveVal {
-			offset: offset.into(),
-			factor,
-		}
+	pub fn scale_and_move_val(factor: u8, offset: impl Into<Offset>) -> Self {
+		SuperInstruction::scale_and_move_val(factor, offset).into()
 	}
 
 	#[must_use]
-	pub const fn scale_and_move_val_by(offset: isize, factor: u8) -> Self {
-		Self::ScaleAndMoveVal {
-			offset: Offset::Relative(offset),
-			factor,
-		}
-	}
-
-	#[must_use]
-	pub const fn scale_and_move_val_to(index: usize, factor: u8) -> Self {
-		Self::ScaleAndMoveVal {
-			offset: Offset::Absolute(index),
-			factor,
-		}
-	}
-
-	#[must_use]
-	pub fn fetch_and_scale_from(offset: impl Into<Offset>, factor: u8) -> Self {
-		Self::FetchAndScaleVal {
-			offset: offset.into(),
-			factor,
-		}
+	pub fn fetch_and_scale_val(factor: u8, offset: impl Into<Offset>) -> Self {
+		SuperInstruction::fetch_and_scale_val(factor, offset).into()
 	}
 
 	#[must_use]
@@ -253,7 +228,13 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_move_val(&self) -> bool {
-		matches!(self, Self::ScaleAndMoveVal { .. })
+		matches!(
+			self,
+			Self::Super(SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Move,
+				..
+			})
+		)
 	}
 
 	#[must_use]
@@ -289,7 +270,6 @@ impl Instruction {
 				value: None,
 				offset: None
 			} | Self::DynamicLoop(..)
-				| Self::ScaleAndMoveVal { .. }
 		)
 	}
 
@@ -319,7 +299,6 @@ impl Instruction {
 	pub const fn offset(&self) -> Option<Offset> {
 		match self {
 			Self::SetVal { offset, .. } | Self::IncVal { offset, .. } => *offset,
-			Self::ScaleAndMoveVal { offset, .. } => Some(*offset),
 			_ => None,
 		}
 	}
@@ -327,17 +306,8 @@ impl Instruction {
 	#[must_use]
 	pub fn ptr_movement(&self) -> Option<isize> {
 		match self {
-			Self::ScaleAndMoveVal { .. }
-			| Self::FetchAndScaleVal { .. }
-			| Self::IncVal { .. }
-			| Self::SetVal { .. }
-			| Self::Read
-			| Self::Write { .. } => Some(0),
-			Self::MovePtr(Offset::Relative(i))
-			| Self::ScaleAndTakeVal {
-				offset: Offset::Relative(i),
-				..
-			} => Some(*i),
+			Self::IncVal { .. } | Self::SetVal { .. } | Self::Read | Self::Write { .. } => Some(0),
+			Self::MovePtr(Offset::Relative(i)) => Some(*i),
 			Self::DynamicLoop(instrs) => {
 				let mut sum = 0;
 
@@ -425,24 +395,6 @@ impl Display for Instruction {
 				display_loop(instrs, f)?;
 				f.write_char(']')?;
 			}
-			Self::ScaleAndMoveVal {
-				offset: Offset::Relative(offset),
-				factor: multiplier,
-			} => {
-				f.write_char('[')?;
-
-				f.write_char('-')?;
-
-				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
-
-				for _ in 0..*multiplier {
-					f.write_char('+')?;
-				}
-
-				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
-
-				f.write_char(']')?;
-			}
 			Self::IncVal {
 				value,
 				offset: Some(Offset::Relative(offset)),
@@ -472,24 +424,6 @@ impl Display for Instruction {
 				)?;
 				Display::fmt(&Self::MovePtr((-offset).into()), f)?;
 			}
-			Self::FetchAndScaleVal {
-				offset: Offset::Relative(offset),
-				factor,
-			} => {
-				f.write_char('[')?;
-
-				Display::fmt(&Self::MovePtr(Offset::Relative(*offset)), f)?;
-
-				f.write_char('-')?;
-
-				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
-
-				for _ in 0..*factor {
-					f.write_char('+')?;
-				}
-
-				f.write_char(']')?;
-			}
 			Self::Write {
 				offset: Some(Offset::Relative(offset)),
 				count,
@@ -507,10 +441,17 @@ impl Display for Instruction {
 				Display::fmt(&Self::MovePtr(Offset::Relative(-offset)), f)?;
 			}
 			Self::Start => {}
+			Self::Super(s) => Display::fmt(&s, f)?,
 			_ => f.write_char('*')?,
 		}
 
 		Ok(())
+	}
+}
+
+impl From<SuperInstruction> for Instruction {
+	fn from(value: SuperInstruction) -> Self {
+		Self::Super(value)
 	}
 }
 
@@ -522,7 +463,7 @@ fn display_loop(i: &[Instruction], f: &mut Formatter<'_>) -> FmtResult {
 	Ok(())
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Offset {
 	Relative(isize),
 	Absolute(usize),
