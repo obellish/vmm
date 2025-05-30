@@ -1,5 +1,4 @@
 use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
-use vmm_utils::GetOrZero as _;
 use vmm_wrap::Wrapping;
 
 use crate::{Change, PeepholePass};
@@ -14,13 +13,8 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 		match window {
 			[
 				Instruction::IncVal { offset: None, .. },
-				Instruction::SetVal {
-					value,
-					offset: None,
-				},
-			] => Some(Change::ReplaceOne(Instruction::set_val(
-				value.get_or_zero(),
-			))),
+				Instruction::SetVal { offset: None, .. },
+			] => Some(Change::RemoveOffset(0)),
 			[
 				Instruction::SetVal {
 					value: None,
@@ -49,25 +43,16 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				Instruction::Read,
 			] => Some(Change::ReplaceOne(Instruction::read())),
 			[
-				dyn_loop @ Instruction::DynamicLoop(..),
-				Instruction::SetVal {
-					value: None,
-					offset: None,
-				},
-			] => Some(Change::ReplaceOne(dyn_loop.clone())),
-			[
-				Instruction::Super(SuperInstruction::ScaleAnd {
+				Instruction::DynamicLoop(..)
+				| Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset,
-					factor,
+					..
 				}),
 				Instruction::SetVal {
-					offset: None,
 					value: None,
+					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::scale_and_move_val(
-				*factor, *offset,
-			))),
+			] => Some(Change::RemoveOffset(1)),
 			_ => None,
 		}
 	}
@@ -94,6 +79,9 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					..
 				}) | Instruction::IncVal { offset: None, .. },
 				Instruction::Read
+			] | [
+				Instruction::IncVal { offset: None, .. },
+				Instruction::SetVal { offset: None, .. }
 			]
 		)
 	}

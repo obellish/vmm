@@ -1,10 +1,12 @@
 use tracing::{Level, trace};
 use vmm_ir::Instruction;
 use vmm_utils::InsertOrPush as _;
+use vmm_wrap::Wrapping;
 
 #[derive(Debug, Clone)]
 pub enum Change {
 	Remove,
+	RemoveOffset(isize),
 	Replace(Vec<Instruction>),
 	ReplaceOne(Instruction),
 }
@@ -17,6 +19,13 @@ impl Change {
 				let removed = ops.drain(i..(i + size)).collect::<Vec<_>>();
 
 				trace!("removing instructions {removed:?}");
+
+				(true, 0)
+			}
+			Self::RemoveOffset(offset) => {
+				let removed = ops.remove(Wrapping::add(i, offset));
+
+				trace!("removing instruction {removed:?}");
 
 				(true, 0)
 			}

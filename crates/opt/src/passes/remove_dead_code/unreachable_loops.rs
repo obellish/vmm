@@ -9,7 +9,7 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[i, Instruction::DynamicLoop(..)] if i.is_zeroing_cell() => {
-				Some(Change::ReplaceOne(i.clone()))
+				Some(Change::RemoveOffset(1))
 			}
 			_ => None,
 		}

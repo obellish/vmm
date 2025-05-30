@@ -12,10 +12,6 @@ impl PeepholePass for OptimizeFetchValPass {
 		match window {
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
-				// Instruction::ScaleAndMoveVal {
-				// 	offset: Offset::Relative(y),
-				// 	factor,
-				// },
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					offset: Offset::Relative(y),
 					factor,

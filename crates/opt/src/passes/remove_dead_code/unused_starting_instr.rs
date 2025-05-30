@@ -13,7 +13,7 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 			[
 				Instruction::Start,
 				Instruction::DynamicLoop(_) | Instruction::SetVal { value: None, .. },
-			] => Some(Change::ReplaceOne(Instruction::Start)),
+			] => Some(Change::RemoveOffset(1)),
 			[
 				Instruction::Start,
 				Instruction::IncVal {
