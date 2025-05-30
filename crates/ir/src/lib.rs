@@ -88,8 +88,13 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn simd_inc_by(v: i8, offsets: Vec<Offset>) -> Self {
-		Self::Simd(SimdInstruction::inc_by(v, offsets))
+	pub const fn simd_inc_vals(v: i8, offsets: Vec<Option<Offset>>) -> Self {
+		Self::Simd(SimdInstruction::inc_vals(v, offsets))
+	}
+
+	#[must_use]
+	pub const fn simd_set_vals(v: u8, offsets: Vec<Option<Offset>>) -> Self {
+		Self::Simd(SimdInstruction::set_vals(v, offsets))
 	}
 
 	#[must_use]

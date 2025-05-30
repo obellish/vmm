@@ -137,15 +137,15 @@ impl PeepholePass for CollapseStackedInstrPass {
 				},
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::write_many_at(*a + *b, x))),
 			[
-				Instruction::Simd(SimdInstruction::IncBy {
+				Instruction::Simd(SimdInstruction::IncVals {
 					value: a,
 					offsets: x,
 				}),
-				Instruction::Simd(SimdInstruction::IncBy {
+				Instruction::Simd(SimdInstruction::IncVals {
 					value: b,
 					offsets: y,
 				}),
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::simd_inc_by(
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::simd_inc_vals(
 				Wrapping::add(a, b),
 				x.clone(),
 			))),
@@ -203,8 +203,8 @@ impl PeepholePass for CollapseStackedInstrPass {
 		) || matches!(
 			window,
 			[
-				Instruction::Simd(SimdInstruction::IncBy { offsets: a, .. }),
-				Instruction::Simd(SimdInstruction::IncBy { offsets: b, .. })
+				Instruction::Simd(SimdInstruction::IncVals { offsets: a, .. }),
+				Instruction::Simd(SimdInstruction::IncVals { offsets: b, .. })
 			]
 			if *a == *b
 		)

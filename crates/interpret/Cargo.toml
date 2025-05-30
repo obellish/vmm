@@ -13,3 +13,4 @@ vmm_ir.workspace = true
 vmm_program.workspace = true
 vmm_tape.workspace = true
 vmm_wrap = { workspace = true, features = ["nightly"] }
+vmm_utils.workspace = true

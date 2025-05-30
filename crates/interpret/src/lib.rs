@@ -13,6 +13,7 @@ use std::{
 use vmm_ir::{Instruction, LoopInstruction, Offset, ScaleAnd, SimdInstruction, SuperInstruction};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
+use vmm_utils::GetOrZero as _;
 use vmm_wrap::Wrapping;
 
 pub use self::profiler::*;
@@ -175,7 +176,7 @@ where
 	) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		self.tape_mut()[idx].0 = value.map_or(0, NonZeroU8::get);
+		self.tape_mut()[idx].0 = value.get_or_zero();
 
 		Ok(())
 	}
@@ -261,6 +262,28 @@ where
 		Ok(())
 	}
 
+	#[inline]
+	fn inc_vals(&mut self, value: i8, offsets: &[Option<Offset>]) -> Result<(), RuntimeError> {
+		for offset in offsets {
+			let idx = self.calculate_index(*offset);
+
+			self.tape_mut()[idx] += value;
+		}
+
+		Ok(())
+	}
+
+	#[inline]
+	fn set_vals(&mut self, v: Option<NonZeroU8>, offsets: &[Option<Offset>]) -> Result<(), RuntimeError> {
+		for offset in offsets {
+			let idx = self.calculate_index(*offset);
+
+			self.tape_mut()[idx].0 = v.get_or_zero();
+		}
+
+		Ok(())
+	}
+
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -328,13 +351,8 @@ where
 
 	fn execute_simd_instruction(&mut self, instr: &SimdInstruction) -> Result<(), RuntimeError> {
 		match instr {
-			SimdInstruction::IncBy { value, offsets } => {
-				for offset in offsets {
-					let idx = self.calculate_index(Some(*offset));
-
-					self.tape_mut()[idx] += value;
-				}
-			}
+			SimdInstruction::IncVals { value, offsets } => self.inc_vals(*value, offsets)?,
+			SimdInstruction::SetVals { value, offsets } => self.set_vals(*value, offsets)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
 
