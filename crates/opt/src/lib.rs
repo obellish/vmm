@@ -66,6 +66,10 @@ impl<S: MetadataStore> Optimizer<S> {
 			}
 		}
 
+		if let Some(program) = self.store.get_program_snapshot(iteration)? {
+			self.store.insert_program_snapshot(0, &program)?;
+		}
+
 		Ok(Program::Finalized(
 			mem::take(&mut self.program)
 				.iter()
