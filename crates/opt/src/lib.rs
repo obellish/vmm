@@ -134,6 +134,7 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_default_pass::<OptimizeSimdIncInstrPass>(progress);
 		self.run_default_pass::<OptimizeSimdSetInstrPass>(progress);
+		self.run_default_pass::<OptimizeSimdSetLoopPass>(progress);
 
 		self.run_default_pass::<ReorderMoveChangePass>(progress);
 		self.run_default_pass::<ReorderRelativeChangesPass>(progress);
