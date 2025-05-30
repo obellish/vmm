@@ -200,14 +200,16 @@ impl Instruction {
 				| Self::Read | Self::Super(SuperInstruction::ScaleAnd {
 				action: ScaleAnd::Move,
 				..
-			})
+			}) | Self::Loop(LoopInstruction::IfNz(..))
 		)
 	}
 
 	pub fn needs_input(&self) -> bool {
 		match self {
 			Self::Read => true,
-			Self::Loop(LoopInstruction::Dynamic(instrs)) => instrs.iter().any(Self::needs_input),
+			Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) => {
+				instrs.iter().any(Self::needs_input)
+			}
 			_ => false,
 		}
 	}
@@ -215,7 +217,9 @@ impl Instruction {
 	pub fn has_io(&self) -> bool {
 		match self {
 			Self::Read | Self::Write { .. } => true,
-			Self::Loop(LoopInstruction::Dynamic(instrs)) => instrs.iter().any(Self::has_io),
+			Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) => {
+				instrs.iter().any(Self::has_io)
+			}
 			_ => false,
 		}
 	}
@@ -283,7 +287,7 @@ impl Instruction {
 			Self::SetVal {
 				value: None,
 				offset: None
-			} | Self::Loop(LoopInstruction::Dynamic(..))
+			} | Self::Loop(LoopInstruction::Dynamic(..) | LoopInstruction::IfNz(..))
 				| Self::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
 					..
@@ -295,6 +299,9 @@ impl Instruction {
 		match self {
 			Self::Loop(LoopInstruction::Dynamic(l)) => {
 				l.iter().map(Self::rough_estimate).sum::<usize>() + 2
+			}
+			Self::Loop(LoopInstruction::IfNz(l)) => {
+				l.iter().map(Self::rough_estimate).sum::<usize>() + 1
 			}
 			_ => 1,
 		}
@@ -340,7 +347,7 @@ impl Instruction {
 				offset: Offset::Relative(i),
 				..
 			}) => Some(*i),
-			Self::Loop(LoopInstruction::Dynamic(instrs)) => {
+			Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) => {
 				let mut sum = 0;
 
 				for i in instrs {
@@ -363,7 +370,7 @@ impl Instruction {
 	pub fn nested_loops(&self) -> usize {
 		let mut count = 0;
 
-		if let Self::Loop(LoopInstruction::Dynamic(instrs)) = self {
+		if let Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) = self {
 			count += 1;
 
 			for instr in instrs {
