@@ -193,9 +193,17 @@ impl From<MetadataStoreError> for OptimizerError {
 fn run_pass<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool) {
 	*progress |= pass.run_pass(v);
 
-	if pass.should_run_on_loop() {
-		for instr in v {
+	if pass.should_run_on_dyn_loop() {
+		for instr in v.iter_mut() {
 			if let Instruction::Loop(LoopInstruction::Dynamic(i)) = instr {
+				run_pass(pass, i, progress);
+			}
+		}
+	}
+
+	if pass.should_run_on_if() {
+		for instr in v {
+			if let Instruction::Loop(LoopInstruction::IfNz(i)) = instr {
 				run_pass(pass, i, progress);
 			}
 		}

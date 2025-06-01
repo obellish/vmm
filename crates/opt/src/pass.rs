@@ -8,7 +8,11 @@ use super::Change;
 pub trait Pass: Debug {
 	fn run_pass(&mut self, program: &mut Vec<Instruction>) -> bool;
 
-	fn should_run_on_loop(&self) -> bool {
+	fn should_run_on_dyn_loop(&self) -> bool {
+		true
+	}
+
+	fn should_run_on_if(&self) -> bool {
 		true
 	}
 }
@@ -55,8 +59,8 @@ where
 		progress
 	}
 
-	fn should_run_on_loop(&self) -> bool {
-		<P as PeepholePass>::should_run_on_loop(self)
+	fn should_run_on_dyn_loop(&self) -> bool {
+		<P as PeepholePass>::should_run_on_dyn_loop(self)
 	}
 }
 
@@ -70,7 +74,11 @@ pub trait PeepholePass {
 		true
 	}
 
-	fn should_run_on_loop(&self) -> bool {
+	fn should_run_on_dyn_loop(&self) -> bool {
+		true
+	}
+
+	fn should_run_on_if(&self) -> bool {
 		true
 	}
 }
@@ -90,14 +98,18 @@ where
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		let [Instruction::Loop(LoopInstruction::Dynamic(instrs))] = window else {
+		let [Instruction::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs))] = window else {
 			return false;
 		};
 
 		<P as LoopPass>::should_run(self, instrs)
 	}
 
-	fn should_run_on_loop(&self) -> bool {
+	fn should_run_on_dyn_loop(&self) -> bool {
+		true
+	}
+
+	fn should_run_on_if(&self) -> bool {
 		true
 	}
 }
