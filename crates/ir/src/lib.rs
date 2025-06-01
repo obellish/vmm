@@ -4,9 +4,9 @@
 extern crate alloc;
 
 mod loop_instr;
-mod ptr_movement;
 mod simd_instr;
 mod super_instr;
+mod utils;
 
 use alloc::{string::ToString, vec::Vec};
 use core::{
@@ -17,7 +17,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-pub use self::{loop_instr::*, ptr_movement::*, simd_instr::*, super_instr::*};
+pub use self::{loop_instr::*, simd_instr::*, super_instr::*, utils::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -341,22 +341,6 @@ impl Instruction {
 		matches!(self, Self::Write { .. })
 	}
 
-	#[must_use]
-	pub const fn is_zeroing_cell(&self) -> bool {
-		matches!(
-			self,
-			Self::SetVal {
-				value: None,
-				offset: None
-			} | Self::Loop(LoopInstruction::Dynamic(..) | LoopInstruction::IfNz(..))
-				| Self::Super(SuperInstruction::ScaleAnd {
-					action: ScaleAnd::Move,
-					..
-				}) | Self::SubCell { .. }
-				| Self::MoveVal(..)
-		)
-	}
-
 	pub fn rough_estimate(&self) -> usize {
 		match self {
 			Self::Loop(LoopInstruction::Dynamic(l)) => {
@@ -472,6 +456,25 @@ impl From<SuperInstruction> for Instruction {
 	}
 }
 
+impl IsZeroingCell for Instruction {
+	fn is_zeroing_cell(&self) -> bool {
+		match self {
+			Self::Loop(l) => l.is_zeroing_cell(),
+			Self::Super(s) => s.is_zeroing_cell(),
+			Self::Simd(s) => s.is_zeroing_cell(),
+			Self::SetVal {
+				value: None,
+				offset: None,
+			}
+			| Self::MoveVal(..)
+			| Self::DuplicateVal { .. }
+			| Self::FindZero(..)
+			| Self::SubCell { .. } => true,
+			_ => false,
+		}
+	}
+}
+
 impl PtrMovement for Instruction {
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
@@ -486,7 +489,8 @@ impl PtrMovement for Instruction {
 			| Self::Write { .. }
 			| Self::SubCell { .. }
 			| Self::FetchVal(..)
-			| Self::MoveVal(..) => Some(0),
+			| Self::MoveVal(..)
+			| Self::DuplicateVal { .. } => Some(0),
 			Self::MovePtr(Offset::Relative(offset)) | Self::TakeVal(Offset::Relative(offset)) => {
 				Some(*offset)
 			}

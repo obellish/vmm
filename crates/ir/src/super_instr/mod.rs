@@ -8,7 +8,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 
 pub use self::scale::*;
-use super::{Offset, PtrMovement};
+use super::{IsZeroingCell, Offset, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -77,6 +77,18 @@ impl Display for SuperInstruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl IsZeroingCell for SuperInstruction {
+	fn is_zeroing_cell(&self) -> bool {
+		matches!(
+			self,
+			Self::ScaleAnd {
+				action: ScaleAnd::Move,
+				..
+			}
+		)
 	}
 }
 

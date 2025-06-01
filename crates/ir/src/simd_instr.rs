@@ -11,7 +11,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero;
 
-use super::{Offset, PtrMovement};
+use super::{IsZeroingCell, Offset, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -67,6 +67,20 @@ impl Display for SimdInstruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl IsZeroingCell for SimdInstruction {
+	fn is_zeroing_cell(&self) -> bool {
+		let Self::SetVals {
+			value: None,
+			offsets,
+		} = self
+		else {
+			return false;
+		};
+
+		offsets.contains(&None)
 	}
 }
 

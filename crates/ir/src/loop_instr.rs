@@ -3,7 +3,7 @@ use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
 use serde::{Deserialize, Serialize};
 
-use super::{Instruction, PtrMovement};
+use super::{Instruction, IsZeroingCell, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -44,6 +44,12 @@ impl Display for LoopInstruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl IsZeroingCell for LoopInstruction {
+	fn is_zeroing_cell(&self) -> bool {
+		true
 	}
 }
 

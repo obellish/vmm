@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, IsZeroingCell as _};
 
 use crate::{Change, PeepholePass};
 
