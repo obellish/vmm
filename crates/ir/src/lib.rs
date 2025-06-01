@@ -465,9 +465,28 @@ pub enum Offset {
 
 impl Display for Offset {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		let alt = f.alternate();
+
 		match self {
-			Self::Absolute(v) => Display::fmt(&v, f)?,
-			Self::Relative(v) => Display::fmt(&v, f)?,
+			Self::Relative(offset) => {
+				if alt {
+					f.write_char('[')?;
+				}
+				Display::fmt(&offset, f)?;
+				if alt {
+					f.write_char(']')?;
+				}
+			}
+			Self::Absolute(offset) => {
+				if alt {
+					f.write_char('{')?;
+				}
+
+				Display::fmt(&offset, f)?;
+				if alt {
+					f.write_char('}')?;
+				}
+			}
 		}
 
 		Ok(())
