@@ -42,7 +42,11 @@ fn main() -> Result<()> {
 			.into_iter()
 			.collect::<Program>();
 
-		info!("size of raw: {} bytes", unoptimized.heap_size());
+		info!(
+			"size of raw: {} bytes (len: {})",
+			unoptimized.heap_size(),
+			unoptimized.len()
+		);
 		if args.optimize {
 			let mut optimizer = Optimizer::new(
 				unoptimized,
@@ -55,7 +59,11 @@ fn main() -> Result<()> {
 		}
 	};
 
-	info!("size of final: {} bytes", program.heap_size());
+	info!(
+		"size of final: {} bytes (len: {})",
+		program.heap_size(),
+		program.len()
+	);
 
 	let ir = program
 		.iter()

@@ -1,6 +1,5 @@
 mod scale;
 
-use alloc::vec::Vec;
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
