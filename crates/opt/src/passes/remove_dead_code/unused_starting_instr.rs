@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, LoopInstruction, Offset};
+use vmm_ir::{Instruction, LoopInstruction, Offset, SimdInstruction};
 
 use crate::{Change, PeepholePass};
 
@@ -35,6 +35,13 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 				Instruction::Start,
 				Instruction::set_val(*value as u8),
 			])),
+			[
+				Instruction::Start,
+				Instruction::Simd(SimdInstruction::IncVals { value, offsets }),
+			] => Some(Change::Replace(vec![
+				Instruction::Start,
+				Instruction::simd_set_vals(*value as u8, offsets.to_owned()),
+			])),
 			_ => None,
 		}
 	}
@@ -47,6 +54,7 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 				Instruction::Loop(LoopInstruction::Dynamic(..))
 					| Instruction::SetVal { value: None, .. }
 					| Instruction::IncVal { .. }
+					| Instruction::Simd(SimdInstruction::IncVals { .. })
 			]
 		)
 	}

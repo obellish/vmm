@@ -301,6 +301,21 @@ where
 		Ok(())
 	}
 
+	#[inline]
+	fn find_and_set_zero(
+		&mut self,
+		offset: isize,
+		value: Option<NonZeroU8>,
+	) -> Result<(), RuntimeError> {
+		while !matches!(self.cell().0, 0) {
+			*self.ptr_mut() += offset;
+		}
+
+		self.cell_mut().0 = value.get_or_zero();
+
+		Ok(())
+	}
+
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -361,6 +376,9 @@ where
 				factor,
 			} => self.scale_and_take_val(*factor, *offset)?,
 			SuperInstruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
+			SuperInstruction::FindAndSetZero { offset, value } => {
+				self.find_and_set_zero(*offset, *value)?;
+			}
 			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
 
@@ -377,7 +395,6 @@ where
 		Ok(())
 	}
 
-	#[expect(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Option<Offset>) -> usize {
 		match offset {
 			None => self.ptr().value(),

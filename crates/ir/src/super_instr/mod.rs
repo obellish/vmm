@@ -1,7 +1,10 @@
 mod scale;
 
 use alloc::vec::Vec;
-use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
+use core::{
+	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	num::NonZeroU8,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -18,6 +21,10 @@ pub enum SuperInstruction {
 	},
 	DuplicateVal {
 		offsets: Vec<Offset>,
+	},
+	FindAndSetZero {
+		offset: isize,
+		value: Option<NonZeroU8>,
 	},
 }
 
@@ -45,6 +52,14 @@ impl SuperInstruction {
 	#[must_use]
 	pub const fn dupe_val(offsets: Vec<Offset>) -> Self {
 		Self::DuplicateVal { offsets }
+	}
+
+	#[must_use]
+	pub const fn find_and_set_zero(value: u8, offset: isize) -> Self {
+		Self::FindAndSetZero {
+			offset,
+			value: NonZeroU8::new(value),
+		}
 	}
 }
 

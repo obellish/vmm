@@ -12,6 +12,7 @@ mod remove_dead_code;
 mod reorder_instr;
 mod scale_val;
 mod set_scale;
+mod set_zero;
 mod simd;
 mod take_val;
 mod unroll_constant_loops;
@@ -21,6 +22,6 @@ mod zeroed_cell_inc;
 pub use self::{
 	clear_cell::*, clear_loop::*, collapse_relative_instr::*, collapse_stacked_instr::*,
 	combine_move_change::*, dupe_val::*, fetch_value::*, find_zero::*, if_nz::*, move_value::*,
-	remove_dead_code::*, reorder_instr::*, scale_val::*, set_scale::*, simd::*, take_val::*,
-	unroll_constant_loops::*, unroll_increment_loops::*, zeroed_cell_inc::*,
+	remove_dead_code::*, reorder_instr::*, scale_val::*, set_scale::*, set_zero::*, simd::*,
+	take_val::*, unroll_constant_loops::*, unroll_increment_loops::*, zeroed_cell_inc::*,
 };
