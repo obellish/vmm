@@ -30,6 +30,9 @@ pub enum Instruction {
 		value: i8,
 		offset: Option<Offset>,
 	},
+	SubCell {
+		offset: Offset,
+	},
 	/// Set the value at the current cell (offset = None) or at an offset
 	SetVal {
 		value: Option<NonZeroU8>,
@@ -72,6 +75,13 @@ impl Instruction {
 			self,
 			Self::SetVal { offset: None, .. } | Self::IncVal { offset: None, .. }
 		)
+	}
+
+	#[must_use]
+	pub fn sub_cell(offset: impl Into<Offset>) -> Self {
+		Self::SubCell {
+			offset: offset.into(),
+		}
 	}
 
 	#[must_use]
@@ -320,7 +330,7 @@ impl Instruction {
 				| Self::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
 					..
-				})
+				}) | Self::SubCell { .. }
 		)
 	}
 
@@ -450,7 +460,8 @@ impl PtrMovement for Instruction {
 			| Self::IncVal { .. }
 			| Self::Start
 			| Self::Read
-			| Self::Write { .. } => Some(0),
+			| Self::Write { .. }
+			| Self::SubCell { .. } => Some(0),
 			Self::MovePtr(Offset::Relative(offset)) => Some(*offset),
 			_ => None,
 		}

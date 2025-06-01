@@ -95,7 +95,8 @@ impl PtrMovement for SuperInstruction {
 			Self::ScaleAnd {
 				action: ScaleAnd::Move | ScaleAnd::Fetch,
 				..
-			} => Some(0),
+			}
+			| Self::DuplicateVal { .. } => Some(0),
 			Self::ScaleAnd {
 				action: ScaleAnd::Take,
 				offset: Offset::Relative(offset),

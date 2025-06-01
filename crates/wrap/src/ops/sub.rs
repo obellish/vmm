@@ -47,6 +47,18 @@ macro_rules! impl_wrapping_sub {
 				<$left>::$func(*self, *rhs)
 			}
 		}
+
+		impl $crate::ops::WrappingSubAssign<$right> for $left {
+			fn wrapping_sub_assign(&mut self, rhs: $right) {
+				*self = <$left>::$func(*self, rhs);
+			}
+		}
+
+		impl $crate::ops::WrappingSubAssign<&$right> for $left {
+			fn wrapping_sub_assign(&mut self, rhs: &$right) {
+				*self = <$left>::$func(*self, *rhs);
+			}
+		}
 	};
 	(@nightly $left:ty, $right:ty, $func:ident) => {
 		#[cfg(feature = "nightly")]
@@ -82,6 +94,20 @@ macro_rules! impl_wrapping_sub {
 
 			fn wrapping_sub(self, rhs: &$right) -> $left {
 				<$left>::$func(*self, *rhs)
+			}
+		}
+
+		#[cfg(feature = "nightly")]
+		impl $crate::ops::WrappingSubAssign<$right> for $left {
+			fn wrapping_sub_assign(&mut self, rhs: $right) {
+				*self = <$left>::$func(*self, rhs);
+			}
+		}
+
+		#[cfg(feature = "nightly")]
+		impl $crate::ops::WrappingSubAssign<&$right> for $left {
+			fn wrapping_sub_assign(&mut self, rhs: &$right) {
+				*self = <$left>::$func(*self, *rhs);
 			}
 		}
 	};

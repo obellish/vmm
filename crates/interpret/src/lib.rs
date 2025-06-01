@@ -252,6 +252,17 @@ where
 	}
 
 	#[inline]
+	fn sub_cell(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		let idx = self.calculate_index(Some(offset));
+
+		let current_value = mem::take(self.cell_mut());
+
+		self.tape_mut()[idx] -= current_value.0;
+
+		Ok(())
+	}
+
+	#[inline]
 	fn scale_and_take_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let current_value = mem::take(self.cell_mut());
 
@@ -329,6 +340,7 @@ where
 			Instruction::Write { offset, count } => self.write_char(*count, *offset)?,
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => self.find_zero(*i)?,
+			Instruction::SubCell { offset } => self.sub_cell(*offset)?,
 			Instruction::Loop(l) => self.execute_loop_instruction(l)?,
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
 			Instruction::Super(s) => self.execute_super_instruction(s)?,

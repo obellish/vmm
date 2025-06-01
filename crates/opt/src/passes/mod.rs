@@ -15,6 +15,7 @@ mod scale_val;
 mod set_scale;
 mod set_zero;
 mod simd;
+mod sub_cell;
 mod take_val;
 mod unroll_constant_loops;
 mod unroll_increment_loops;
@@ -24,5 +25,6 @@ pub use self::{
 	clear_cell::*, clear_loop::*, collapse_relative_instr::*, collapse_stacked_instr::*,
 	combine_move_change::*, dupe_and_scale::*, dupe_val::*, fetch_value::*, find_zero::*, if_nz::*,
 	move_value::*, remove_dead_code::*, reorder_instr::*, scale_val::*, set_scale::*, set_zero::*,
-	simd::*, take_val::*, unroll_constant_loops::*, unroll_increment_loops::*, zeroed_cell_inc::*,
+	simd::*, sub_cell::*, take_val::*, unroll_constant_loops::*, unroll_increment_loops::*,
+	zeroed_cell_inc::*,
 };
