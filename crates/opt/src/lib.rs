@@ -108,56 +108,77 @@ impl<S: MetadataStore> Optimizer<S> {
 			.pipe(|pass| run_pass(pass, self.program.as_raw(), progress));
 	}
 
-	fn run_default_pass<P>(&mut self, progress: &mut bool)
+	fn run_default_peephole_pass<P>(&mut self, progress: &mut bool)
 	where
-		P: Debug + Default + Pass,
+		P: Debug + Default + PeepholePass,
 	{
-		let mut pass = P::default();
+		let mut pass = PeepholeRunner::<P>::default();
 
 		self.run_pass(&mut pass, progress);
 	}
 
+	fn run_default_loop_pass<P>(&mut self, progress: &mut bool)
+	where
+		P: Debug + Default + LoopPass,
+	{
+		self.run_default_dynamic_loop_pass::<P>(progress);
+		self.run_default_if_nz_pass::<P>(progress);
+	}
+
+	fn run_default_dynamic_loop_pass<P>(&mut self, progress: &mut bool)
+	where
+		P: Debug + Default + LoopPass,
+	{
+		self.run_default_peephole_pass::<DynamicLoopRunner<P>>(progress);
+	}
+
+	fn run_default_if_nz_pass<P>(&mut self, progress: &mut bool)
+	where
+		P: Debug + Default + LoopPass,
+	{
+		self.run_default_peephole_pass::<IfNzRunner<P>>(progress);
+	}
+
 	fn run_all_passes(&mut self, progress: &mut bool) {
-		self.run_default_pass::<CollapseStackedInstrPass>(progress);
-		self.run_default_pass::<CollapseRelativeInstrPass>(progress);
+		self.run_default_peephole_pass::<CollapseStackedInstrPass>(progress);
+		self.run_default_peephole_pass::<CollapseRelativeInstrPass>(progress);
 
-		self.run_default_pass::<OptimizeClearCellPass>(progress);
-		self.run_default_pass::<OptimizeClearLoopPass>(progress);
-		self.run_default_pass::<OptimizeFindZeroPass>(progress);
-		self.run_default_pass::<OptimizeSetZeroPass>(progress);
-		self.run_default_pass::<OptimizeMoveValPass>(progress);
-		self.run_default_pass::<OptimizeFetchValPass>(progress);
-		self.run_default_pass::<OptimizeScaleValPass>(progress);
-		self.run_default_pass::<OptimizeZeroedCellIncValPass>(progress);
-		self.run_default_pass::<OptimizeTakeValPass>(progress);
-		self.run_default_pass::<OptimizeSetScaleValPass>(progress);
-		self.run_default_pass::<OptimizeDuplicateValPass>(progress);
-		self.run_default_pass::<OptimizeDupeAndScaleValPass>(progress);
+		self.run_default_loop_pass::<OptimizeClearCellPass>(progress);
+		self.run_default_loop_pass::<OptimizeClearLoopPass>(progress);
+		self.run_default_loop_pass::<OptimizeFindZeroPass>(progress);
+		self.run_default_peephole_pass::<OptimizeSetZeroPass>(progress);
+		self.run_default_loop_pass::<OptimizeMoveValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeFetchValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeScaleValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeZeroedCellIncValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeTakeValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeSetScaleValPass>(progress);
+		self.run_default_loop_pass::<OptimizeDuplicateValPass>(progress);
+		self.run_default_loop_pass::<OptimizeDupeAndScaleValPass>(progress);
 
-		self.run_default_pass::<OptimizeSimdIncInstrPass>(progress);
-		self.run_default_pass::<OptimizeSimdSetInstrPass>(progress);
-		self.run_default_pass::<OptimizeIfNzPass>(progress);
+		self.run_default_peephole_pass::<OptimizeSimdIncInstrPass>(progress);
+		self.run_default_peephole_pass::<OptimizeSimdSetInstrPass>(progress);
+		self.run_default_loop_pass::<OptimizeIfNzPass>(progress);
 
-		self.run_default_pass::<ReorderMoveChangePass>(progress);
-		self.run_default_pass::<ReorderRelativeChangesPass>(progress);
-		self.run_default_pass::<ReorderOffsetBetweenMovesPass>(progress);
-		self.run_default_pass::<CombineMoveChangePass>(progress);
+		self.run_default_peephole_pass::<ReorderMoveChangePass>(progress);
+		self.run_default_peephole_pass::<ReorderRelativeChangesPass>(progress);
+		self.run_default_peephole_pass::<ReorderOffsetBetweenMovesPass>(progress);
+		self.run_default_peephole_pass::<CombineMoveChangePass>(progress);
 
-		self.run_default_pass::<RemoveRedundantChangeValBasicPass>(progress);
-		self.run_default_pass::<RemoveRedundantChangeValOffsetPass>(progress);
-		self.run_default_pass::<RemoveRedundantScaleValInstrPass>(progress);
-		self.run_default_pass::<RemoveRedundantSimdChangeValBasicPass>(progress);
-		self.run_default_pass::<RemovePointlessInstrPass>(progress);
-		self.run_default_pass::<RemoveNonMovementOffsetsPass>(progress);
+		self.run_default_peephole_pass::<RemoveRedundantChangeValBasicPass>(progress);
+		self.run_default_peephole_pass::<RemoveRedundantChangeValOffsetPass>(progress);
+		self.run_default_peephole_pass::<RemoveRedundantScaleValInstrPass>(progress);
+		self.run_default_peephole_pass::<RemoveRedundantSimdChangeValBasicPass>(progress);
+		self.run_default_peephole_pass::<RemovePointlessInstrPass>(progress);
+		self.run_default_peephole_pass::<RemoveNonMovementOffsetsPass>(progress);
 
-		self.run_default_pass::<RemoveEmptyLoopsPass>(progress);
-		self.run_default_pass::<RemoveUnreachableLoopsPass>(progress);
-		self.run_default_pass::<RemoveUnusedStartingInstrPass>(progress);
-		self.run_default_pass::<RemoveInfiniteLoopsPass>(progress);
+		self.run_default_loop_pass::<RemoveEmptyLoopsPass>(progress);
+		self.run_default_peephole_pass::<RemoveUnreachableLoopsPass>(progress);
+		self.run_default_peephole_pass::<RemoveUnusedStartingInstrPass>(progress);
+		self.run_default_loop_pass::<RemoveInfiniteLoopsPass>(progress);
 
-		self.run_default_pass::<UnrollConstantLoopsPass>(progress);
-		self.run_default_pass::<UnrollIncrementLoopsPass>(progress);
-
+		self.run_default_peephole_pass::<UnrollConstantLoopsPass>(progress);
+		self.run_default_peephole_pass::<UnrollIncrementLoopsPass>(progress);
 	}
 }
 
