@@ -69,7 +69,8 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					| Instruction::Super(SuperInstruction::ScaleAnd {
 						action: ScaleAnd::Move,
 						..
-					}) | Instruction::SubCell { .. },
+					}) | Instruction::SubCell { .. }
+					| Instruction::MoveVal(..),
 				Instruction::SetVal {
 					offset: None,
 					value: None
