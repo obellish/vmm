@@ -1,4 +1,5 @@
 use vmm_ir::{Instruction, LoopInstruction, ScaleAnd, SuperInstruction};
+use vmm_utils::GetOrZero as _;
 use vmm_wrap::Wrapping;
 
 use crate::{Change, PeepholePass};
@@ -54,6 +55,22 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					offset: None,
 				},
 			] => Some(Change::RemoveOffset(1)),
+			[
+				Instruction::TakeVal(offset)
+				| Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Take,
+					offset,
+					..
+				}),
+				Instruction::SetVal {
+					value,
+					offset: None,
+				},
+			] => Some(Change::Replace(vec![
+				Instruction::clear_val(),
+				Instruction::move_ptr(*offset),
+				Instruction::set_val(value.get_or_zero()),
+			])),
 			_ => None,
 		}
 	}
@@ -82,7 +99,12 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				}) | Instruction::IncVal { offset: None, .. },
 				Instruction::Read
 			] | [
-				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal { offset: None, .. }
+					| Instruction::TakeVal(..)
+					| Instruction::Super(SuperInstruction::ScaleAnd {
+						action: ScaleAnd::Take,
+						..
+					}),
 				Instruction::SetVal { offset: None, .. }
 			]
 		)
