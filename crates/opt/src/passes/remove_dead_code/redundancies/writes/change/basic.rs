@@ -43,7 +43,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				Instruction::Read,
 			] => Some(Change::ReplaceOne(Instruction::read())),
 			[
-				Instruction::Loop(LoopInstruction::Dynamic(..))
+				Instruction::Loop(LoopInstruction::Dynamic(..) | LoopInstruction::IfNz(..))
 				| Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
 					..
@@ -64,7 +64,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				Instruction::SetVal { offset: None, .. },
 				Instruction::IncVal { offset: None, .. } | Instruction::Read
 			] | [
-				Instruction::Loop(LoopInstruction::Dynamic(..))
+				Instruction::Loop(LoopInstruction::Dynamic(..) | LoopInstruction::IfNz(..))
 					| Instruction::Super(SuperInstruction::ScaleAnd {
 						action: ScaleAnd::Move,
 						..
