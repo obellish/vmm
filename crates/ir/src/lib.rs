@@ -45,6 +45,9 @@ pub enum Instruction {
 	MoveVal(Offset),
 	FetchVal(Offset),
 	TakeVal(Offset),
+	DuplicateVal {
+		offsets: Vec<Offset>,
+	},
 	/// Move the pointer along the tape
 	MovePtr(Offset),
 	/// Find the next zero, jumping by the value
@@ -94,7 +97,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn dupe_val(offsets: Vec<Offset>) -> Self {
-		Self::Super(SuperInstruction::dupe_val(offsets))
+		Self::DuplicateVal { offsets }
 	}
 
 	#[must_use]

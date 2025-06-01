@@ -380,6 +380,7 @@ where
 			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
 			Instruction::FetchVal(offset) => self.fetch_val(*offset)?,
 			Instruction::MoveVal(offset) => self.move_val(*offset)?,
+			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
@@ -423,7 +424,6 @@ where
 				offset,
 				factor,
 			} => self.scale_and_take_val(*factor, *offset)?,
-			SuperInstruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			SuperInstruction::FindAndSetZero { offset, value } => {
 				self.find_and_set_zero(*offset, *value)?;
 			}

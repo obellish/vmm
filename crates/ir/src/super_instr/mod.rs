@@ -19,9 +19,6 @@ pub enum SuperInstruction {
 		offset: Offset,
 		factor: u8,
 	},
-	DuplicateVal {
-		offsets: Vec<Offset>,
-	},
 	FindAndSetZero {
 		offset: isize,
 		value: Option<NonZeroU8>,
@@ -47,11 +44,6 @@ impl SuperInstruction {
 
 	pub fn fetch_and_scale_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		Self::scale_and(factor, offset, ScaleAnd::Fetch)
-	}
-
-	#[must_use]
-	pub const fn dupe_val(offsets: Vec<Offset>) -> Self {
-		Self::DuplicateVal { offsets }
 	}
 
 	#[must_use]
@@ -95,8 +87,7 @@ impl PtrMovement for SuperInstruction {
 			Self::ScaleAnd {
 				action: ScaleAnd::Move | ScaleAnd::Fetch,
 				..
-			}
-			| Self::DuplicateVal { .. } => Some(0),
+			} => Some(0),
 			Self::ScaleAnd {
 				action: ScaleAnd::Take,
 				offset: Offset::Relative(offset),
