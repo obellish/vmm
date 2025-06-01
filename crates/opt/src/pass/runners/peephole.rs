@@ -3,7 +3,7 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 use tracing::warn;
 use vmm_ir::Instruction;
 
-use crate::{Change, Pass, PeepholePass};
+use crate::{Pass, PeepholePass};
 
 #[repr(transparent)]
 pub struct PeepholeRunner<P>(pub P);
