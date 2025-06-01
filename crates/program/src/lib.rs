@@ -13,6 +13,7 @@ use core::{
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use vmm_ir::Instruction;
+use vmm_utils::HeapSize;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Program {
@@ -100,6 +101,15 @@ impl FromParallelIterator<Instruction> for Program {
 		I: IntoParallelIterator<Item = Instruction>,
 	{
 		Self::Raw(par_iter.into_par_iter().collect())
+	}
+}
+
+impl HeapSize for Program {
+	fn heap_size(&self) -> usize {
+		match self {
+			Self::Raw(v) => v.heap_size(),
+			Self::Finalized(b) => b.heap_size(),
+		}
 	}
 }
 

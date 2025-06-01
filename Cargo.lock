@@ -781,6 +781,7 @@ dependencies = [
  "vmm_opt",
  "vmm_parse",
  "vmm_program",
+ "vmm_utils",
 ]
 
 [[package]]
@@ -843,6 +844,7 @@ dependencies = [
  "serde",
  "serde_array",
  "vmm_ir",
+ "vmm_utils",
 ]
 
 [[package]]

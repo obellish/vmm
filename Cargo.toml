@@ -21,6 +21,7 @@ vmm_ir.workspace = true
 vmm_opt = { path = "crates/opt", features = ["output"] }
 vmm_parse = { path = "crates/parse" }
 vmm_program.workspace = true
+vmm_utils = { workspace = true, features = ["heap_size"] }
 
 [workspace]
 members = [
@@ -99,9 +100,14 @@ version = "0.1.0"
 
 [profile.release]
 codegen-units = 1
-debug = true
 lto = "fat"
 panic = "abort"
 
 [workspace.metadata.docs.rs]
 all-features = true
+
+[profile.dev.package.vmm_interpret]
+opt-level = 3
+
+[profile.dev.package.vmm_parse]
+opt-level = 3

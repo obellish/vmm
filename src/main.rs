@@ -2,6 +2,7 @@ use std::{alloc::System, fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::Result;
+use tracing::info;
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
 use tracing_subscriber::{
@@ -14,6 +15,7 @@ use vmm_interpret::{Interpreter, Profiler};
 use vmm_opt::{HashMetadataStore, Optimizer, OutputMetadataStore};
 use vmm_parse::Parser as BfParser;
 use vmm_program::Program;
+use vmm_utils::HeapSize as _;
 
 #[global_allocator]
 static ALLOC: AllocChain<'static, SyncStalloc<8192, 4>, System> = SyncStalloc::new().chain(&System);
@@ -39,6 +41,8 @@ fn main() -> Result<()> {
 			.scan()?
 			.into_iter()
 			.collect::<Program>();
+
+		info!("size of raw: {} bytes", unoptimized.heap_size());
 		if args.optimize {
 			let mut optimizer = Optimizer::new(
 				unoptimized,
@@ -50,6 +54,8 @@ fn main() -> Result<()> {
 			unoptimized
 		}
 	};
+
+	info!("size of final: {} bytes", program.heap_size());
 
 	let ir = program
 		.iter()

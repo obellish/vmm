@@ -6,3 +6,9 @@ license.workspace = true
 name = "vmm_utils"
 rust-version.workspace = true
 version.workspace = true
+
+[features]
+alloc = []
+get_or_zero = []
+heap_size = ["alloc"]
+insert_or_push = ["alloc"]

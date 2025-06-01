@@ -15,3 +15,4 @@ serde = { workspace = true, default-features = false, features = [
 ] }
 serde_array.workspace = true
 vmm_ir.workspace = true
+vmm_utils = { workspace = true, features = ["heap_size"] }
