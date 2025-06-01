@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, PtrMovement};
 
 use crate::{Change, LoopPass};
 
@@ -21,6 +21,6 @@ impl LoopPass for RemoveInfiniteLoopsPass {
 						offset: None
 					}
 			]
-		)
+		) && !loop_values.might_move_ptr()
 	}
 }
