@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::Instruction;
 
 use crate::{Change, PeepholePass};
 
@@ -10,32 +10,14 @@ impl PeepholePass for OptimizeTakeValPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[
-				Instruction::Super(SuperInstruction::ScaleAnd {
-					action: ScaleAnd::Move,
-					offset: Offset::Relative(x),
-					factor,
-				}),
-				Instruction::MovePtr(Offset::Relative(y)),
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::scale_and_take_val(
-				*factor, x,
-			))),
+			[Instruction::MoveVal(x), Instruction::MovePtr(y)] if *x == *y => {
+				Some(Change::ReplaceOne(Instruction::take_val(*x)))
+			}
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(
-			window,
-			[
-				Instruction::Super(SuperInstruction::ScaleAnd {
-					action: ScaleAnd::Move,
-					offset: Offset::Relative(x),
-					..
-				}),
-				Instruction::MovePtr(Offset::Relative(y))
-			]
-			if *x == *y
-		)
+		matches!(window, [Instruction::MoveVal(x), Instruction::MovePtr(y)] if *x == *y)
 	}
 }

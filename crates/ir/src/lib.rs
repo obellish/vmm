@@ -42,6 +42,9 @@ pub enum Instruction {
 	ScaleVal {
 		factor: u8,
 	},
+	MoveVal(Offset),
+	FetchVal(Offset),
+	TakeVal(Offset),
 	/// Move the pointer along the tape
 	MovePtr(Offset),
 	/// Find the next zero, jumping by the value
@@ -150,6 +153,21 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub fn move_val(offset: impl Into<Offset>) -> Self {
+		Self::MoveVal(offset.into())
+	}
+
+	#[must_use]
+	pub fn fetch_val(offset: impl Into<Offset>) -> Self {
+		Self::FetchVal(offset.into())
+	}
+
+	#[must_use]
+	pub fn take_val(offset: impl Into<Offset>) -> Self {
+		Self::TakeVal(offset.into())
+	}
+
+	#[must_use]
 	pub fn scale_and_move_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		SuperInstruction::scale_and_move_val(factor, offset).into()
 	}
@@ -240,6 +258,7 @@ impl Instruction {
 				action: ScaleAnd::Move,
 				..
 			}) | Self::Loop(LoopInstruction::IfNz(..))
+				| Self::MoveVal(..)
 		)
 	}
 
@@ -331,6 +350,7 @@ impl Instruction {
 					action: ScaleAnd::Move,
 					..
 				}) | Self::SubCell { .. }
+				| Self::MoveVal(..)
 		)
 	}
 
@@ -461,8 +481,12 @@ impl PtrMovement for Instruction {
 			| Self::Start
 			| Self::Read
 			| Self::Write { .. }
-			| Self::SubCell { .. } => Some(0),
-			Self::MovePtr(Offset::Relative(offset)) => Some(*offset),
+			| Self::SubCell { .. }
+			| Self::FetchVal(..)
+			| Self::MoveVal(..) => Some(0),
+			Self::MovePtr(Offset::Relative(offset)) | Self::TakeVal(Offset::Relative(offset)) => {
+				Some(*offset)
+			}
 			_ => None,
 		}
 	}

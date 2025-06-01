@@ -147,14 +147,16 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_loop_pass::<OptimizeClearLoopPass>(progress);
 		self.run_default_loop_pass::<OptimizeFindZeroPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSetZeroPass>(progress);
-		self.run_default_loop_pass::<OptimizeMoveValPass>(progress);
-		self.run_default_peephole_pass::<OptimizeFetchValPass>(progress);
+		self.run_default_loop_pass::<OptimizeScaleAndMoveValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeFetchAndScaleValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeScaleValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeZeroedCellIncValPass>(progress);
-		self.run_default_peephole_pass::<OptimizeTakeValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeScaleAndTakeValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSetScaleValPass>(progress);
 		self.run_default_loop_pass::<OptimizeDuplicateValPass>(progress);
 		self.run_default_loop_pass::<OptimizeDupeAndScaleValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeTakeValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeTakeFetchValPass>(progress);
 
 		self.run_default_peephole_pass::<OptimizeSimdIncInstrPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSimdSetInstrPass>(progress);
@@ -180,6 +182,7 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_default_peephole_pass::<UnrollConstantLoopsPass>(progress);
 		self.run_default_peephole_pass::<UnrollIncrementLoopsPass>(progress);
+		self.run_default_peephole_pass::<UnrollScaleAndPass>(progress);
 	}
 }
 

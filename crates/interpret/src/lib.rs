@@ -220,6 +220,28 @@ where
 	}
 
 	#[inline]
+	fn move_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		let src_value = mem::take(self.cell_mut()).0;
+
+		let dst_offset = self.calculate_index(Some(offset));
+
+		self.tape_mut()[dst_offset] += src_value;
+
+		Ok(())
+	}
+
+	#[inline]
+	fn fetch_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		let src_offset = self.calculate_index(Some(offset));
+
+		let value = mem::take(&mut self.tape_mut()[src_offset]).0;
+
+		*self.cell_mut() += value;
+
+		Ok(())
+	}
+
+	#[inline]
 	fn scale_and_move_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.ptr().value();
 		let dst_offset = self.calculate_index(Some(offset));
@@ -258,6 +280,17 @@ where
 		let current_value = mem::take(self.cell_mut());
 
 		self.tape_mut()[idx] -= current_value.0;
+
+		Ok(())
+	}
+
+	#[inline]
+	fn take_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		let current_value = mem::take(self.cell_mut()).0;
+
+		self.move_ptr(offset)?;
+
+		*self.cell_mut() += current_value;
 
 		Ok(())
 	}
@@ -345,6 +378,9 @@ where
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
 			Instruction::Super(s) => self.execute_super_instruction(s)?,
 			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
+			Instruction::FetchVal(offset) => self.fetch_val(*offset)?,
+			Instruction::MoveVal(offset) => self.move_val(*offset)?,
+			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
