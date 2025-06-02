@@ -6,8 +6,12 @@ macro_rules! impl_get_or_zero {
     ($($ty:ty)*) => {
         $(
             impl $crate::GetOrZero<$ty> for ::core::option::Option<::core::num::NonZero<$ty>> {
+                #[inline]
                 fn get_or_zero(self) -> $ty {
-                    ::core::option::Option::map_or(self, 0, ::core::num::NonZero::get)
+                    match self {
+                        ::core::option::Option::None => 0,
+                        ::core::option::Option::Some(v) => v.get(),
+                    }
                 }
             }
         )*

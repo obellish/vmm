@@ -7,6 +7,7 @@ pub trait PtrMovement {
 }
 
 impl<T: PtrMovement> PtrMovement for [T] {
+	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
 		let mut sum = 0;
 

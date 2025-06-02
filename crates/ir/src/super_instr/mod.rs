@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 pub use self::scale::*;
 use super::{IsZeroingCell, Offset, PtrMovement};
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum SuperInstruction {
 	ScaleAnd {

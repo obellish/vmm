@@ -50,12 +50,14 @@ impl Display for BlockInstruction {
 }
 
 impl IsZeroingCell for BlockInstruction {
+	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
 		true
 	}
 }
 
 impl PtrMovement for BlockInstruction {
+	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::DynamicLoop(instrs) | Self::IfNz(instrs) => instrs.ptr_movement(),

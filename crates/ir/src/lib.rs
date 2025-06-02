@@ -276,6 +276,7 @@ impl Instruction {
 		}
 	}
 
+	#[inline]
 	pub fn has_io(&self) -> bool {
 		match self {
 			Self::Read | Self::Write { .. } => true,
@@ -371,6 +372,7 @@ impl Instruction {
 		}
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn nested_loops(&self) -> usize {
 		let mut count = 0;
@@ -464,6 +466,7 @@ impl From<SuperInstruction> for Instruction {
 }
 
 impl IsZeroingCell for Instruction {
+	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
 		match self {
 			Self::Block(l) => l.is_zeroing_cell(),
@@ -483,6 +486,7 @@ impl IsZeroingCell for Instruction {
 }
 
 impl PtrMovement for Instruction {
+	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::Super(s) => s.ptr_movement(),

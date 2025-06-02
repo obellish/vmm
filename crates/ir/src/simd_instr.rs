@@ -71,6 +71,7 @@ impl Display for SimdInstruction {
 }
 
 impl IsZeroingCell for SimdInstruction {
+	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
 		let Self::SetVals {
 			value: None,
@@ -85,6 +86,7 @@ impl IsZeroingCell for SimdInstruction {
 }
 
 impl PtrMovement for SimdInstruction {
+	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
 		Some(0)
 	}
