@@ -1,5 +1,5 @@
 use vmm_ir::{Instruction, Offset};
-use vmm_utils::GetOrZero as _;
+use vmm_utils::{GetOrZero as _, Sorted as _};
 
 use crate::{Change, PeepholePass};
 
@@ -75,17 +75,14 @@ impl PeepholePass for ReorderRelativeChangesPass {
 					offset: Some(Offset::Relative(z)),
 					value: c,
 				},
-			] if *x == *z && *x != *y => {
-				let mut v = vec![
+			] if *x == *z && *x != *y => Some(Change::Replace(
+				vec![
 					Instruction::inc_val_at(*a, *x),
 					Instruction::inc_val_at(*c, *z),
 					Instruction::inc_val_at(*b, *y),
-				];
-
-				v.sort_by_key(Instruction::offset);
-
-				Some(Change::Replace(v))
-			}
+				]
+				.sorted_by_key(Instruction::offset),
+			)),
 			_ => None,
 		}
 	}
