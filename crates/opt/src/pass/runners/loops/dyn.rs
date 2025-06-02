@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-use vmm_ir::{Instruction, BlockInstruction};
+use vmm_ir::{BlockInstruction, Instruction};
 
 use crate::{Change, LoopPass, PeepholePass};
 

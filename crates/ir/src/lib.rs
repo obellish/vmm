@@ -371,7 +371,9 @@ impl Instruction {
 	pub fn nested_loops(&self) -> usize {
 		let mut count = 0;
 
-		if let Self::Block(BlockInstruction::DynamicLoop(instrs) | BlockInstruction::IfNz(instrs)) = self {
+		if let Self::Block(BlockInstruction::DynamicLoop(instrs) | BlockInstruction::IfNz(instrs)) =
+			self
+		{
 			count += 1;
 
 			for instr in instrs {

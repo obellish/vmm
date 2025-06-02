@@ -10,7 +10,7 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{Instruction, BlockInstruction, Offset, ScaleAnd, SimdInstruction, SuperInstruction};
+use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SimdInstruction, SuperInstruction};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 use vmm_utils::GetOrZero as _;

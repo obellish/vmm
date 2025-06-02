@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use vmm_ir::{Instruction, BlockInstruction};
+use vmm_ir::{BlockInstruction, Instruction};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Profiler {

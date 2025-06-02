@@ -44,7 +44,9 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 							output.extend_from_slice(rest);
 						}
 
-						output.push(Instruction::Block(BlockInstruction::DynamicLoop(inner.clone())));
+						output.push(Instruction::Block(BlockInstruction::DynamicLoop(
+							inner.clone(),
+						)));
 
 						Some(Change::Replace(output))
 					}

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, BlockInstruction, Offset, SimdInstruction};
+use vmm_ir::{BlockInstruction, Instruction, Offset, SimdInstruction};
 
 use crate::{Change, PeepholePass};
 

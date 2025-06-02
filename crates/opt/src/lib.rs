@@ -13,7 +13,7 @@ use std::{
 
 use tap::prelude::*;
 use tracing::{debug, info, warn};
-use vmm_ir::{Instruction, BlockInstruction};
+use vmm_ir::{BlockInstruction, Instruction};
 use vmm_program::Program;
 
 #[allow(clippy::wildcard_imports)]
@@ -176,10 +176,10 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<RemovePointlessInstrPass>(progress);
 		self.run_default_peephole_pass::<RemoveNonMovementOffsetsPass>(progress);
 
-		self.run_default_loop_pass::<RemoveEmptyLoopsPass>(progress);
+		self.run_default_dynamic_loop_pass::<RemoveEmptyLoopsPass>(progress);
 		self.run_default_peephole_pass::<RemoveUnreachableLoopsPass>(progress);
 		self.run_default_peephole_pass::<RemoveUnusedStartingInstrPass>(progress);
-		self.run_default_loop_pass::<RemoveInfiniteLoopsPass>(progress);
+		self.run_default_dynamic_loop_pass::<RemoveInfiniteLoopsPass>(progress);
 
 		self.run_default_peephole_pass::<UnrollConstantLoopsPass>(progress);
 		self.run_default_peephole_pass::<UnrollIncrementLoopsPass>(progress);
