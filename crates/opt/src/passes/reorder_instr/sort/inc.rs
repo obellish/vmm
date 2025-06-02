@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use vmm_ir::{Instruction, SimdInstruction};
-use vmm_utils::Sorted;
+use vmm_utils::Sorted as _;
 
 use crate::{Change, PeepholePass};
 

@@ -1,6 +1,6 @@
-use vmm_ir::{BlockInstruction, PtrMovement};
+use vmm_ir::{BlockInstruction, Instruction, PtrMovement};
 
-use crate::{Change, Instruction, PeepholePass};
+use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
 pub struct UnrollConstantLoopsPass;

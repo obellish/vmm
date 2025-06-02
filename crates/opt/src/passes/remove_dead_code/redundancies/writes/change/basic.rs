@@ -1,6 +1,6 @@
 use vmm_ir::{BlockInstruction, Instruction, ScaleAnd, SuperInstruction};
 use vmm_utils::GetOrZero as _;
-use vmm_wrap::Wrapping;
+use vmm_wrap::ops::WrappingAdd;
 
 use crate::{Change, PeepholePass};
 
@@ -35,10 +35,9 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value: y,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::set_val(Wrapping::add(
-				x.get(),
-				*y,
-			)))),
+			] => Some(Change::ReplaceOne(Instruction::set_val(
+				WrappingAdd::wrapping_add(x.get(), *y),
+			))),
 			[
 				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
 				Instruction::Read,
@@ -49,7 +48,8 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					action: ScaleAnd::Move,
 					..
 				})
-				| Instruction::SubCell { .. },
+				| Instruction::SubCell { .. }
+				| Instruction::MoveVal(..),
 				Instruction::SetVal {
 					value: None,
 					offset: None,

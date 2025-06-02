@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, PtrMovement};
+use vmm_ir::{Instruction, PtrMovement as _};
 
 use crate::{Change, LoopPass};
 

@@ -1,6 +1,6 @@
 use vmm_ir::{Instruction, Offset, ScaleAnd, SuperInstruction};
 use vmm_utils::GetOrZero;
-use vmm_wrap::Wrapping;
+use vmm_wrap::ops::WrappingAdd;
 
 use crate::{Change, PeepholePass};
 
@@ -42,7 +42,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					value: b,
 				},
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::set_val_at(
-				Wrapping::add(a.get(), *b),
+				WrappingAdd::wrapping_add(a.get(), *b),
 				x,
 			))),
 			[

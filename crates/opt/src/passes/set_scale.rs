@@ -1,5 +1,5 @@
 use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
-use vmm_wrap::Wrapping;
+use vmm_wrap::ops::WrappingMul;
 
 use crate::{Change, PeepholePass};
 
@@ -17,10 +17,9 @@ impl PeepholePass for OptimizeSetScaleValPass {
 					offset: None,
 				},
 				Instruction::ScaleVal { factor },
-			] => Some(Change::ReplaceOne(Instruction::set_val(Wrapping::mul(
-				value.get(),
-				*factor,
-			)))),
+			] => Some(Change::ReplaceOne(Instruction::set_val(
+				WrappingMul::wrapping_mul(value.get(), *factor),
+			))),
 			[
 				Instruction::SetVal {
 					value: Some(value),
@@ -34,7 +33,7 @@ impl PeepholePass for OptimizeSetScaleValPass {
 			] => Some(Change::Replace(vec![
 				Instruction::clear_val(),
 				Instruction::move_ptr(*offset),
-				Instruction::inc_val(Wrapping::mul(value.get(), factor) as i8),
+				Instruction::inc_val(WrappingMul::wrapping_mul(value.get(), factor) as i8),
 			])),
 			[
 				Instruction::SetVal {
@@ -48,7 +47,10 @@ impl PeepholePass for OptimizeSetScaleValPass {
 				}),
 			] => Some(Change::Replace(vec![
 				Instruction::clear_val(),
-				Instruction::inc_val_at(Wrapping::mul(value.get(), factor) as i8, *offset),
+				Instruction::inc_val_at(
+					WrappingMul::wrapping_mul(value.get(), factor) as i8,
+					*offset,
+				),
 			])),
 			_ => None,
 		}

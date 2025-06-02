@@ -1,6 +1,6 @@
-use vmm_ir::{BlockInstruction, PtrMovement};
+use vmm_ir::{BlockInstruction, Instruction, PtrMovement};
 
-use crate::{Change, Instruction, PeepholePass};
+use crate::{Change, PeepholePass};
 
 const MAX_LOOP_UNROLLING: usize = 5;
 

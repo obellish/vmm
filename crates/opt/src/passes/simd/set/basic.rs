@@ -1,5 +1,5 @@
 use vmm_ir::{Instruction, SimdInstruction};
-use vmm_utils::GetOrZero;
+use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
 

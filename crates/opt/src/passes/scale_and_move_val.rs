@@ -1,6 +1,6 @@
-use vmm_ir::Offset;
+use vmm_ir::{Instruction, Offset};
 
-use crate::{Change, Instruction, LoopPass};
+use crate::{Change, LoopPass};
 
 #[derive(Debug, Default)]
 pub struct OptimizeScaleAndMoveValPass;

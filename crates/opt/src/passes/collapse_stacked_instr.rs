@@ -1,5 +1,6 @@
 use vmm_ir::{Instruction, Offset, SimdInstruction};
-use vmm_wrap::Wrapping;
+use vmm_utils::GetOrZero as _;
+use vmm_wrap::{Wrapping, ops::WrappingAdd};
 
 use crate::{Change, PeepholePass};
 
@@ -31,7 +32,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: None,
 				},
 			] => Some(Change::ReplaceOne(Instruction::inc_val(
-				i1.wrapping_add(*i2),
+				WrappingAdd::wrapping_add(i1, i2),
 			))),
 			[
 				Instruction::MovePtr(Offset::Relative(i1)),
@@ -41,7 +42,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 				Instruction::MovePtr(Offset::Relative(i1)),
 				Instruction::MovePtr(Offset::Relative(i2)),
 			] => Some(Change::ReplaceOne(Instruction::move_ptr_by(
-				i1.wrapping_add(*i2),
+				WrappingAdd::wrapping_add(i1, i2),
 			))),
 			[
 				Instruction::SetVal { offset: None, .. },
@@ -69,10 +70,10 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value: i2,
 					offset: Some(Offset::Relative(y)),
 				},
-			] if x == y => Some(Change::ReplaceOne(Instruction::IncVal {
-				value: i1.wrapping_add(*i2),
-				offset: Some(Offset::Relative(*x)),
-			})),
+			] if x == y => Some(Change::ReplaceOne(Instruction::inc_val_at(
+				WrappingAdd::wrapping_add(i1, i2),
+				*x,
+			))),
 			[
 				Instruction::SetVal {
 					value: None,
@@ -82,7 +83,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value: None,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::clear_val())),
+			] => Some(Change::RemoveOffset(1)),
 			[
 				Instruction::SetVal {
 					value: None,
@@ -92,7 +93,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value: None,
 					offset: Some(Offset::Relative(y)),
 				},
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::clear_val_at(*x))),
+			] if *x == *y => Some(Change::RemoveOffset(1)),
 			[
 				Instruction::SetVal {
 					offset: Some(Offset::Relative(x)),
@@ -102,20 +103,19 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: Some(Offset::Relative(y)),
 					value,
 				},
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::SetVal {
-				offset: Some(Offset::Relative(*x)),
-				value: *value,
-			})),
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::set_val_at(
+				value.get_or_zero(),
+				*x,
+			))),
 			[
 				Instruction::SetVal { offset: None, .. },
 				Instruction::SetVal {
 					value,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::SetVal {
-				value: *value,
-				offset: None,
-			})),
+			] => Some(Change::ReplaceOne(Instruction::set_val(
+				value.get_or_zero(),
+			))),
 			[
 				Instruction::Write {
 					offset: None,
@@ -146,7 +146,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offsets: y,
 				}),
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::simd_inc_vals(
-				Wrapping::add(a, b),
+				WrappingAdd::wrapping_add(a, b),
 				x.clone(),
 			))),
 			_ => None,

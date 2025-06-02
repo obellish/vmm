@@ -1,5 +1,5 @@
 use vmm_ir::{Instruction, Offset, ScaleAnd, SuperInstruction};
-use vmm_wrap::Wrapping;
+use vmm_wrap::ops::WrappingMul;
 
 use crate::{Change, PeepholePass};
 
@@ -22,9 +22,9 @@ impl PeepholePass for OptimizeScaleValPass {
 					offset: Offset::Relative(y),
 					factor: b,
 				}),
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::scale_val(Wrapping::mul(
-				*a, *b,
-			)))),
+			] if *x == *y => Some(Change::ReplaceOne(Instruction::scale_val(
+				WrappingMul::wrapping_mul(a, b),
+			))),
 			_ => None,
 		}
 	}
