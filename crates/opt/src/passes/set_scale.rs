@@ -36,6 +36,20 @@ impl PeepholePass for OptimizeSetScaleValPass {
 				Instruction::move_ptr(*offset),
 				Instruction::inc_val(Wrapping::mul(value.get(), factor) as i8),
 			])),
+			[
+				Instruction::SetVal {
+					value: Some(value),
+					offset: None,
+				},
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Move,
+					offset,
+					factor,
+				}),
+			] => Some(Change::Replace(vec![
+				Instruction::clear_val(),
+				Instruction::inc_val_at(Wrapping::mul(value.get(), factor) as i8, *offset),
+			])),
 			_ => None,
 		}
 	}
@@ -50,7 +64,7 @@ impl PeepholePass for OptimizeSetScaleValPass {
 				},
 				Instruction::ScaleVal { .. }
 					| Instruction::Super(SuperInstruction::ScaleAnd {
-						action: ScaleAnd::Take,
+						action: ScaleAnd::Take | ScaleAnd::Move,
 						..
 					})
 			]
