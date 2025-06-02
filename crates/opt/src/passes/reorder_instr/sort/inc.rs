@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
+use itertools::Itertools as _;
 use vmm_ir::{Instruction, SimdInstruction};
-use vmm_utils::Sorted as _;
 
 use crate::{Change, PeepholePass};
 
@@ -12,14 +12,14 @@ impl PeepholePass for SortIncInstrPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		Some(Change::Swap(window.to_owned().sorted_by(sorter)))
+		Some(Change::swap(window.iter().cloned().sorted_by(sorter)))
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		window.iter().all(Instruction::is_inc_val) && {
 			let cloned = window.to_owned();
 
-			cloned.sorted_by(sorter) != window
+			cloned.into_iter().sorted_by(sorter).collect_vec() != window
 		}
 	}
 }

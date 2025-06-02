@@ -14,14 +14,14 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 				Instruction::Start,
 				Instruction::Block(BlockInstruction::DynamicLoop(..))
 				| Instruction::SetVal { value: None, .. },
-			] => Some(Change::RemoveOffset(1)),
+			] => Some(Change::remove_offset(1)),
 			[
 				Instruction::Start,
 				Instruction::IncVal {
 					value,
 					offset: Some(Offset::Relative(offset)),
 				},
-			] => Some(Change::Swap(vec![
+			] => Some(Change::swap([
 				Instruction::Start,
 				Instruction::set_val_at(*value as u8, offset),
 			])),
@@ -31,14 +31,14 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 					value,
 					offset: None,
 				},
-			] => Some(Change::Swap(vec![
+			] => Some(Change::swap([
 				Instruction::Start,
 				Instruction::set_val(*value as u8),
 			])),
 			[
 				Instruction::Start,
 				Instruction::Simd(SimdInstruction::IncVals { value, offsets }),
-			] => Some(Change::Swap(vec![
+			] => Some(Change::swap([
 				Instruction::Start,
 				Instruction::simd_set_vals(*value as u8, offsets.to_owned()),
 			])),

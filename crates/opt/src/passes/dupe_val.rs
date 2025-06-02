@@ -21,7 +21,7 @@ impl LoopPass for OptimizeDuplicateValPass {
 					value: -1,
 					offset: None,
 				},
-			] => Some(Change::Replace(Instruction::dupe_val(
+			] => Some(Change::replace(Instruction::dupe_val(
 				offsets.iter().copied().flatten().collect(),
 			))),
 			_ => None,

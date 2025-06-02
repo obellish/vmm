@@ -14,7 +14,7 @@ impl LoopPass for OptimizeIfNzPass {
 					value: None,
 					offset: None,
 				},
-			] => Some(Change::Replace(Instruction::if_nz(rest.iter().cloned()))),
+			] => Some(Change::replace(Instruction::if_nz(rest.iter().cloned()))),
 			_ => None,
 		}
 	}

@@ -16,7 +16,7 @@ impl PeepholePass for OptimizeZeroedCellIncValPass {
 					value,
 					offset: None,
 				},
-			] if i.is_zeroing_cell() => Some(Change::Swap(vec![
+			] if i.is_zeroing_cell() => Some(Change::swap([
 				i.clone(),
 				Instruction::set_val(*value as u8),
 			])),

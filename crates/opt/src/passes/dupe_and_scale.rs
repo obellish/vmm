@@ -38,7 +38,7 @@ impl LoopPass for OptimizeDupeAndScaleValPass {
 			]);
 		}
 
-		Some(Change::Swap(output))
+		Some(Change::swap(output))
 	}
 
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {

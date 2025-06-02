@@ -23,7 +23,10 @@ impl Change {
 	}
 
 	#[must_use]
-	pub fn swap(instrs: impl IntoIterator<Item = Instruction>) -> Self {
+	pub fn swap<I>(instrs: I) -> Self
+	where
+		I: IntoIterator<Item = Instruction>,
+	{
 		Self::Swap(instrs.into_iter().collect())
 	}
 

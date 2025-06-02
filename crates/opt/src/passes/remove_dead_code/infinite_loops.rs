@@ -7,7 +7,7 @@ pub struct RemoveInfiniteLoopsPass;
 
 impl LoopPass for RemoveInfiniteLoopsPass {
 	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
-		Some(Change::Remove)
+		Some(Change::remove())
 	}
 
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {

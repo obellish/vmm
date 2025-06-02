@@ -25,7 +25,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value: y,
 					offset: None,
 				},
-			] => Some(Change::Replace(Instruction::set_val(*y as u8))),
+			] => Some(Change::replace(Instruction::set_val(*y as u8))),
 			[
 				Instruction::SetVal {
 					offset: None,
@@ -35,13 +35,13 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value: y,
 					offset: None,
 				},
-			] => Some(Change::Replace(Instruction::set_val(
+			] => Some(Change::replace(Instruction::set_val(
 				WrappingAdd::wrapping_add(x.get(), *y),
 			))),
 			[
 				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
 				Instruction::Read,
-			] => Some(Change::Replace(Instruction::read())),
+			] => Some(Change::replace(Instruction::read())),
 			[
 				Instruction::Block(BlockInstruction::DynamicLoop(..) | BlockInstruction::IfNz(..))
 				| Instruction::Super(SuperInstruction::ScaleAnd {
@@ -54,7 +54,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value: None,
 					offset: None,
 				},
-			] => Some(Change::RemoveOffset(1)),
+			] => Some(Change::remove_offset(1)),
 			[
 				Instruction::TakeVal(offset)
 				| Instruction::Super(SuperInstruction::ScaleAnd {
@@ -66,7 +66,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value,
 					offset: None,
 				},
-			] => Some(Change::Swap(vec![
+			] => Some(Change::swap([
 				Instruction::clear_val(),
 				Instruction::move_ptr(*offset),
 				Instruction::set_val(value.get_or_zero()),

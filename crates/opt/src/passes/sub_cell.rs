@@ -15,7 +15,7 @@ impl LoopPass for OptimizeSubCellPass {
 					return None;
 				};
 
-				Some(Change::Replace(Instruction::sub_cell(offset)))
+				Some(Change::replace(Instruction::sub_cell(offset)))
 			}
 			_ => None,
 		}

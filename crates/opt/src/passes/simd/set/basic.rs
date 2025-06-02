@@ -20,7 +20,7 @@ impl PeepholePass for OptimizeSimdSetInstrPass {
 					value: b,
 					offset: y,
 				},
-			] if *a == *b && *x != *y => Some(Change::Replace(Instruction::simd_set_vals(
+			] if *a == *b && *x != *y => Some(Change::replace(Instruction::simd_set_vals(
 				a.get_or_zero(),
 				{
 					let mut offsets = vec![*x, *y];
@@ -31,7 +31,7 @@ impl PeepholePass for OptimizeSimdSetInstrPass {
 			[
 				Instruction::Simd(SimdInstruction::SetVals { value: a, offsets }),
 				Instruction::SetVal { value: b, offset },
-			] if *a == *b && !offsets.contains(offset) => Some(Change::Replace(Instruction::simd_set_vals(
+			] if *a == *b && !offsets.contains(offset) => Some(Change::replace(Instruction::simd_set_vals(
 				a.get_or_zero(),
 				{
 					let mut offsets = offsets.to_owned();

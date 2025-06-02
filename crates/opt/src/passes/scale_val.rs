@@ -22,7 +22,7 @@ impl PeepholePass for OptimizeScaleValPass {
 					offset: Offset::Relative(y),
 					factor: b,
 				}),
-			] if *x == *y => Some(Change::Replace(Instruction::scale_val(
+			] if *x == *y => Some(Change::replace(Instruction::scale_val(
 				WrappingMul::wrapping_mul(a, b),
 			))),
 			[
@@ -36,7 +36,7 @@ impl PeepholePass for OptimizeScaleValPass {
 					offset: Offset::Relative(y),
 					factor: b,
 				}),
-			] if *x == -y => Some(Change::Swap(vec![
+			] if *x == -y => Some(Change::swap([
 				Instruction::scale_val(WrappingMul::wrapping_mul(a, b)),
 				Instruction::move_ptr(*x),
 				Instruction::clear_val(),
@@ -48,7 +48,7 @@ impl PeepholePass for OptimizeScaleValPass {
 					factor,
 				}),
 				Instruction::TakeVal(Offset::Relative(y)),
-			] if *x == -y => Some(Change::Replace(Instruction::scale_val(*factor))),
+			] if *x == -y => Some(Change::replace(Instruction::scale_val(*factor))),
 			_ => None,
 		}
 	}

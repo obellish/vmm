@@ -21,7 +21,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: Some(Offset::Relative(y)),
 					..
 				},
-			] if *x == *y => Some(Change::RemoveOffset(0)),
+			] if *x == *y => Some(Change::remove_offset(0)),
 			[
 				Instruction::SetVal {
 					value: None,
@@ -31,7 +31,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: Some(Offset::Relative(y)),
 					value,
 				},
-			] if *x == *y => Some(Change::Replace(Instruction::set_val_at(*value as u8, x))),
+			] if *x == *y => Some(Change::replace(Instruction::set_val_at(*value as u8, x))),
 			[
 				Instruction::SetVal {
 					value: Some(a),
@@ -41,7 +41,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: Some(Offset::Relative(y)),
 					value: b,
 				},
-			] if *x == *y => Some(Change::Replace(Instruction::set_val_at(
+			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
 				WrappingAdd::wrapping_add(a.get(), *b),
 				x,
 			))),
@@ -55,7 +55,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: Some(Offset::Relative(y)),
 					value,
 				},
-			] if *x == *y => Some(Change::Replace(Instruction::set_val_at(
+			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
 				value.get_or_zero(),
 				x,
 			))),
@@ -65,7 +65,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					value: None,
 					offset: Some(Offset::Relative(y)),
 				},
-			] if *x == *y => Some(Change::RemoveOffset(1)),
+			] if *x == *y => Some(Change::remove_offset(1)),
 			_ => None,
 		}
 	}

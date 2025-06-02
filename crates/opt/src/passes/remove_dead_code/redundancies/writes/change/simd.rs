@@ -13,11 +13,11 @@ impl PeepholePass for RemoveRedundantSimdChangeValBasicPass {
 			[
 				Instruction::Simd(SimdInstruction::SetVals { value: a, offsets }),
 				Instruction::SetVal { value: b, offset },
-			] if *a == *b && offsets.contains(offset) => Some(Change::RemoveOffset(1)),
+			] if *a == *b && offsets.contains(offset) => Some(Change::remove_offset(1)),
 			[
 				Instruction::Simd(a @ SimdInstruction::SetVals { .. }),
 				Instruction::Simd(b @ SimdInstruction::SetVals { .. }),
-			] if a == b => Some(Change::RemoveOffset(1)),
+			] if a == b => Some(Change::remove_offset(1)),
 			_ => None,
 		}
 	}

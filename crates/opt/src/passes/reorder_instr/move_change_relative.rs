@@ -17,7 +17,7 @@ impl PeepholePass for ReorderMoveChangePass {
 					value,
 					offset: Some(Offset::Relative(y)),
 				},
-			] if *x == -y => Some(Change::Swap(vec![
+			] if *x == -y => Some(Change::swap([
 				Instruction::inc_val(*value),
 				Instruction::move_ptr_by(*x),
 			])),
@@ -27,7 +27,7 @@ impl PeepholePass for ReorderMoveChangePass {
 					value,
 					offset: Some(Offset::Relative(y)),
 				},
-			] if *x == -y => Some(Change::Swap(vec![
+			] if *x == -y => Some(Change::swap([
 				Instruction::set_val(value.get_or_zero()),
 				Instruction::move_ptr_by(*x),
 			])),

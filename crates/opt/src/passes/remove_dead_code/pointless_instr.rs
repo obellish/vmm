@@ -9,7 +9,7 @@ impl PeepholePass for RemovePointlessInstrPass {
 	const SIZE: usize = 1;
 
 	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
-		Some(Change::Remove)
+		Some(Change::remove())
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
