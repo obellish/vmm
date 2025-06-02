@@ -8,13 +8,15 @@ use super::{Instruction, IsZeroingCell, PtrMovement};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum BlockInstruction {
-	Dynamic(Vec<Instruction>),
+	/// A dynamic loop, which checks the current cell for zero before executing
+	DynamicLoop(Vec<Instruction>),
+	/// An if-non-zero block, which zeros out the cell after executing
 	IfNz(Vec<Instruction>),
 }
 
 impl BlockInstruction {
 	pub fn dynamic(i: impl IntoIterator<Item = Instruction>) -> Self {
-		Self::Dynamic(i.into_iter().collect())
+		Self::DynamicLoop(i.into_iter().collect())
 	}
 
 	pub fn if_nz(i: impl IntoIterator<Item = Instruction>) -> Self {
@@ -25,7 +27,7 @@ impl BlockInstruction {
 impl Display for BlockInstruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
-			Self::Dynamic(instrs) => {
+			Self::DynamicLoop(instrs) => {
 				f.write_str("dylop\n")?;
 				for i in instrs {
 					Display::fmt(&i, f)?;
@@ -56,7 +58,7 @@ impl IsZeroingCell for BlockInstruction {
 impl PtrMovement for BlockInstruction {
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
-			Self::Dynamic(instrs) | Self::IfNz(instrs) => instrs.ptr_movement(),
+			Self::DynamicLoop(instrs) | Self::IfNz(instrs) => instrs.ptr_movement(),
 		}
 	}
 }

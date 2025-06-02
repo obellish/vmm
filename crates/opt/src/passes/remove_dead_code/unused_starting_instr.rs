@@ -12,7 +12,7 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 		match window {
 			[
 				Instruction::Start,
-				Instruction::Block(BlockInstruction::Dynamic(..))
+				Instruction::Block(BlockInstruction::DynamicLoop(..))
 				| Instruction::SetVal { value: None, .. },
 			] => Some(Change::RemoveOffset(1)),
 			[
@@ -51,7 +51,7 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 			window,
 			[
 				Instruction::Start,
-				Instruction::Block(BlockInstruction::Dynamic(..))
+				Instruction::Block(BlockInstruction::DynamicLoop(..))
 					| Instruction::SetVal { value: None, .. }
 					| Instruction::IncVal { .. }
 					| Instruction::Simd(SimdInstruction::IncVals { .. })

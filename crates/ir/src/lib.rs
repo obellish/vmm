@@ -59,10 +59,11 @@ pub enum Instruction {
 		count: usize,
 		offset: Option<Offset>,
 	},
-	/// A block of instructions.
+	/// A block of instructions
 	Block(BlockInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
+	/// A SIMD (Single instruction, multiple data) instruction
 	Simd(SimdInstruction),
 }
 
@@ -268,7 +269,7 @@ impl Instruction {
 	pub fn needs_input(&self) -> bool {
 		match self {
 			Self::Read => true,
-			Self::Block(BlockInstruction::Dynamic(instrs) | BlockInstruction::IfNz(instrs)) => {
+			Self::Block(BlockInstruction::DynamicLoop(instrs) | BlockInstruction::IfNz(instrs)) => {
 				instrs.iter().any(Self::needs_input)
 			}
 			_ => false,
@@ -278,7 +279,7 @@ impl Instruction {
 	pub fn has_io(&self) -> bool {
 		match self {
 			Self::Read | Self::Write { .. } => true,
-			Self::Block(BlockInstruction::Dynamic(instrs) | BlockInstruction::IfNz(instrs)) => {
+			Self::Block(BlockInstruction::DynamicLoop(instrs) | BlockInstruction::IfNz(instrs)) => {
 				instrs.iter().any(Self::has_io)
 			}
 			_ => false,
@@ -318,12 +319,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_dynamic_loop(&self) -> bool {
-		matches!(self, Self::Block(BlockInstruction::Dynamic(_)))
+		matches!(self, Self::Block(BlockInstruction::DynamicLoop(_)))
 	}
 
 	#[must_use]
 	pub fn is_empty_dynamic_loop(&self) -> bool {
-		matches!(self, Self::Block(BlockInstruction::Dynamic(l)) if l.is_empty())
+		matches!(self, Self::Block(BlockInstruction::DynamicLoop(l)) if l.is_empty())
 	}
 
 	#[must_use]
@@ -343,7 +344,7 @@ impl Instruction {
 
 	pub fn rough_estimate(&self) -> usize {
 		match self {
-			Self::Block(BlockInstruction::Dynamic(l)) => {
+			Self::Block(BlockInstruction::DynamicLoop(l)) => {
 				l.iter().map(Self::rough_estimate).sum::<usize>() + 2
 			}
 			Self::Block(BlockInstruction::IfNz(l)) => {
@@ -370,7 +371,7 @@ impl Instruction {
 	pub fn nested_loops(&self) -> usize {
 		let mut count = 0;
 
-		if let Self::Block(BlockInstruction::Dynamic(instrs) | BlockInstruction::IfNz(instrs)) = self {
+		if let Self::Block(BlockInstruction::DynamicLoop(instrs) | BlockInstruction::IfNz(instrs)) = self {
 			count += 1;
 
 			for instr in instrs {

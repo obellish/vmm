@@ -220,7 +220,7 @@ fn run_pass<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool
 
 	if pass.should_run_on_dyn_loop() {
 		for instr in v.iter_mut() {
-			if let Instruction::Block(BlockInstruction::Dynamic(i)) = instr {
+			if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = instr {
 				run_pass(pass, i, progress);
 			}
 		}

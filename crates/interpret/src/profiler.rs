@@ -41,7 +41,7 @@ impl Profiler {
 			Instruction::Read => self.input += 1,
 			Instruction::Write { .. } => self.output += 1,
 			Instruction::FindZero(..) => self.find_zero += 1,
-			Instruction::Block(BlockInstruction::Dynamic(_)) => self.dyn_loop += 1,
+			Instruction::Block(BlockInstruction::DynamicLoop(_)) => self.dyn_loop += 1,
 			_ => self.unknown += 1,
 		}
 	}

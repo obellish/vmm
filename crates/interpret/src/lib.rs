@@ -390,7 +390,7 @@ where
 
 	fn execute_loop_instruction(&mut self, instr: &BlockInstruction) -> Result<(), RuntimeError> {
 		match instr {
-			BlockInstruction::Dynamic(instrs) => self.dyn_loop(instrs)?,
+			BlockInstruction::DynamicLoop(instrs) => self.dyn_loop(instrs)?,
 			BlockInstruction::IfNz(instrs) => {
 				if matches!(self.cell().0, 0) {
 					return Ok(());

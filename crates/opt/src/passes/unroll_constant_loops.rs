@@ -15,7 +15,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					offset: None,
 					value: Some(i),
 				},
-				Instruction::Block(BlockInstruction::Dynamic(inner)),
+				Instruction::Block(BlockInstruction::DynamicLoop(inner)),
 			] => {
 				if inner.iter().any(Instruction::has_io) {
 					return None;
@@ -58,7 +58,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		let [
 			Instruction::SetVal { offset: None, .. },
-			Instruction::Block(BlockInstruction::Dynamic(inner)),
+			Instruction::Block(BlockInstruction::DynamicLoop(inner)),
 		] = window
 		else {
 			return false;
