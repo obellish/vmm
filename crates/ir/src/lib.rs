@@ -288,7 +288,6 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_inc_val(&self) -> bool {
-		// matches!(self, Self::IncVal {value, ..} if *value > 0)
 		matches!(
 			self,
 			Self::IncVal { value, .. } | Self::Simd(SimdInstruction::IncVals { value, .. })
@@ -511,6 +510,16 @@ impl PtrMovement for Instruction {
 pub enum Offset {
 	Relative(isize),
 	Absolute(usize),
+}
+
+impl Offset {
+	#[must_use]
+	pub const fn abs(self) -> Self {
+		match self {
+			Self::Relative(i) => Self::Relative(i.abs()),
+			Self::Absolute(a) => Self::Absolute(a),
+		}
+	}
 }
 
 impl Display for Offset {
