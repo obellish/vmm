@@ -87,6 +87,7 @@ impl PeepholePass for ReorderRelativeChangesPass {
 		}
 	}
 
+	#[allow(clippy::many_single_char_names)]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,
@@ -109,16 +110,18 @@ impl PeepholePass for ReorderRelativeChangesPass {
 			window,
 			[
 				Instruction::IncVal {
+					value: a,
 					offset: Some(Offset::Relative(x)),
 					..
 				},
-				Instruction::IncVal { .. },
+				Instruction::IncVal { offset: Some(Offset::Relative(z)), .. },
 				Instruction::IncVal {
+					value: b,
 					offset: Some(Offset::Relative(y)),
 					..
 				}
 			]
-			if *x == *y
+			if *x == *y && a != b && *x != *z
 		)
 	}
 }

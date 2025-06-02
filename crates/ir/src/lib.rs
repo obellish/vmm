@@ -288,7 +288,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_inc_val(&self) -> bool {
-		matches!(self, Self::IncVal {value, ..} if *value > 0)
+		// matches!(self, Self::IncVal {value, ..} if *value > 0)
+		matches!(
+			self,
+			Self::IncVal { value, .. } | Self::Simd(SimdInstruction::IncVals { value, .. })
+			if *value > 0
+		)
 	}
 
 	#[must_use]
