@@ -20,6 +20,12 @@ impl PeepholePass for OptimizeScaleAndTakeValPass {
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::scale_and_take_val(
 				*factor, x,
 			))),
+			[
+				Instruction::TakeVal(offset),
+				Instruction::ScaleVal { factor },
+			] => Some(Change::ReplaceOne(Instruction::scale_and_take_val(
+				*factor, *offset,
+			))),
 			_ => None,
 		}
 	}
@@ -36,6 +42,9 @@ impl PeepholePass for OptimizeScaleAndTakeValPass {
 				Instruction::MovePtr(Offset::Relative(y))
 			]
 			if *x == *y
+		) || matches!(
+			window,
+			[Instruction::TakeVal(..), Instruction::ScaleVal { .. }]
 		)
 	}
 }

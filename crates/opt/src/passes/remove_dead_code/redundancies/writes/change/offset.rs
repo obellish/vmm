@@ -59,6 +59,13 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 				value.get_or_zero(),
 				x,
 			))),
+			[
+				Instruction::FetchVal(Offset::Relative(x)),
+				Instruction::SetVal {
+					value: None,
+					offset: Some(Offset::Relative(y)),
+				},
+			] if *x == *y => Some(Change::RemoveOffset(1)),
 			_ => None,
 		}
 	}
@@ -87,6 +94,12 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 				Instruction::SetVal {
 					offset: Some(Offset::Relative(y)),
 					..
+				}
+			] | [
+				Instruction::FetchVal(Offset::Relative(x)),
+				Instruction::SetVal {
+					value: None,
+					offset: Some(Offset::Relative(y))
 				}
 			]
 			if *x == *y
