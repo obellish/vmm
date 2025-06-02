@@ -1,5 +1,6 @@
 [build]
 rustdocflags = ["--cfg", "docsrs", "--show-type-layout", "-Z", "unstable-options"]
+rustflags = ["-C", "target-cpu=native"]
 
 [alias]
 mutate = "mutants --test-tool=nextest -v -V --all-features"
