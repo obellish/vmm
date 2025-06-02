@@ -10,7 +10,7 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{Instruction, LoopInstruction, Offset, ScaleAnd, SimdInstruction, SuperInstruction};
+use vmm_ir::{Instruction, BlockInstruction, Offset, ScaleAnd, SimdInstruction, SuperInstruction};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 use vmm_utils::GetOrZero as _;
@@ -374,7 +374,7 @@ where
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => self.find_zero(*i)?,
 			Instruction::SubCell { offset } => self.sub_cell(*offset)?,
-			Instruction::Loop(l) => self.execute_loop_instruction(l)?,
+			Instruction::Block(l) => self.execute_loop_instruction(l)?,
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
 			Instruction::Super(s) => self.execute_super_instruction(s)?,
 			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
@@ -388,10 +388,10 @@ where
 		Ok(())
 	}
 
-	fn execute_loop_instruction(&mut self, instr: &LoopInstruction) -> Result<(), RuntimeError> {
+	fn execute_loop_instruction(&mut self, instr: &BlockInstruction) -> Result<(), RuntimeError> {
 		match instr {
-			LoopInstruction::Dynamic(instrs) => self.dyn_loop(instrs)?,
-			LoopInstruction::IfNz(instrs) => {
+			BlockInstruction::Dynamic(instrs) => self.dyn_loop(instrs)?,
+			BlockInstruction::IfNz(instrs) => {
 				if matches!(self.cell().0, 0) {
 					return Ok(());
 				}

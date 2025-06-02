@@ -3,7 +3,7 @@
 
 extern crate alloc;
 
-mod loop_instr;
+mod block_instr;
 mod simd_instr;
 mod super_instr;
 mod utils;
@@ -17,7 +17,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-pub use self::{loop_instr::*, simd_instr::*, super_instr::*, utils::*};
+pub use self::{block_instr::*, simd_instr::*, super_instr::*, utils::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -59,8 +59,8 @@ pub enum Instruction {
 		count: usize,
 		offset: Option<Offset>,
 	},
-	/// A loop-like instruction.
-	Loop(LoopInstruction),
+	/// A block of instructions.
+	Block(BlockInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
 	Simd(SimdInstruction),
@@ -244,12 +244,12 @@ impl Instruction {
 
 	#[must_use]
 	pub fn dynamic_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
-		LoopInstruction::dynamic(instructions).into()
+		BlockInstruction::dynamic(instructions).into()
 	}
 
 	#[must_use]
 	pub fn if_nz(instructions: impl IntoIterator<Item = Self>) -> Self {
-		LoopInstruction::if_nz(instructions).into()
+		BlockInstruction::if_nz(instructions).into()
 	}
 
 	#[must_use]
@@ -260,7 +260,7 @@ impl Instruction {
 				| Self::Read | Self::Super(SuperInstruction::ScaleAnd {
 				action: ScaleAnd::Move,
 				..
-			}) | Self::Loop(LoopInstruction::IfNz(..))
+			}) | Self::Block(BlockInstruction::IfNz(..))
 				| Self::MoveVal(..)
 		)
 	}
@@ -268,7 +268,7 @@ impl Instruction {
 	pub fn needs_input(&self) -> bool {
 		match self {
 			Self::Read => true,
-			Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) => {
+			Self::Block(BlockInstruction::Dynamic(instrs) | BlockInstruction::IfNz(instrs)) => {
 				instrs.iter().any(Self::needs_input)
 			}
 			_ => false,
@@ -278,7 +278,7 @@ impl Instruction {
 	pub fn has_io(&self) -> bool {
 		match self {
 			Self::Read | Self::Write { .. } => true,
-			Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) => {
+			Self::Block(BlockInstruction::Dynamic(instrs) | BlockInstruction::IfNz(instrs)) => {
 				instrs.iter().any(Self::has_io)
 			}
 			_ => false,
@@ -318,12 +318,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_dynamic_loop(&self) -> bool {
-		matches!(self, Self::Loop(LoopInstruction::Dynamic(_)))
+		matches!(self, Self::Block(BlockInstruction::Dynamic(_)))
 	}
 
 	#[must_use]
 	pub fn is_empty_dynamic_loop(&self) -> bool {
-		matches!(self, Self::Loop(LoopInstruction::Dynamic(l)) if l.is_empty())
+		matches!(self, Self::Block(BlockInstruction::Dynamic(l)) if l.is_empty())
 	}
 
 	#[must_use]
@@ -343,10 +343,10 @@ impl Instruction {
 
 	pub fn rough_estimate(&self) -> usize {
 		match self {
-			Self::Loop(LoopInstruction::Dynamic(l)) => {
+			Self::Block(BlockInstruction::Dynamic(l)) => {
 				l.iter().map(Self::rough_estimate).sum::<usize>() + 2
 			}
-			Self::Loop(LoopInstruction::IfNz(l)) => {
+			Self::Block(BlockInstruction::IfNz(l)) => {
 				l.iter().map(Self::rough_estimate).sum::<usize>() + 1
 			}
 			_ => 1,
@@ -370,7 +370,7 @@ impl Instruction {
 	pub fn nested_loops(&self) -> usize {
 		let mut count = 0;
 
-		if let Self::Loop(LoopInstruction::Dynamic(instrs) | LoopInstruction::IfNz(instrs)) = self {
+		if let Self::Block(BlockInstruction::Dynamic(instrs) | BlockInstruction::IfNz(instrs)) = self {
 			count += 1;
 
 			for instr in instrs {
@@ -429,7 +429,7 @@ impl Display for Instruction {
 			Self::Read => f.write_str("getc")?,
 			Self::Start => f.write_str("start")?,
 			Self::Super(s) => Display::fmt(&s, f)?,
-			Self::Loop(l) => Display::fmt(&l, f)?,
+			Self::Block(l) => Display::fmt(&l, f)?,
 			Self::Simd(s) => Display::fmt(&s, f)?,
 			_ => f.write_char('*')?,
 		}
@@ -438,9 +438,9 @@ impl Display for Instruction {
 	}
 }
 
-impl From<LoopInstruction> for Instruction {
-	fn from(value: LoopInstruction) -> Self {
-		Self::Loop(value)
+impl From<BlockInstruction> for Instruction {
+	fn from(value: BlockInstruction) -> Self {
+		Self::Block(value)
 	}
 }
 
@@ -459,7 +459,7 @@ impl From<SuperInstruction> for Instruction {
 impl IsZeroingCell for Instruction {
 	fn is_zeroing_cell(&self) -> bool {
 		match self {
-			Self::Loop(l) => l.is_zeroing_cell(),
+			Self::Block(l) => l.is_zeroing_cell(),
 			Self::Super(s) => s.is_zeroing_cell(),
 			Self::Simd(s) => s.is_zeroing_cell(),
 			Self::SetVal {
@@ -479,7 +479,7 @@ impl PtrMovement for Instruction {
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::Super(s) => s.ptr_movement(),
-			Self::Loop(l) => l.ptr_movement(),
+			Self::Block(l) => l.ptr_movement(),
 			Self::Simd(s) => s.ptr_movement(),
 			Self::ScaleVal { .. }
 			| Self::SetVal { .. }

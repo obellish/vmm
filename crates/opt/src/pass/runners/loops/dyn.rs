@@ -1,6 +1,6 @@
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
-use vmm_ir::{Instruction, LoopInstruction};
+use vmm_ir::{Instruction, BlockInstruction};
 
 use crate::{Change, LoopPass, PeepholePass};
 
@@ -23,7 +23,7 @@ impl<P: LoopPass> PeepholePass for DynamicLoopRunner<P> {
 	const SIZE: usize = 1;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		if let [Instruction::Loop(LoopInstruction::Dynamic(instructions))] = window {
+		if let [Instruction::Block(BlockInstruction::Dynamic(instructions))] = window {
 			self.0.run_pass(instructions)
 		} else {
 			None
@@ -31,7 +31,7 @@ impl<P: LoopPass> PeepholePass for DynamicLoopRunner<P> {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		let [Instruction::Loop(LoopInstruction::Dynamic(instrs))] = window else {
+		let [Instruction::Block(BlockInstruction::Dynamic(instrs))] = window else {
 			return false;
 		};
 

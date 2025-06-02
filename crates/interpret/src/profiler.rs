@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use vmm_ir::{Instruction, LoopInstruction};
+use vmm_ir::{Instruction, BlockInstruction};
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Profiler {
@@ -41,7 +41,7 @@ impl Profiler {
 			Instruction::Read => self.input += 1,
 			Instruction::Write { .. } => self.output += 1,
 			Instruction::FindZero(..) => self.find_zero += 1,
-			Instruction::Loop(LoopInstruction::Dynamic(_)) => self.dyn_loop += 1,
+			Instruction::Block(BlockInstruction::Dynamic(_)) => self.dyn_loop += 1,
 			_ => self.unknown += 1,
 		}
 	}

@@ -10,12 +10,12 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[i, Instruction::Loop(..)] if i.is_zeroing_cell() => Some(Change::RemoveOffset(1)),
+			[i, Instruction::Block(..)] if i.is_zeroing_cell() => Some(Change::RemoveOffset(1)),
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [i, Instruction::Loop(..)] if i.is_zeroing_cell())
+		matches!(window, [i, Instruction::Block(..)] if i.is_zeroing_cell())
 	}
 }

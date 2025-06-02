@@ -7,12 +7,12 @@ use super::{Instruction, IsZeroingCell, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
-pub enum LoopInstruction {
+pub enum BlockInstruction {
 	Dynamic(Vec<Instruction>),
 	IfNz(Vec<Instruction>),
 }
 
-impl LoopInstruction {
+impl BlockInstruction {
 	pub fn dynamic(i: impl IntoIterator<Item = Instruction>) -> Self {
 		Self::Dynamic(i.into_iter().collect())
 	}
@@ -22,7 +22,7 @@ impl LoopInstruction {
 	}
 }
 
-impl Display for LoopInstruction {
+impl Display for BlockInstruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
 			Self::Dynamic(instrs) => {
@@ -47,13 +47,13 @@ impl Display for LoopInstruction {
 	}
 }
 
-impl IsZeroingCell for LoopInstruction {
+impl IsZeroingCell for BlockInstruction {
 	fn is_zeroing_cell(&self) -> bool {
 		true
 	}
 }
 
-impl PtrMovement for LoopInstruction {
+impl PtrMovement for BlockInstruction {
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::Dynamic(instrs) | Self::IfNz(instrs) => instrs.ptr_movement(),

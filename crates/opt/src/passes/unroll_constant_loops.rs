@@ -1,4 +1,4 @@
-use vmm_ir::{LoopInstruction, PtrMovement};
+use vmm_ir::{BlockInstruction, PtrMovement};
 
 use crate::{Change, Instruction, PeepholePass};
 
@@ -15,7 +15,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					offset: None,
 					value: Some(i),
 				},
-				Instruction::Loop(LoopInstruction::Dynamic(inner)),
+				Instruction::Block(BlockInstruction::Dynamic(inner)),
 			] => {
 				if inner.iter().any(Instruction::has_io) {
 					return None;
@@ -58,7 +58,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		let [
 			Instruction::SetVal { offset: None, .. },
-			Instruction::Loop(LoopInstruction::Dynamic(inner)),
+			Instruction::Block(BlockInstruction::Dynamic(inner)),
 		] = window
 		else {
 			return false;
