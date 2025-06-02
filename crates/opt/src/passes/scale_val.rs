@@ -25,6 +25,30 @@ impl PeepholePass for OptimizeScaleValPass {
 			] if *x == *y => Some(Change::ReplaceOne(Instruction::scale_val(
 				WrappingMul::wrapping_mul(a, b),
 			))),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Take,
+					offset: Offset::Relative(x),
+					factor: a,
+				}),
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Move,
+					offset: Offset::Relative(y),
+					factor: b,
+				}),
+			] if *x == -y => Some(Change::Replace(vec![
+				Instruction::scale_val(WrappingMul::wrapping_mul(a, b)),
+				Instruction::move_ptr(*x),
+				Instruction::clear_val(),
+			])),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Take,
+					offset: Offset::Relative(x),
+					factor,
+				}),
+				Instruction::TakeVal(Offset::Relative(y)),
+			] if *x == -y => Some(Change::ReplaceOne(Instruction::scale_val(*factor))),
 			_ => None,
 		}
 	}
@@ -45,6 +69,21 @@ impl PeepholePass for OptimizeScaleValPass {
 				})
 			]
 			if *x == *y
+		) || matches!(
+			window,
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Take,
+					offset: Offset::Relative(x),
+					..
+				}),
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Move,
+					offset: Offset::Relative(y),
+					..
+				}) | Instruction::TakeVal(Offset::Relative(y))
+			]
+			if *x == -y
 		)
 	}
 }
