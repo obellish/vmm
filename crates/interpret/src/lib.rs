@@ -443,6 +443,7 @@ where
 		Ok(())
 	}
 
+	#[allow(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Option<Offset>) -> usize {
 		match offset {
 			None => self.ptr().value(),
