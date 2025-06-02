@@ -11,7 +11,7 @@ impl PeepholePass for OptimizeTakeValPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::MoveVal(x), Instruction::MovePtr(y)] if *x == *y => {
-				Some(Change::ReplaceOne(Instruction::take_val(*x)))
+				Some(Change::Replace(Instruction::take_val(*x)))
 			}
 			_ => None,
 		}

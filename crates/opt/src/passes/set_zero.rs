@@ -17,7 +17,7 @@ impl PeepholePass for OptimizeSetZeroPass {
 					value,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::find_and_set_zero(
+			] => Some(Change::Replace(Instruction::find_and_set_zero(
 				*value as u8,
 				*offset,
 			))),
@@ -27,7 +27,7 @@ impl PeepholePass for OptimizeSetZeroPass {
 					value,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::find_and_set_zero(
+			] => Some(Change::Replace(Instruction::find_and_set_zero(
 				value.get_or_zero(),
 				*offset,
 			))),

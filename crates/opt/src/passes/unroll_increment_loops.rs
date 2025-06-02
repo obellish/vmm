@@ -48,7 +48,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 							inner.clone(),
 						)));
 
-						Some(Change::Replace(output))
+						Some(Change::Swap(output))
 					}
 					_ => None,
 				}

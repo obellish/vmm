@@ -13,7 +13,7 @@ impl LoopPass for OptimizeClearCellPass {
 					value: -1 | 1,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::clear_val())),
+			] => Some(Change::Replace(Instruction::clear_val())),
 			_ => None,
 		}
 	}

@@ -31,7 +31,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value: i2,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::inc_val(
+			] => Some(Change::Replace(Instruction::inc_val(
 				WrappingAdd::wrapping_add(i1, i2),
 			))),
 			[
@@ -41,7 +41,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::MovePtr(Offset::Relative(i1)),
 				Instruction::MovePtr(Offset::Relative(i2)),
-			] => Some(Change::ReplaceOne(Instruction::move_ptr_by(
+			] => Some(Change::Replace(Instruction::move_ptr_by(
 				WrappingAdd::wrapping_add(i1, i2),
 			))),
 			[
@@ -50,7 +50,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value: Some(x),
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::set_val(x.get()))),
+			] => Some(Change::Replace(Instruction::set_val(x.get()))),
 			[
 				Instruction::IncVal {
 					value: i1,
@@ -70,7 +70,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value: i2,
 					offset: Some(Offset::Relative(y)),
 				},
-			] if x == y => Some(Change::ReplaceOne(Instruction::inc_val_at(
+			] if x == y => Some(Change::Replace(Instruction::inc_val_at(
 				WrappingAdd::wrapping_add(i1, i2),
 				*x,
 			))),
@@ -103,7 +103,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: Some(Offset::Relative(y)),
 					value,
 				},
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::set_val_at(
+			] if *x == *y => Some(Change::Replace(Instruction::set_val_at(
 				value.get_or_zero(),
 				*x,
 			))),
@@ -113,9 +113,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::set_val(
-				value.get_or_zero(),
-			))),
+			] => Some(Change::Replace(Instruction::set_val(value.get_or_zero()))),
 			[
 				Instruction::Write {
 					offset: None,
@@ -125,7 +123,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: None,
 					count: b,
 				},
-			] => Some(Change::ReplaceOne(Instruction::write_many(a + b))),
+			] => Some(Change::Replace(Instruction::write_many(a + b))),
 			[
 				Instruction::Write {
 					count: a,
@@ -135,7 +133,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					count: b,
 					offset: Some(Offset::Relative(y)),
 				},
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::write_many_at(*a + *b, x))),
+			] if *x == *y => Some(Change::Replace(Instruction::write_many_at(*a + *b, x))),
 			[
 				Instruction::Simd(SimdInstruction::IncVals {
 					value: a,
@@ -145,7 +143,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					value: b,
 					offsets: y,
 				}),
-			] if *x == *y => Some(Change::ReplaceOne(Instruction::simd_inc_vals(
+			] if *x == *y => Some(Change::Replace(Instruction::simd_inc_vals(
 				WrappingAdd::wrapping_add(a, b),
 				x.clone(),
 			))),

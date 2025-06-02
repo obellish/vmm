@@ -18,7 +18,7 @@ impl PeepholePass for OptimizeConstantSubPass {
 				Instruction::SubCell { offset },
 			] if i8::try_from(value.get()).is_ok() => {
 				let value = i8::try_from(value.get()).ok()?;
-				Some(Change::Replace(vec![
+				Some(Change::Swap(vec![
 					Instruction::clear_val(),
 					Instruction::inc_val_at(-value, *offset),
 				]))

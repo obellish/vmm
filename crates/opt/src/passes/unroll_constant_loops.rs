@@ -46,7 +46,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 							output.extend_from_slice(rest);
 						}
 
-						Some(Change::Replace(output))
+						Some(Change::Swap(output))
 					}
 					_ => None,
 				}

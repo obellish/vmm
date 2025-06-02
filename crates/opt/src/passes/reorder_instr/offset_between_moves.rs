@@ -18,7 +18,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 					offset: None,
 				},
 				Instruction::MovePtr(Offset::Relative(y)),
-			] => Some(Change::Replace(vec![
+			] => Some(Change::Swap(vec![
 				Instruction::inc_val_at(*value, x),
 				Instruction::move_ptr(*x + *y),
 			])),
@@ -29,7 +29,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 					offset: None,
 				},
 				Instruction::MovePtr(Offset::Relative(y)),
-			] => Some(Change::Replace(vec![
+			] => Some(Change::Swap(vec![
 				Instruction::set_val_at(value.get_or_zero(), x),
 				Instruction::move_ptr(*x + *y),
 			])),
@@ -40,7 +40,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 					count,
 				},
 				Instruction::MovePtr(Offset::Relative(y)),
-			] => Some(Change::Replace(vec![
+			] => Some(Change::Swap(vec![
 				Instruction::write_many_at(*count, x),
 				Instruction::move_ptr(*x + *y),
 			])),

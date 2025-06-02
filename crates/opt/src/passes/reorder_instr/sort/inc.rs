@@ -12,7 +12,7 @@ impl PeepholePass for SortIncInstrPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		Some(Change::Replace(window.to_owned().sorted_by(sorter)))
+		Some(Change::Swap(window.to_owned().sorted_by(sorter)))
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {

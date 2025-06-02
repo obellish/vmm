@@ -31,7 +31,7 @@ impl LoopPass for OptimizeClearLoopPass {
 					value: None,
 					offset: None,
 				},
-			] => Some(Change::Replace(vec![
+			] => Some(Change::Swap(vec![
 				Instruction::move_ptr(*x),
 				Instruction::clear_val(),
 				Instruction::move_ptr(*y),
@@ -46,7 +46,7 @@ impl LoopPass for OptimizeClearLoopPass {
 					value: -1,
 					offset: None,
 				},
-			] => Some(Change::Replace(vec![
+			] => Some(Change::Swap(vec![
 				Instruction::clear_val_at(*offset),
 				Instruction::clear_val(),
 			])),

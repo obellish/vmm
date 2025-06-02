@@ -13,7 +13,7 @@ impl PeepholePass for OptimizeTakeFetchValPass {
 			[
 				Instruction::MovePtr(Offset::Relative(x)),
 				Instruction::TakeVal(Offset::Relative(y)),
-			] if *x == -y => Some(Change::ReplaceOne(Instruction::fetch_val(*x))),
+			] if *x == -y => Some(Change::Replace(Instruction::fetch_val(*x))),
 			_ => None,
 		}
 	}

@@ -17,7 +17,7 @@ impl PeepholePass for CombineMoveChangePass {
 					offset: None,
 				},
 				Instruction::MovePtr(Offset::Relative(y @ isize::MIN..=0)),
-			] => Some(Change::Replace(vec![
+			] => Some(Change::Swap(vec![
 				Instruction::inc_val_at(*value, x),
 				Instruction::move_ptr_by(*x + *y),
 			])),

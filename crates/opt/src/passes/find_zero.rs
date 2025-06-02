@@ -9,7 +9,7 @@ impl LoopPass for OptimizeFindZeroPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[Instruction::MovePtr(Offset::Relative(x))] => {
-				Some(Change::ReplaceOne(Instruction::find_zero(*x)))
+				Some(Change::Replace(Instruction::find_zero(*x)))
 			}
 			_ => None,
 		}

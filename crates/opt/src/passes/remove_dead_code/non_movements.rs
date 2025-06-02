@@ -16,21 +16,19 @@ impl PeepholePass for RemoveNonMovementOffsetsPass {
 					value,
 					offset: Some(Offset::Relative(0)),
 				},
-			] => Some(Change::ReplaceOne(Instruction::set_val(
-				value.get_or_zero(),
-			))),
+			] => Some(Change::Replace(Instruction::set_val(value.get_or_zero()))),
 			[
 				Instruction::IncVal {
 					value,
 					offset: Some(Offset::Relative(0)),
 				},
-			] => Some(Change::ReplaceOne(Instruction::inc_val(*value))),
+			] => Some(Change::Replace(Instruction::inc_val(*value))),
 			[
 				Instruction::Write {
 					offset: Some(Offset::Relative(0)),
 					count,
 				},
-			] => Some(Change::ReplaceOne(Instruction::write_many(*count))),
+			] => Some(Change::Replace(Instruction::write_many(*count))),
 			_ => None,
 		}
 	}

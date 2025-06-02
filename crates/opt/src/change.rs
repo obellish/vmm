@@ -7,11 +7,31 @@ use vmm_wrap::Wrapping;
 pub enum Change {
 	Remove,
 	RemoveOffset(isize),
-	Replace(Vec<Instruction>),
-	ReplaceOne(Instruction),
+	Swap(Vec<Instruction>),
+	Replace(Instruction),
 }
 
 impl Change {
+	#[must_use]
+	pub const fn remove() -> Self {
+		Self::Remove
+	}
+
+	#[must_use]
+	pub const fn remove_offset(offset: isize) -> Self {
+		Self::RemoveOffset(offset)
+	}
+
+	#[must_use]
+	pub fn swap(instrs: impl IntoIterator<Item = Instruction>) -> Self {
+		Self::Swap(instrs.into_iter().collect())
+	}
+
+	#[must_use]
+	pub const fn replace(i: Instruction) -> Self {
+		Self::Replace(i)
+	}
+
 	#[tracing::instrument(skip(self, ops, size), level = Level::TRACE)]
 	pub fn apply(self, ops: &mut Vec<Instruction>, i: usize, size: usize) -> (bool, usize) {
 		match self {
@@ -29,13 +49,13 @@ impl Change {
 
 				(true, 0)
 			}
-			Self::Replace(instrs) => {
+			Self::Swap(instrs) => {
 				let mut replaced = Vec::with_capacity(size);
 				for _ in 0..size {
 					replaced.push(ops.remove(i));
 				}
 
-				trace!("replacing instructions {replaced:?} with {instrs:?}");
+				trace!("swapping instructions {replaced:?} with {instrs:?}");
 
 				for instr in instrs.into_iter().rev() {
 					ops.insert_or_push(i, instr);
@@ -43,7 +63,7 @@ impl Change {
 
 				(true, 0)
 			}
-			Self::ReplaceOne(instr) => {
+			Self::Replace(instr) => {
 				let mut replaced = Vec::with_capacity(size);
 				for _ in 0..size {
 					replaced.push(ops.remove(i));

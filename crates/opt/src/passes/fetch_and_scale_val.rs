@@ -18,7 +18,7 @@ impl PeepholePass for OptimizeFetchAndScaleValPass {
 					action: ScaleAnd::Move,
 				}),
 				Instruction::MovePtr(Offset::Relative(z)),
-			] if *y == *z && -x == *y => Some(Change::ReplaceOne(Instruction::fetch_and_scale_val(
+			] if *y == *z && -x == *y => Some(Change::Replace(Instruction::fetch_and_scale_val(
 				*factor, x,
 			))),
 			_ => None,

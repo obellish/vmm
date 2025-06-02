@@ -11,7 +11,7 @@ impl PeepholePass for RemoveRedundantScaleValInstrPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::ScaleVal { factor: 0 }] => {
-				Some(Change::ReplaceOne(Instruction::clear_val()))
+				Some(Change::Replace(Instruction::clear_val()))
 			}
 			[Instruction::ScaleVal { factor: 1 }] => Some(Change::Remove),
 			_ => None,

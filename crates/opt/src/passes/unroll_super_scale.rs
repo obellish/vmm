@@ -16,7 +16,7 @@ impl PeepholePass for UnrollScaleAndPass {
 					factor: 1,
 					offset,
 				}),
-			] => Some(Change::ReplaceOne(match action {
+			] => Some(Change::Replace(match action {
 				ScaleAnd::Fetch => Instruction::fetch_val(*offset),
 				ScaleAnd::Move => Instruction::move_val(*offset),
 				ScaleAnd::Take => Instruction::take_val(*offset),

@@ -34,7 +34,7 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			] if *x == -y => {
 				let x = *x;
 
-				Some(Change::ReplaceOne(Instruction::scale_and_move_val(
+				Some(Change::Replace(Instruction::scale_and_move_val(
 					*j as u8, x,
 				)))
 			}
@@ -57,7 +57,7 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 					value: -1,
 					offset: None,
 				},
-			] => Some(Change::ReplaceOne(Instruction::scale_and_move_val(
+			] => Some(Change::Replace(Instruction::scale_and_move_val(
 				*value as u8,
 				*x,
 			))),
