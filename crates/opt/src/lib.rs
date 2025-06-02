@@ -162,6 +162,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<OptimizeSimdSetInstrPass>(progress);
 		self.run_default_loop_pass::<OptimizeIfNzPass>(progress);
 		self.run_default_dynamic_loop_pass::<OptimizeSubCellPass>(progress);
+		self.run_default_peephole_pass::<OptimizeConstantSubPass>(progress);
 
 		self.run_default_peephole_pass::<ReorderMoveChangePass>(progress);
 		self.run_default_peephole_pass::<ReorderRelativeChangesPass>(progress);

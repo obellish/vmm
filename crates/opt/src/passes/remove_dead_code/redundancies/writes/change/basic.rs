@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, BlockInstruction, ScaleAnd, SuperInstruction};
+use vmm_ir::{BlockInstruction, Instruction, ScaleAnd, SuperInstruction};
 use vmm_utils::GetOrZero as _;
 use vmm_wrap::Wrapping;
 
@@ -106,6 +106,12 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 						..
 					}),
 				Instruction::SetVal { offset: None, .. }
+			] | [
+				Instruction::SetVal {
+					value: None,
+					offset: None
+				},
+				Instruction::SubCell { .. }
 			]
 		)
 	}
