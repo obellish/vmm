@@ -7,7 +7,7 @@ use crate::{Change, PeepholePass};
 pub struct SortIncInstrPass;
 
 impl PeepholePass for SortIncInstrPass {
-	const SIZE: usize = 3;
+	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
