@@ -65,6 +65,13 @@ impl PeepholePass for OptimizeSimdSetInstrPass {
 				Instruction::SetVal { value: b, offset }
 			]
 			if *a == *b && !offsets.contains(offset)
+		) || matches!(
+			window,
+			[
+				Instruction::Simd(SimdInstruction::SetVals { value: a, .. }),
+				Instruction::Simd(SimdInstruction::SetVals { value: b, .. })
+			]
+			if *a == *b
 		)
 	}
 }

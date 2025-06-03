@@ -439,7 +439,7 @@ where
 				self.find_and_set_zero(offset, value)?;
 			}
 			SuperInstruction::SetUntilZero { value, offset } => {
-				self.set_until_zero(value, offset)?
+				self.set_until_zero(value, offset)?;
 			}
 			i => return Err(RuntimeError::Unimplemented((i).into())),
 		}
