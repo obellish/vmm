@@ -1,3 +1,4 @@
+use itertools::Itertools as _;
 use vmm_ir::{Instruction, Offset, SimdInstruction};
 use vmm_utils::GetOrZero as _;
 use vmm_wrap::ops::WrappingAdd;
@@ -10,6 +11,7 @@ pub struct CollapseStackedInstrPass;
 impl PeepholePass for CollapseStackedInstrPass {
 	const SIZE: usize = 2;
 
+	#[allow(clippy::many_single_char_names)]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -147,6 +149,22 @@ impl PeepholePass for CollapseStackedInstrPass {
 				WrappingAdd::wrapping_add(a, b),
 				x.clone(),
 			))),
+			[
+				Instruction::Simd(SimdInstruction::IncVals {
+					value: a,
+					offsets: x,
+				}),
+				Instruction::Simd(SimdInstruction::IncVals {
+					value: b,
+					offsets: y,
+				}),
+			] if *a == *b && x.iter().all(|value| !y.contains(value)) => {
+				Some(Change::replace(Instruction::simd_inc_vals(*a, {
+					let mut v = x.to_owned();
+					v.extend_from_slice(y);
+					v.into_iter().sorted().collect()
+				})))
+			}
 			_ => None,
 		}
 	}
@@ -205,6 +223,13 @@ impl PeepholePass for CollapseStackedInstrPass {
 				Instruction::Simd(SimdInstruction::IncVals { offsets: b, .. })
 			]
 			if *a == *b
+		) || matches!(
+			window,
+			[
+				Instruction::Simd(SimdInstruction::IncVals { value: a, offsets: x }),
+				Instruction::Simd(SimdInstruction::IncVals { value: b, offsets: y })
+			]
+			if *a == *b && x.iter().all(|value| !y.contains(value))
 		)
 	}
 }
