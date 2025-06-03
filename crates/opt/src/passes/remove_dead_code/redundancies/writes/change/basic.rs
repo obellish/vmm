@@ -44,10 +44,13 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 			] => Some(Change::replace(Instruction::read())),
 			[
 				Instruction::Block(BlockInstruction::DynamicLoop(..) | BlockInstruction::IfNz(..))
-				| Instruction::Super(SuperInstruction::ScaleAnd {
-					action: ScaleAnd::Move,
-					..
-				})
+				| Instruction::Super(
+					SuperInstruction::ScaleAnd {
+						action: ScaleAnd::Move,
+						..
+					}
+					| SuperInstruction::ClearUntilZero { .. },
+				)
 				| Instruction::SubCell { .. }
 				| Instruction::MoveVal(..),
 				Instruction::SetVal {
@@ -83,10 +86,12 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				Instruction::IncVal { offset: None, .. } | Instruction::Read
 			] | [
 				Instruction::Block(BlockInstruction::DynamicLoop(..) | BlockInstruction::IfNz(..))
-					| Instruction::Super(SuperInstruction::ScaleAnd {
-						action: ScaleAnd::Move,
-						..
-					}) | Instruction::SubCell { .. }
+					| Instruction::Super(
+						SuperInstruction::ScaleAnd {
+							action: ScaleAnd::Move,
+							..
+						} | SuperInstruction::ClearUntilZero { .. }
+					) | Instruction::SubCell { .. }
 					| Instruction::MoveVal(..),
 				Instruction::SetVal {
 					offset: None,

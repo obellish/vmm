@@ -41,6 +41,10 @@ impl LoopPass for OptimizeDupeAndScaleValPass {
 		Some(Change::swap(output))
 	}
 
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(2, Some(2))
+	}
+
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

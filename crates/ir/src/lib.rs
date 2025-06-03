@@ -255,6 +255,11 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub const fn clear_until_zero(offset: isize) -> Self {
+		Self::Super(SuperInstruction::clear_until_zero(offset))
+	}
+
+	#[must_use]
 	pub const fn is_overwriting_current_cell(&self) -> bool {
 		matches!(
 			self,

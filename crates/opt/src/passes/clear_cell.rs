@@ -10,6 +10,10 @@ impl LoopPass for OptimizeClearCellPass {
 		Some(Change::replace(Instruction::clear_val()))
 	}
 
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(1, Some(1))
+	}
+
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

@@ -11,6 +11,10 @@ impl LoopPass for RemoveEmptyLoopsPass {
 		Some(Change::remove())
 	}
 
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(0, Some(0))
+	}
+
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		loop_values.is_empty()
 	}

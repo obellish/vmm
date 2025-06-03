@@ -267,6 +267,16 @@ where
 	}
 
 	#[inline]
+	fn clear_until_zero(&mut self, offset: isize) -> Result<(), RuntimeError> {
+		while !matches!(self.cell().0, 0) {
+			mem::take(self.cell_mut());
+			*self.ptr_mut() += offset;
+		}
+
+		Ok(())
+	}
+
+	#[inline]
 	fn scale_val(&mut self, factor: u8) -> Result<(), RuntimeError> {
 		*self.cell_mut() *= factor;
 
@@ -423,6 +433,7 @@ where
 			SuperInstruction::FindAndSetZero { offset, value } => {
 				self.find_and_set_zero(offset, value)?;
 			}
+			SuperInstruction::ClearUntilZero { offset } => self.clear_until_zero(offset)?,
 			i => return Err(RuntimeError::Unimplemented((i).into())),
 		}
 

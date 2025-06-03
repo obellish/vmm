@@ -15,6 +15,10 @@ impl LoopPass for OptimizeFindZeroPass {
 		}
 	}
 
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(1, Some(1))
+	}
+
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(loop_values, [Instruction::MovePtr(Offset::Relative(_))])
 	}

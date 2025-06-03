@@ -2,6 +2,7 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 use vmm_ir::{BlockInstruction, Instruction};
 
+use super::BlockLength;
 use crate::{Change, LoopPass, PeepholePass};
 
 #[repr(transparent)]
@@ -34,6 +35,27 @@ impl<P: LoopPass> PeepholePass for DynamicLoopRunner<P> {
 		let [Instruction::Block(BlockInstruction::DynamicLoop(instrs))] = window else {
 			return false;
 		};
+
+		let len = BlockLength::new(self.0.size_hint());
+
+		match len {
+			BlockLength::Unknown => {}
+			BlockLength::Single(len) => {
+				if instrs.len() != len {
+					return false;
+				}
+			}
+			BlockLength::LowerBound(len) => {
+				if instrs.len() < len {
+					return false;
+				}
+			}
+			BlockLength::Range(range) => {
+				if !range.contains(&instrs.len()) {
+					return false;
+				}
+			}
+		}
 
 		self.0.should_run(instrs)
 	}

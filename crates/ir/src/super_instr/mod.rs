@@ -22,6 +22,9 @@ pub enum SuperInstruction {
 		offset: isize,
 		value: NonZeroU8,
 	},
+	ClearUntilZero {
+		offset: isize,
+	},
 }
 
 impl SuperInstruction {
@@ -48,6 +51,11 @@ impl SuperInstruction {
 	#[must_use]
 	pub const fn find_and_set_zero(value: NonZeroU8, offset: isize) -> Self {
 		Self::FindAndSetZero { offset, value }
+	}
+
+	#[must_use]
+	pub const fn clear_until_zero(offset: isize) -> Self {
+		Self::ClearUntilZero { offset }
 	}
 }
 
@@ -84,7 +92,7 @@ impl IsZeroingCell for SuperInstruction {
 			Self::ScaleAnd {
 				action: ScaleAnd::Move,
 				..
-			}
+			} | Self::ClearUntilZero { .. }
 		)
 	}
 }

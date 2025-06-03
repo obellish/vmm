@@ -1,4 +1,4 @@
-mod loops;
+mod block;
 mod peephole;
 
-pub use self::{loops::*, peephole::*};
+pub use self::{block::*, peephole::*};

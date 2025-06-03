@@ -1,5 +1,6 @@
 mod clear_cell;
 mod clear_loop;
+mod clear_until_zero;
 mod collapse_relative_instr;
 mod collapse_stacked_instr;
 mod combine_move_change;
@@ -27,9 +28,9 @@ mod unroll_super_scale;
 mod zeroed_cell_inc;
 
 pub use self::{
-	clear_cell::*, clear_loop::*, collapse_relative_instr::*, collapse_stacked_instr::*,
-	combine_move_change::*, constant_sub::*, dupe_and_scale::*, dupe_val::*,
-	fetch_and_scale_val::*, fetch_val::*, find_zero::*, if_nz::*, remove_dead_code::*,
+	clear_cell::*, clear_loop::*, clear_until_zero::*, collapse_relative_instr::*,
+	collapse_stacked_instr::*, combine_move_change::*, constant_sub::*, dupe_and_scale::*,
+	dupe_val::*, fetch_and_scale_val::*, fetch_val::*, find_zero::*, if_nz::*, remove_dead_code::*,
 	reorder_instr::*, scale_and_move_val::*, scale_and_take_val::*, scale_val::*, set_scale::*,
 	set_zero::*, simd::*, sub_cell::*, take_to_fetch::*, take_val::*, unroll_constant_loops::*,
 	unroll_increment_loops::*, unroll_super_scale::*, zeroed_cell_inc::*,

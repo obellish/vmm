@@ -10,6 +10,10 @@ impl LoopPass for RemoveInfiniteLoopsPass {
 		Some(Change::remove())
 	}
 
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(1, None)
+	}
+
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

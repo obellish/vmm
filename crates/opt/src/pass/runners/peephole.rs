@@ -56,7 +56,7 @@ where
 						"pass {:?}::should_run was true but didn't make changes",
 						self.0
 					);
-					tracing::trace!("{window:?}");
+					tracing::debug!("{window:?}");
 				}
 			}
 		}
