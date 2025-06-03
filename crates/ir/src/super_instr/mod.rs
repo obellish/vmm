@@ -22,7 +22,8 @@ pub enum SuperInstruction {
 		offset: isize,
 		value: NonZeroU8,
 	},
-	ClearUntilZero {
+	SetUntilZero {
+		value: Option<NonZeroU8>,
 		offset: isize,
 	},
 }
@@ -54,8 +55,11 @@ impl SuperInstruction {
 	}
 
 	#[must_use]
-	pub const fn clear_until_zero(offset: isize) -> Self {
-		Self::ClearUntilZero { offset }
+	pub const fn set_until_zero(value: u8, offset: isize) -> Self {
+		Self::SetUntilZero {
+			value: NonZeroU8::new(value),
+			offset,
+		}
 	}
 }
 
@@ -92,7 +96,7 @@ impl IsZeroingCell for SuperInstruction {
 			Self::ScaleAnd {
 				action: ScaleAnd::Move,
 				..
-			} | Self::ClearUntilZero { .. }
+			} | Self::SetUntilZero { .. }
 		)
 	}
 }

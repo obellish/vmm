@@ -1,20 +1,24 @@
 use vmm_ir::{Instruction, Offset};
+use vmm_utils::GetOrZero as _;
 
 use crate::{Change, LoopPass};
 
 #[derive(Debug, Default)]
-pub struct OptimizeClearUntilZeroPass;
+pub struct OptimizeSetUntilZeroPass;
 
-impl LoopPass for OptimizeClearUntilZeroPass {
+impl LoopPass for OptimizeSetUntilZeroPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
 				Instruction::SetVal {
-					value: None,
+					value,
 					offset: None,
 				},
 				Instruction::MovePtr(Offset::Relative(x)),
-			] => Some(Change::replace(Instruction::clear_until_zero(*x))),
+			] => Some(Change::replace(Instruction::set_until_zero(
+				value.get_or_zero(),
+				*x,
+			))),
 			_ => None,
 		}
 	}
@@ -27,10 +31,7 @@ impl LoopPass for OptimizeClearUntilZeroPass {
 		matches!(
 			loop_values,
 			[
-				Instruction::SetVal {
-					value: None,
-					offset: None
-				},
+				Instruction::SetVal { offset: None, .. },
 				Instruction::MovePtr(Offset::Relative(..))
 			]
 		)

@@ -255,8 +255,8 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn clear_until_zero(offset: isize) -> Self {
-		Self::Super(SuperInstruction::clear_until_zero(offset))
+	pub const fn set_until_zero(value: u8, offset: isize) -> Self {
+		Self::Super(SuperInstruction::set_until_zero(value, offset))
 	}
 
 	#[must_use]
