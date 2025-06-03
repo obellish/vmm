@@ -96,24 +96,6 @@ impl LoopPass for OptimizeClearLoopPass {
 					value: None,
 					offset: None
 				}
-			] | [
-				Instruction::SetVal {
-					offset: Some(_),
-					..
-				},
-				Instruction::IncVal {
-					offset: None,
-					value: -1
-				}
-			] | [
-				Instruction::IncVal {
-					value: -1,
-					offset: None
-				},
-				Instruction::SetVal {
-					offset: Some(_),
-					..
-				}
 			]
 		)
 	}
