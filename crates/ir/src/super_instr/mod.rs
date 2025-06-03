@@ -20,7 +20,7 @@ pub enum SuperInstruction {
 	},
 	FindAndSetZero {
 		offset: isize,
-		value: Option<NonZeroU8>,
+		value: NonZeroU8,
 	},
 }
 
@@ -46,11 +46,8 @@ impl SuperInstruction {
 	}
 
 	#[must_use]
-	pub const fn find_and_set_zero(value: u8, offset: isize) -> Self {
-		Self::FindAndSetZero {
-			offset,
-			value: NonZeroU8::new(value),
-		}
+	pub const fn find_and_set_zero(value: NonZeroU8, offset: isize) -> Self {
+		Self::FindAndSetZero { offset, value }
 	}
 }
 

@@ -120,7 +120,7 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn find_and_set_zero(v: u8, offset: isize) -> Self {
+	pub const fn find_and_set_zero(v: NonZeroU8, offset: isize) -> Self {
 		Self::Super(SuperInstruction::find_and_set_zero(v, offset))
 	}
 

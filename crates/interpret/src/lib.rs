@@ -346,16 +346,12 @@ where
 	}
 
 	#[inline]
-	fn find_and_set_zero(
-		&mut self,
-		offset: isize,
-		value: Option<NonZeroU8>,
-	) -> Result<(), RuntimeError> {
+	fn find_and_set_zero(&mut self, offset: isize, value: NonZeroU8) -> Result<(), RuntimeError> {
 		while !matches!(self.cell().0, 0) {
 			*self.ptr_mut() += offset;
 		}
 
-		self.cell_mut().0 = value.get_or_zero();
+		self.cell_mut().0 = value.get();
 
 		Ok(())
 	}
