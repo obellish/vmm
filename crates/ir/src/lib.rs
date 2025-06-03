@@ -12,6 +12,7 @@ use alloc::{string::ToString, vec::Vec};
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
+	ops::Neg,
 };
 
 use serde::{Deserialize, Serialize};
@@ -524,6 +525,16 @@ impl Offset {
 			Self::Absolute(a) => Self::Absolute(a),
 		}
 	}
+
+	#[must_use]
+	pub const fn is_relative(self) -> bool {
+		matches!(self, Self::Relative(_))
+	}
+
+	#[must_use]
+	pub const fn is_absolute(self) -> bool {
+		matches!(self, Self::Absolute(_))
+	}
 }
 
 impl Display for Offset {
@@ -577,5 +588,16 @@ impl From<usize> for Offset {
 impl From<&usize> for Offset {
 	fn from(value: &usize) -> Self {
 		(*value).into()
+	}
+}
+
+impl Neg for Offset {
+	type Output = Self;
+
+	fn neg(self) -> Self::Output {
+		match self {
+			Self::Relative(x) => Self::Relative(-x),
+			Self::Absolute(x) => Self::Absolute(x),
+		}
 	}
 }
