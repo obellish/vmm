@@ -16,7 +16,7 @@ impl PeepholePass for SortIncInstrPass {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		window.iter().all(Instruction::is_inc_val) && {
+		window.iter().all(Instruction::is_change_val) && {
 			let cloned = window.to_owned();
 
 			cloned.into_iter().sorted_by(sorter).collect_vec() != window

@@ -294,11 +294,10 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn is_inc_val(&self) -> bool {
+	pub const fn is_change_val(&self) -> bool {
 		matches!(
 			self,
-			Self::IncVal { value, .. } | Self::Simd(SimdInstruction::IncVals { value, .. })
-			if *value > 0
+			Self::IncVal { .. } | Self::Simd(SimdInstruction::IncVals { .. })
 		)
 	}
 
