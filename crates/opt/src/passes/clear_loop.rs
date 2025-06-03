@@ -51,17 +51,17 @@ impl LoopPass for OptimizeClearLoopPass {
 				Instruction::clear_val(),
 			])),
 			[
-				Instruction::SetVal {
-					value: Some(value),
-					offset: Some(offset),
-				},
 				Instruction::IncVal {
 					value: -1,
 					offset: None,
 				},
+				Instruction::SetVal {
+					value: None,
+					offset: Some(offset),
+				},
 			] => Some(Change::swap([
-				Instruction::set_val_at(value.get(), *offset),
 				Instruction::clear_val(),
+				Instruction::clear_val_at(*offset),
 			])),
 			_ => None,
 		}
@@ -94,6 +94,24 @@ impl LoopPass for OptimizeClearLoopPass {
 				Instruction::MovePtr(_),
 				Instruction::SetVal {
 					value: None,
+					offset: None
+				}
+			] | [
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
+				Instruction::SetVal {
+					offset: Some(..),
+					value: None,
+				}
+			] | [
+				Instruction::SetVal {
+					offset: Some(..),
+					value: None,
+				},
+				Instruction::IncVal {
+					value: -1,
 					offset: None
 				}
 			]

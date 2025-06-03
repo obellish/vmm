@@ -41,7 +41,9 @@ pub trait PeepholePass {
 pub trait LoopPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change>;
 
-	fn size_hint(&self) -> (usize, Option<usize>);
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(0, None)
+	}
 
 	#[allow(unused)]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {

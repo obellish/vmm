@@ -117,7 +117,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_pass(&mut pass, progress);
 	}
 
-	fn run_default_loop_pass<P>(&mut self, progress: &mut bool)
+	fn run_default_block_pass<P>(&mut self, progress: &mut bool)
 	where
 		P: Debug + Default + LoopPass,
 	{
@@ -143,22 +143,22 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<CollapseStackedInstrPass>(progress);
 		self.run_default_peephole_pass::<CollapseRelativeInstrPass>(progress);
 
-		self.run_default_loop_pass::<OptimizeClearCellPass>(progress);
-		self.run_default_loop_pass::<OptimizeClearLoopPass>(progress);
-		self.run_default_loop_pass::<OptimizeFindZeroPass>(progress);
+		self.run_default_block_pass::<OptimizeClearCellPass>(progress);
+		self.run_default_dynamic_loop_pass::<OptimizeClearLoopPass>(progress);
+		self.run_default_block_pass::<OptimizeFindZeroPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSetZeroPass>(progress);
-		self.run_default_loop_pass::<OptimizeScaleAndMoveValPass>(progress);
+		self.run_default_block_pass::<OptimizeScaleAndMoveValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeFetchAndScaleValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeScaleValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeZeroedCellIncValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeScaleAndTakeValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSetScaleValPass>(progress);
-		self.run_default_loop_pass::<OptimizeDuplicateValPass>(progress);
-		self.run_default_loop_pass::<OptimizeDupeAndScaleValPass>(progress);
+		self.run_default_block_pass::<OptimizeDuplicateValPass>(progress);
+		self.run_default_block_pass::<OptimizeDupeAndScaleValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeTakeValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeTakeFetchValPass>(progress);
 		self.run_default_peephole_pass::<SortIncInstrPass>(progress);
-		self.run_default_loop_pass::<OptimizeIfNzPass>(progress);
+		self.run_default_block_pass::<OptimizeIfNzPass>(progress);
 		self.run_default_dynamic_loop_pass::<OptimizeSubCellPass>(progress);
 		self.run_default_peephole_pass::<OptimizeConstantSubPass>(progress);
 		self.run_default_peephole_pass::<OptimizeFetchValPass>(progress);
