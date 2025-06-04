@@ -17,8 +17,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use self::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingMulAssign,
-	WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingShr, WrappingShrAssign,
-	WrappingSub, WrappingSubAssign,
+	WrappingNeg, WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingShr,
+	WrappingShrAssign, WrappingSub, WrappingSubAssign,
 };
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -202,11 +202,11 @@ where
 	}
 }
 
-impl<T: Neg> Neg for Wrapping<T> {
+impl<T: WrappingNeg> Neg for Wrapping<T> {
 	type Output = Wrapping<T::Output>;
 
 	fn neg(self) -> Self::Output {
-		Wrapping(self.0.neg())
+		Wrapping(self.0.wrapping_neg())
 	}
 }
 
@@ -388,6 +388,14 @@ where
 {
 	fn wrapping_mul_assign(&mut self, rhs: Rhs) {
 		self.0.wrapping_mul_assign(rhs);
+	}
+}
+
+impl<T: WrappingNeg> WrappingNeg for Wrapping<T> {
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_neg(self) -> Self::Output {
+		Wrapping(self.0.wrapping_neg())
 	}
 }
 
