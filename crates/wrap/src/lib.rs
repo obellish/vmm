@@ -26,6 +26,7 @@ use self::ops::{
 pub struct Wrapping<T>(pub T);
 
 impl<T> Wrapping<T> {
+	#[inline]
 	pub fn add<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingAdd<Rhs>,
@@ -33,6 +34,7 @@ impl<T> Wrapping<T> {
 		(Self(lhs) + rhs).0
 	}
 
+	#[inline]
 	pub fn sub<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingSub<Rhs>,
@@ -40,6 +42,7 @@ impl<T> Wrapping<T> {
 		(Self(lhs) - rhs).0
 	}
 
+	#[inline]
 	pub fn mul<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingMul<Rhs>,
@@ -47,6 +50,7 @@ impl<T> Wrapping<T> {
 		(Self(lhs) * rhs).0
 	}
 
+	#[inline]
 	pub fn div<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingDiv<Rhs>,
@@ -54,6 +58,7 @@ impl<T> Wrapping<T> {
 		(Self(lhs) / rhs).0
 	}
 
+	#[inline]
 	pub fn rem<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingRem<Rhs>,
@@ -61,6 +66,7 @@ impl<T> Wrapping<T> {
 		(Self(lhs) % rhs).0
 	}
 
+	#[inline]
 	pub fn shl<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingShl<Rhs>,
@@ -68,11 +74,20 @@ impl<T> Wrapping<T> {
 		(Self(lhs) << rhs).0
 	}
 
+	#[inline]
 	pub fn shr<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingShr<Rhs>,
 	{
 		(Self(lhs) >> rhs).0
+	}
+
+	#[inline]
+	pub fn neg(value: T) -> T::Output
+	where
+		T: WrappingNeg,
+	{
+		(-Self(value)).0
 	}
 }
 
