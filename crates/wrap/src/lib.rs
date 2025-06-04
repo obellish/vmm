@@ -7,7 +7,7 @@ pub mod ops;
 use core::{
 	cmp::Ordering,
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
-	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Sub, SubAssign},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -154,6 +154,22 @@ where
 {
 	fn mul_assign(&mut self, rhs: Rhs) {
 		self.0.wrapping_mul_assign(rhs);
+	}
+}
+
+impl<T: Neg> Neg for Wrapping<T> {
+	type Output = Wrapping<T::Output>;
+
+	fn neg(self) -> Self::Output {
+		Wrapping(self.0.neg())
+	}
+}
+
+impl<T: Not> Not for Wrapping<T> {
+	type Output = Wrapping<T::Output>;
+
+	fn not(self) -> Self::Output {
+		Wrapping(self.0.not())
 	}
 }
 
