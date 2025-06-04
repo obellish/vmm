@@ -7,14 +7,17 @@ pub mod ops;
 use core::{
 	cmp::Ordering,
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
-	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Sub, SubAssign},
+	ops::{
+		Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign,
+		Sub, SubAssign,
+	},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use self::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingMulAssign,
-	WrappingSub, WrappingSubAssign,
+	WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingSub, WrappingSubAssign,
 };
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -191,12 +194,52 @@ impl<T: PartialOrd> PartialOrd<T> for Wrapping<T> {
 	}
 }
 
+impl<T, Rhs> Rem<Rhs> for Wrapping<T>
+where
+	T: WrappingRem<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn rem(self, rhs: Rhs) -> Self::Output {
+		Wrapping(self.0.wrapping_rem(rhs))
+	}
+}
+
+impl<T, Rhs> RemAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingRemAssign<Rhs>,
+{
+	fn rem_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_rem_assign(rhs);
+	}
+}
+
 impl<T: Serialize> Serialize for Wrapping<T> {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: Serializer,
 	{
 		self.0.serialize(serializer)
+	}
+}
+
+impl<T, Rhs> Shl<Rhs> for Wrapping<T>
+where
+	T: WrappingShl<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn shl(self, rhs: Rhs) -> Self::Output {
+		Wrapping(self.0.wrapping_shl(rhs))
+	}
+}
+
+impl<T, Rhs> ShlAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingShlAssign<Rhs>,
+{
+	fn shl_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_shl_assign(rhs);
 	}
 }
 
@@ -243,5 +286,105 @@ where
 {
 	fn wrapping_add_assign(&mut self, rhs: Rhs) {
 		self.0.wrapping_add_assign(rhs);
+	}
+}
+
+impl<T, Rhs> WrappingDiv<Rhs> for Wrapping<T>
+where
+	T: WrappingDiv<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_div(self, rhs: Rhs) -> Self::Output {
+		self / rhs
+	}
+}
+
+impl<T, Rhs> WrappingDivAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingDivAssign<Rhs>,
+{
+	fn wrapping_div_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_div_assign(rhs);
+	}
+}
+
+impl<T, Rhs> WrappingMul<Rhs> for Wrapping<T>
+where
+	T: WrappingMul<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_mul(self, rhs: Rhs) -> Self::Output {
+		self * rhs
+	}
+}
+
+impl<T, Rhs> WrappingMulAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingMulAssign<Rhs>,
+{
+	fn wrapping_mul_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_mul_assign(rhs);
+	}
+}
+
+impl<T, Rhs> WrappingRem<Rhs> for Wrapping<T>
+where
+	T: WrappingRem<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_rem(self, rhs: Rhs) -> Self::Output {
+		self % rhs
+	}
+}
+
+impl<T, Rhs> WrappingRemAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingRemAssign<Rhs>,
+{
+	fn wrapping_rem_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_rem_assign(rhs);
+	}
+}
+
+impl<T, Rhs> WrappingShl<Rhs> for Wrapping<T>
+where
+	T: WrappingShl<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_shl(self, rhs: Rhs) -> Self::Output {
+		self << rhs
+	}
+}
+
+impl<T, Rhs> WrappingShlAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingShlAssign<Rhs>,
+{
+	fn wrapping_shl_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_shl_assign(rhs);
+	}
+}
+
+impl<T, Rhs> WrappingSub<Rhs> for Wrapping<T>
+where
+	T: WrappingSub<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_sub(self, rhs: Rhs) -> Self::Output {
+		self - rhs
+	}
+}
+
+impl<T, Rhs> WrappingSubAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingSubAssign<Rhs>,
+{
+	fn wrapping_sub_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_sub_assign(rhs);
 	}
 }
