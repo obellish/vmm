@@ -89,7 +89,7 @@ impl From<&usize> for Offset {
 impl WrappingNeg for Offset {
 	type Output = Self;
 
-    #[inline]
+	#[inline]
 	fn wrapping_neg(self) -> Self::Output {
 		match self {
 			Self::Absolute(a) => Self::Absolute(a.wrapping_neg()),
