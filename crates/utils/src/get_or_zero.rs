@@ -14,6 +14,13 @@ macro_rules! impl_get_or_zero {
                     }
                 }
             }
+
+            impl $crate::GetOrZero<$ty> for ::core::num::NonZero<$ty> {
+                #[inline]
+                fn get_or_zero(self) -> $ty {
+                    ::core::num::NonZero::get(self)
+                }
+            }
         )*
     };
 }

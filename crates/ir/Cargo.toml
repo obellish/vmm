@@ -13,3 +13,4 @@ serde = { workspace = true, features = [
     "derive"
 ], default-features = false }
 vmm_utils = { workspace = true, features = ["get_or_zero"] }
+vmm_wrap.workspace = true
