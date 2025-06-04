@@ -9,7 +9,7 @@ use core::{
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
 	ops::{
 		Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign,
-		Sub, SubAssign,
+		Shr, ShrAssign, Sub, SubAssign,
 	},
 };
 
@@ -17,7 +17,8 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use self::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingMulAssign,
-	WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingSub, WrappingSubAssign,
+	WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingShr, WrappingShrAssign,
+	WrappingSub, WrappingSubAssign,
 };
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -52,6 +53,27 @@ impl<T> Wrapping<T> {
 	{
 		(Self(lhs) / rhs).0
 	}
+
+	pub fn rem<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	where
+		T: WrappingRem<Rhs>,
+	{
+		(Self(lhs) % rhs).0
+	}
+
+	pub fn shl<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	where
+		T: WrappingShl<Rhs>,
+	{
+		(Self(lhs) << rhs).0
+	}
+
+	pub fn shr<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	where
+		T: WrappingShr<Rhs>,
+	{
+		(Self(lhs) >> rhs).0
+	}
 }
 
 impl<T, Rhs> Add<Rhs> for Wrapping<T>
@@ -81,6 +103,20 @@ where
 {
 	fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
 		T::arbitrary(u).map(Self)
+	}
+
+	fn arbitrary_take_rest(u: arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
+		T::arbitrary_take_rest(u).map(Self)
+	}
+
+	fn size_hint(depth: usize) -> (usize, Option<usize>) {
+		T::size_hint(depth)
+	}
+
+	fn try_size_hint(
+		depth: usize,
+	) -> arbitrary::Result<(usize, Option<usize>), arbitrary::MaxRecursionReached> {
+		T::try_size_hint(depth)
 	}
 }
 
@@ -131,6 +167,12 @@ where
 {
 	fn div_assign(&mut self, rhs: Rhs) {
 		self.0.wrapping_div_assign(rhs);
+	}
+}
+
+impl<T> From<T> for Wrapping<T> {
+	fn from(value: T) -> Self {
+		Self(value)
 	}
 }
 
@@ -240,6 +282,26 @@ where
 {
 	fn shl_assign(&mut self, rhs: Rhs) {
 		self.0.wrapping_shl_assign(rhs);
+	}
+}
+
+impl<T, Rhs> Shr<Rhs> for Wrapping<T>
+where
+	T: WrappingShr<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn shr(self, rhs: Rhs) -> Self::Output {
+		Wrapping(self.0.wrapping_shr(rhs))
+	}
+}
+
+impl<T, Rhs> ShrAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingShrAssign<Rhs>,
+{
+	fn shr_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_shr_assign(rhs);
 	}
 }
 
@@ -366,6 +428,26 @@ where
 {
 	fn wrapping_shl_assign(&mut self, rhs: Rhs) {
 		self.0.wrapping_shl_assign(rhs);
+	}
+}
+
+impl<T, Rhs> WrappingShr<Rhs> for Wrapping<T>
+where
+	T: WrappingShr<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn wrapping_shr(self, rhs: Rhs) -> Self::Output {
+		self >> rhs
+	}
+}
+
+impl<T, Rhs> WrappingShrAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingShrAssign<Rhs>,
+{
+	fn wrapping_shr_assign(&mut self, rhs: Rhs) {
+		self.0.wrapping_shr_assign(rhs);
 	}
 }
 
