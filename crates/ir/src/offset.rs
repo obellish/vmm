@@ -1,7 +1,7 @@
 use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
 
 use serde::{Deserialize, Serialize};
-use vmm_wrap::ops::WrappingNeg;
+use vmm_wrap::ops::{WrappingNeg, *};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Offset {
@@ -83,6 +83,58 @@ impl From<usize> for Offset {
 impl From<&usize> for Offset {
 	fn from(value: &usize) -> Self {
 		(*value).into()
+	}
+}
+
+impl WrappingAdd for Offset {
+	type Output = Self;
+
+	fn wrapping_add(self, rhs: Self) -> Self::Output {
+		match (self, rhs) {
+			(Self::Relative(l), Self::Relative(r)) => Self::Relative(l.wrapping_add(r)),
+			(Self::Absolute(l), Self::Absolute(r)) => Self::Absolute(l.wrapping_add(r)),
+			(Self::Absolute(l), Self::Relative(r)) => {
+				Self::Absolute(WrappingAdd::wrapping_add(l, r))
+			}
+			(Self::Relative(l), Self::Absolute(r)) => {
+				Self::Relative(WrappingAdd::wrapping_add(l, r))
+			}
+		}
+	}
+}
+
+impl WrappingAdd<Offset> for &Offset {
+	type Output = <Offset as WrappingAdd>::Output;
+
+	fn wrapping_add(self, rhs: Offset) -> Self::Output {
+		(*self).wrapping_add(rhs)
+	}
+}
+
+impl WrappingAdd<&Self> for Offset {
+	type Output = Self;
+
+	fn wrapping_add(self, rhs: &Self) -> Self::Output {
+		self.wrapping_add(*rhs)
+	}
+}
+
+impl WrappingAdd for &Offset {
+	type Output = <Offset as WrappingAdd>::Output;
+
+	fn wrapping_add(self, rhs: Self) -> Self::Output {
+		(*self).wrapping_add(*rhs)
+	}
+}
+
+impl WrappingAdd<isize> for Offset {
+	type Output = Self;
+
+	fn wrapping_add(self, rhs: isize) -> Self::Output {
+		match self {
+			Self::Absolute(a) => Self::Absolute(WrappingAdd::wrapping_add(a, rhs)),
+			Self::Relative(r) => Self::Relative(WrappingAdd::wrapping_add(r, rhs)),
+		}
 	}
 }
 
