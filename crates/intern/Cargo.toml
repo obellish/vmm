@@ -1,0 +1,11 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_intern"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+hashbrown = "0.15"
