@@ -1,5 +1,4 @@
-use itertools::Itertools as _;
-use vmm_ir::{Instruction, SimdInstruction};
+use vmm_ir::Instruction;
 use vmm_utils::GetOrZero as _;
 use vmm_wrap::ops::WrappingAdd;
 
@@ -131,35 +130,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: Some(y),
 				},
 			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
-			[
-				Instruction::Simd(SimdInstruction::IncVals {
-					value: a,
-					offsets: x,
-				}),
-				Instruction::Simd(SimdInstruction::IncVals {
-					value: b,
-					offsets: y,
-				}),
-			] if *x == *y => Some(Change::replace(Instruction::simd_inc_vals(
-				WrappingAdd::wrapping_add(a, b),
-				x.clone(),
-			))),
-			[
-				Instruction::Simd(SimdInstruction::IncVals {
-					value: a,
-					offsets: x,
-				}),
-				Instruction::Simd(SimdInstruction::IncVals {
-					value: b,
-					offsets: y,
-				}),
-			] if *a == *b && x.iter().all(|value| !y.contains(value)) => {
-				Some(Change::replace(Instruction::simd_inc_vals(*a, {
-					let mut v = x.to_owned();
-					v.extend_from_slice(y);
-					v.into_iter().sorted().collect()
-				})))
-			}
+
 			_ => None,
 		}
 	}
@@ -209,20 +180,6 @@ impl PeepholePass for CollapseStackedInstrPass {
 				}
 			]
 			if *x == *y
-		) || matches!(
-			window,
-			[
-				Instruction::Simd(SimdInstruction::IncVals { offsets: a, .. }),
-				Instruction::Simd(SimdInstruction::IncVals { offsets: b, .. })
-			]
-			if *a == *b
-		) || matches!(
-			window,
-			[
-				Instruction::Simd(SimdInstruction::IncVals { value: a, offsets: x }),
-				Instruction::Simd(SimdInstruction::IncVals { value: b, offsets: y })
-			]
-			if *a == *b && x.iter().all(|value| !y.contains(value))
 		)
 	}
 }

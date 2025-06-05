@@ -5,7 +5,8 @@ extern crate alloc;
 
 mod block_instr;
 mod offset;
-mod simd_instr;
+#[cfg(feature = "nightly")]
+mod span_instr;
 mod super_instr;
 mod utils;
 
@@ -18,7 +19,9 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-pub use self::{block_instr::*, offset::*, simd_instr::*, super_instr::*, utils::*};
+#[cfg(feature = "nightly")]
+pub use self::span_instr::*;
+pub use self::{block_instr::*, offset::*, super_instr::*, utils::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -64,8 +67,8 @@ pub enum Instruction {
 	Block(BlockInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
-	/// A SIMD (Single instruction, multiple data) instruction
-	Simd(SimdInstruction),
+	#[cfg(feature = "nightly")]
+	Span(SpanInstruction),
 }
 
 impl Instruction {
@@ -108,16 +111,6 @@ impl Instruction {
 			value: v,
 			offset: Some(offset.into()),
 		}
-	}
-
-	#[must_use]
-	pub const fn simd_inc_vals(v: i8, offsets: Vec<Option<Offset>>) -> Self {
-		Self::Simd(SimdInstruction::inc_vals(v, offsets))
-	}
-
-	#[must_use]
-	pub const fn simd_set_vals(v: u8, offsets: Vec<Option<Offset>>) -> Self {
-		Self::Simd(SimdInstruction::set_vals(v, offsets))
 	}
 
 	#[must_use]
@@ -290,10 +283,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_change_val(&self) -> bool {
-		matches!(
-			self,
-			Self::IncVal { .. } | Self::Simd(SimdInstruction::IncVals { .. })
-		)
+		matches!(self, Self::IncVal { .. })
 	}
 
 	#[must_use]
@@ -439,7 +429,6 @@ impl Display for Instruction {
 			Self::Start => f.write_str("start")?,
 			Self::Super(s) => Display::fmt(&s, f)?,
 			Self::Block(l) => Display::fmt(&l, f)?,
-			Self::Simd(s) => Display::fmt(&s, f)?,
 			_ => f.write_char('*')?,
 		}
 
@@ -450,12 +439,6 @@ impl Display for Instruction {
 impl From<BlockInstruction> for Instruction {
 	fn from(value: BlockInstruction) -> Self {
 		Self::Block(value)
-	}
-}
-
-impl From<SimdInstruction> for Instruction {
-	fn from(value: SimdInstruction) -> Self {
-		Self::Simd(value)
 	}
 }
 
@@ -471,7 +454,6 @@ impl IsZeroingCell for Instruction {
 		match self {
 			Self::Block(l) => l.is_zeroing_cell(),
 			Self::Super(s) => s.is_zeroing_cell(),
-			Self::Simd(s) => s.is_zeroing_cell(),
 			Self::SetVal {
 				value: None,
 				offset: None,
@@ -491,7 +473,6 @@ impl PtrMovement for Instruction {
 		match self {
 			Self::Super(s) => s.ptr_movement(),
 			Self::Block(l) => l.ptr_movement(),
-			Self::Simd(s) => s.ptr_movement(),
 			Self::ScaleVal { .. }
 			| Self::SetVal { .. }
 			| Self::IncVal { .. }

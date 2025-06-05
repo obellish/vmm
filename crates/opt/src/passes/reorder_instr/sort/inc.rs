@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use itertools::Itertools as _;
-use vmm_ir::{Instruction, SimdInstruction};
+use vmm_ir::Instruction;
 
 use crate::{Change, PeepholePass};
 
@@ -32,8 +32,7 @@ fn sorter(a: &Instruction, b: &Instruction) -> Ordering {
 
 const fn get_inc_value(i: &Instruction) -> Option<i8> {
 	match i {
-		Instruction::Simd(SimdInstruction::IncVals { value, .. })
-		| Instruction::IncVal { value, .. } => Some(*value),
+		Instruction::IncVal { value, .. } => Some(*value),
 		_ => None,
 	}
 }

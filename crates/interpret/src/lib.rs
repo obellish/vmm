@@ -10,7 +10,7 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SimdInstruction, SuperInstruction};
+use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
 use vmm_utils::GetOrZero as _;
@@ -322,32 +322,6 @@ where
 	}
 
 	#[inline]
-	fn inc_vals(&mut self, value: i8, offsets: &[Option<Offset>]) -> Result<(), RuntimeError> {
-		for offset in offsets {
-			let idx = self.calculate_index(*offset);
-
-			self.tape_mut()[idx] += value;
-		}
-
-		Ok(())
-	}
-
-	#[inline]
-	fn set_vals(
-		&mut self,
-		v: Option<NonZeroU8>,
-		offsets: &[Option<Offset>],
-	) -> Result<(), RuntimeError> {
-		for offset in offsets {
-			let idx = self.calculate_index(*offset);
-
-			self.tape_mut()[idx].0 = v.get_or_zero();
-		}
-
-		Ok(())
-	}
-
-	#[inline]
 	fn dupe_val(&mut self, offsets: &[Offset]) -> Result<(), RuntimeError> {
 		let value = mem::take(self.cell_mut()).0;
 
@@ -388,7 +362,6 @@ where
 			Instruction::Block(l) => self.execute_loop_instruction(l)?,
 			Instruction::ScaleVal { factor } => self.scale_val(*factor)?,
 			Instruction::Super(s) => self.execute_super_instruction(*s)?,
-			Instruction::Simd(s) => self.execute_simd_instruction(s)?,
 			Instruction::FetchVal(offset) => self.fetch_val(*offset)?,
 			Instruction::MoveVal(offset) => self.move_val(*offset)?,
 			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
@@ -442,16 +415,6 @@ where
 				self.set_until_zero(value, offset)?;
 			}
 			i => return Err(RuntimeError::Unimplemented((i).into())),
-		}
-
-		Ok(())
-	}
-
-	fn execute_simd_instruction(&mut self, instr: &SimdInstruction) -> Result<(), RuntimeError> {
-		match instr {
-			SimdInstruction::IncVals { value, offsets } => self.inc_vals(*value, offsets)?,
-			SimdInstruction::SetVals { value, offsets } => self.set_vals(*value, offsets)?,
-			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
 
 		Ok(())

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, SimdInstruction};
+use vmm_ir::Instruction;
 
 use crate::{Change, LoopPass};
 
@@ -8,31 +8,56 @@ pub struct OptimizeSubCellPass;
 impl LoopPass for OptimizeSubCellPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
-			[Instruction::Simd(SimdInstruction::IncVals { value: -1, offsets })]
-				if matches!(offsets.len(), 2) && offsets.contains(&None) =>
-			{
-				let ((Some(offset), None) | (None, Some(offset))) = (offsets[0], offsets[1]) else {
-					return None;
-				};
-
-				Some(Change::replace(Instruction::sub_cell(offset)))
-			}
+			[
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: Some(offset),
+				},
+			]
+			| [
+				Instruction::IncVal {
+					value: -1,
+					offset: Some(offset),
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None,
+				},
+			] => Some(Change::replace(Instruction::sub_cell(offset))),
 			_ => None,
 		}
 	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
-		(1, Some(1))
+		(2, Some(2))
 	}
 
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,
-			[Instruction::Simd(SimdInstruction::IncVals {
-				value: -1,
-				offsets
-			})]
-			if matches!(offsets.len(), 2) && offsets.contains(&None)
+			[
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: Some(..)
+				}
+			] | [
+				Instruction::IncVal {
+					value: -1,
+					offset: Some(..)
+				},
+				Instruction::IncVal {
+					value: -1,
+					offset: None
+				}
+			]
 		)
 	}
 }
