@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
+#![cfg_attr(feature = "nightly", feature(step_trait))]
 #![no_std]
 
 extern crate alloc;
