@@ -1,9 +1,11 @@
 use std::{
 	alloc::{Layout, alloc, dealloc},
 	cell::UnsafeCell,
+	fmt::{Formatter, Pointer, Result as FmtResult},
 	mem,
+	ops::Deref,
 	ptr::{self, NonNull},
-	sync::Weak,
+	sync::{Arc, Weak},
 };
 
 use parking_lot::lock_api::RawMutex;
@@ -12,6 +14,108 @@ mod private;
 
 pub struct Interned<I: Interner> {
 	inner: NonNull<RefCounted<I>>,
+}
+
+impl<I: Interner> Interned<I> {
+	pub(crate) fn ref_count(&self) -> u32 {
+		self.lock().refs()
+	}
+
+	fn lock(&self) -> Guard<'_, I> {
+		unsafe { self.inner.as_ref().state.lock() }
+	}
+
+	pub(crate) fn from_box(value: Box<I::T>) -> Self {
+		Self {
+			inner: RefCounted::from_box(value),
+		}
+	}
+
+	pub(crate) fn from_sized(value: I::T) -> Self
+	where
+		I::T: Sized,
+	{
+		Self {
+			inner: RefCounted::from_sized(value),
+		}
+	}
+
+	#[allow(clippy::needless_pass_by_ref_mut)]
+	pub(crate) fn make_hot(&mut self, set: &Arc<I>) {
+		let mut state = self.lock();
+		*state.cleanup() = Some(Arc::downgrade(set));
+	}
+}
+
+const MAX_REFCOUNT: u32 = u32::MAX - 2;
+
+impl<I: Interner> Clone for Interned<I> {
+	fn clone(&self) -> Self {
+		let refs = {
+			let mut state = self.lock();
+			*state.refs_mut() += 1;
+			state.refs()
+		};
+
+		assert!((refs <= MAX_REFCOUNT), "too many clones");
+
+		Self { inner: self.inner }
+	}
+}
+
+impl<I: Interner> Deref for Interned<I> {
+	type Target = I::T;
+
+	fn deref(&self) -> &Self::Target {
+		&unsafe { self.inner.as_ref() }.value
+	}
+}
+
+impl<I: Interner> Drop for Interned<I> {
+	fn drop(&mut self) {
+		let mut state = self.lock();
+
+		*state.refs_mut() -= 1;
+
+		match state.refs() {
+			0 => {
+				drop(state);
+				_ = unsafe { Box::from_raw(self.inner.as_ptr()) };
+			}
+			1 => {
+				if let Some(cleanup) = state.cleanup().take() {
+					if let Some(strong) = cleanup.upgrade() {
+						drop(state);
+						loop {
+							let (removed, _) = strong.remove(self);
+							if removed {
+								break;
+							}
+							let mut state = self.lock();
+							if state.refs() > 1 {
+								*state.cleanup() = Some(cleanup);
+								break;
+							}
+							drop(state);
+						}
+					}
+				}
+			}
+			_ => {}
+		}
+	}
+}
+
+impl<I: Interner> PartialEq for Interned<I> {
+	fn eq(&self, other: &Self) -> bool {
+		ptr::eq(self.inner.as_ptr(), other.inner.as_ptr())
+	}
+}
+
+impl<I: Interner> Pointer for Interned<I> {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		Pointer::fmt(&(&raw const **self), f)
+	}
 }
 
 unsafe impl<I: Interner> Send for Interned<I> where I::T: Send + Sync + 'static {}
@@ -59,7 +163,7 @@ impl<I: Interner> RefCounted<I> {
 		}
 	}
 
-	fn from_slice(value: I::T) -> NonNull<Self>
+	fn from_sized(value: I::T) -> NonNull<Self>
 	where
 		I::T: Sized,
 	{
