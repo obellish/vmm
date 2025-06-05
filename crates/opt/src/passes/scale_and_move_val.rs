@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::Instruction;
 
 use crate::{Change, LoopPass};
 
@@ -13,24 +13,24 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 					value: -1,
 					offset: None,
 				},
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value: j @ 0..=i8::MAX,
 					offset: None,
 				},
-				Instruction::MovePtr(Offset::Relative(y)),
+				Instruction::MovePtr(y),
 			]
 			| [
 				Instruction::IncVal {
 					value: j @ 0..=i8::MAX,
 					offset: None,
 				},
-				Instruction::MovePtr(Offset::Relative(y)),
+				Instruction::MovePtr(y),
 				Instruction::IncVal {
 					value: -1,
 					offset: None,
 				},
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 			] if *x == -y => {
 				let x = *x;
 
@@ -45,13 +45,13 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 				},
 				Instruction::IncVal {
 					value: value @ 0..=i8::MAX,
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 				},
 			]
 			| [
 				Instruction::IncVal {
 					value: value @ 0..=i8::MAX,
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 				},
 				Instruction::IncVal {
 					value: -1,
@@ -77,17 +77,17 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 					value: -1,
 					offset: None
 				},
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::IncVal { offset: None, .. },
-				Instruction::MovePtr(Offset::Relative(y))
+				Instruction::MovePtr(y)
 			] | [
 				Instruction::IncVal { offset: None, .. },
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value: -1,
 					offset: None
 				},
-				Instruction::MovePtr(Offset::Relative(y))
+				Instruction::MovePtr(y)
 			]
 			if *x == -y
 		) || matches!(
@@ -99,12 +99,12 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 				},
 				Instruction::IncVal {
 					value: 0..=i8::MAX,
-					offset: Some(Offset::Relative(_))
+					offset: Some(_)
 				}
 			] | [
 				Instruction::IncVal {
 					value: 0..=i8::MAX,
-					offset: Some(Offset::Relative(_))
+					offset: Some(_)
 				},
 				Instruction::IncVal {
 					value: -1,

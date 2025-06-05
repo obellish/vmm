@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::Instruction;
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -12,31 +12,31 @@ impl PeepholePass for CollapseRelativeInstrPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value,
 					offset: None,
 				},
-				Instruction::MovePtr(Offset::Relative(y)),
+				Instruction::MovePtr(y),
 			] if *x == -y => Some(Change::replace(Instruction::inc_val_at(*value, x))),
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::SetVal {
 					value,
 					offset: None,
 				},
-				Instruction::MovePtr(Offset::Relative(y)),
+				Instruction::MovePtr(y),
 			] if *x == -y => Some(Change::replace(Instruction::set_val_at(
 				value.get_or_zero(),
 				*x,
 			))),
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::Write {
 					offset: None,
 					count,
 				},
-				Instruction::MovePtr(Offset::Relative(y)),
+				Instruction::MovePtr(y),
 			] if *x == -y => Some(Change::replace(Instruction::write_many_at(*count, *x))),
 			_ => None,
 		}
@@ -46,11 +46,11 @@ impl PeepholePass for CollapseRelativeInstrPass {
 		matches!(
 			window,
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::IncVal { offset: None, .. }
 					| Instruction::SetVal { offset: None, .. }
 					| Instruction::Write { offset: None, .. },
-				Instruction::MovePtr(Offset::Relative(y))
+				Instruction::MovePtr(y)
 			]
 			if *x == -y
 		)

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, SimdInstruction};
+use vmm_ir::{Instruction, SimdInstruction};
 
 use crate::{Change, LoopPass};
 
@@ -24,13 +24,7 @@ impl LoopPass for OptimizeDupeAndScaleValPass {
 			offsets.iter().copied().flatten().collect(),
 		)];
 
-		for offset in offsets.iter().copied().flatten().filter_map(|offset| {
-			if let Offset::Relative(offset) = offset {
-				Some(offset)
-			} else {
-				None
-			}
-		}) {
+		for offset in offsets.iter().copied().flatten() {
 			output.extend([
 				Instruction::move_ptr(offset),
 				Instruction::scale_val(value),

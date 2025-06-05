@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::Instruction;
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -12,24 +12,24 @@ impl PeepholePass for ReorderMoveChangePass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value,
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 				},
 			] if *x == -y => Some(Change::swap([
 				Instruction::inc_val(*value),
-				Instruction::move_ptr_by(*x),
+				Instruction::move_ptr(*x),
 			])),
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::SetVal {
 					value,
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 				},
 			] if *x == -y => Some(Change::swap([
 				Instruction::set_val(value.get_or_zero()),
-				Instruction::move_ptr_by(*x),
+				Instruction::move_ptr(*x),
 			])),
 			_ => None,
 		}
@@ -39,12 +39,12 @@ impl PeepholePass for ReorderMoveChangePass {
 		matches!(
 			window,
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					..
 				} | Instruction::SetVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					..
 				}
 			]

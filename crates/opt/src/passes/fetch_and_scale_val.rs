@@ -11,9 +11,9 @@ impl PeepholePass for OptimizeFetchAndScaleValPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::Super(SuperInstruction::ScaleAnd {
-					offset: Offset::Relative(y),
+					offset: y,
 					factor,
 					action: ScaleAnd::Move,
 				}),
@@ -29,10 +29,10 @@ impl PeepholePass for OptimizeFetchAndScaleValPass {
 		matches!(
 			window,
 			[
-				Instruction::MovePtr(Offset::Relative(x)),
+				Instruction::MovePtr(x),
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset: Offset::Relative(y),
+					offset: y,
 					..
 				}),
 				Instruction::MovePtr(Offset::Relative(z))

@@ -168,7 +168,6 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<OptimizeSimdIncInstrPass>(progress);
 
 		self.run_default_peephole_pass::<ReorderMoveChangePass>(progress);
-		self.run_default_peephole_pass::<ReorderRelativeChangesPass>(progress);
 		self.run_default_peephole_pass::<ReorderOffsetBetweenMovesPass>(progress);
 		self.run_default_peephole_pass::<CombineMoveChangePass>(progress);
 

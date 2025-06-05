@@ -13,35 +13,25 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::IncVal { offset: None, .. },
-				Instruction::SetVal { offset: None, .. },
-			] => Some(Change::RemoveOffset(0)),
-			[
-				Instruction::SetVal {
-					value: None,
-					offset: None,
-				},
-				Instruction::IncVal {
-					value: y,
-					offset: None,
-				},
-			] => Some(Change::replace(Instruction::set_val(*y as u8))),
-			[
 				Instruction::SetVal {
 					offset: None,
-					value: Some(x),
+					value: x,
 				},
 				Instruction::IncVal {
 					value: y,
 					offset: None,
 				},
 			] => Some(Change::replace(Instruction::set_val(
-				WrappingAdd::wrapping_add(x.get(), *y),
+				WrappingAdd::wrapping_add(x.get_or_zero(), *y),
 			))),
 			[
 				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
 				Instruction::Read,
-			] => Some(Change::replace(Instruction::read())),
+			]
+			| [
+				Instruction::IncVal { offset: None, .. },
+				Instruction::SetVal { offset: None, .. },
+			] => Some(Change::remove_offset(0)),
 			[
 				Instruction::Block(BlockInstruction::DynamicLoop(..) | BlockInstruction::IfNz(..))
 				| Instruction::Super(

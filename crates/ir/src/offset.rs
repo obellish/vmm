@@ -248,6 +248,12 @@ impl DivAssign<&isize> for Offset {
 	}
 }
 
+impl From<&Self> for Offset {
+	fn from(value: &Self) -> Self {
+		*value
+	}
+}
+
 impl From<isize> for Offset {
 	fn from(value: isize) -> Self {
 		Self::Relative(value)

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
 use vmm_utils::GetOrZero;
 use vmm_wrap::ops::WrappingAdd;
 
@@ -14,56 +14,44 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 		match window {
 			[
 				Instruction::IncVal {
-					offset: Some(Offset::Relative(x)),
-					..
+					offset: Some(x), ..
 				},
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(y)),
-					..
+					offset: Some(y), ..
 				},
 			] if *x == *y => Some(Change::remove_offset(0)),
 			[
 				Instruction::SetVal {
-					value: None,
-					offset: Some(Offset::Relative(x)),
+					value: a,
+					offset: Some(x),
 				},
 				Instruction::IncVal {
-					offset: Some(Offset::Relative(y)),
-					value,
-				},
-			] if *x == *y => Some(Change::replace(Instruction::set_val_at(*value as u8, x))),
-			[
-				Instruction::SetVal {
-					value: Some(a),
-					offset: Some(Offset::Relative(x)),
-				},
-				Instruction::IncVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					value: b,
 				},
 			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
-				WrappingAdd::wrapping_add(a.get(), *b),
-				x,
+				WrappingAdd::wrapping_add(a.get_or_zero(), *b),
+				*x,
 			))),
 			[
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset: Offset::Relative(x),
+					offset: x,
 					..
 				}),
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					value,
 				},
 			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
 				value.get_or_zero(),
-				x,
+				*x,
 			))),
 			[
-				Instruction::FetchVal(Offset::Relative(x)),
+				Instruction::FetchVal(x),
 				Instruction::SetVal {
 					value: None,
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 				},
 			] if *x == *y => Some(Change::remove_offset(1)),
 			_ => None,
@@ -75,31 +63,31 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 			window,
 			[
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 					..
 				},
 				Instruction::IncVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					..
 				}
 			] | [
 				Instruction::IncVal {
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 					..
 				} | Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset: Offset::Relative(x),
+					offset: x,
 					..
 				}),
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					..
 				}
 			] | [
-				Instruction::FetchVal(Offset::Relative(x)),
+				Instruction::FetchVal(x),
 				Instruction::SetVal {
 					value: None,
-					offset: Some(Offset::Relative(y))
+					offset: Some(y)
 				}
 			]
 			if *x == *y

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
 use vmm_wrap::ops::WrappingMul;
 
 use crate::{Change, PeepholePass};
@@ -14,12 +14,12 @@ impl PeepholePass for OptimizeScaleValPass {
 			[
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset: Offset::Relative(x),
+					offset: x,
 					factor: a,
 				}),
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Fetch,
-					offset: Offset::Relative(y),
+					offset: y,
 					factor: b,
 				}),
 			] if *x == *y => Some(Change::replace(Instruction::scale_val(
@@ -28,12 +28,12 @@ impl PeepholePass for OptimizeScaleValPass {
 			[
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Take,
-					offset: Offset::Relative(x),
+					offset: x,
 					factor: a,
 				}),
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset: Offset::Relative(y),
+					offset: y,
 					factor: b,
 				}),
 			] if *x == -y => Some(Change::swap([
@@ -44,10 +44,10 @@ impl PeepholePass for OptimizeScaleValPass {
 			[
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Take,
-					offset: Offset::Relative(x),
+					offset: x,
 					factor,
 				}),
-				Instruction::TakeVal(Offset::Relative(y)),
+				Instruction::TakeVal(y),
 			] if *x == -y => Some(Change::replace(Instruction::scale_val(*factor))),
 			_ => None,
 		}
@@ -59,12 +59,12 @@ impl PeepholePass for OptimizeScaleValPass {
 			[
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset: Offset::Relative(x),
+					offset: x,
 					..
 				}),
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Fetch,
-					offset: Offset::Relative(y),
+					offset: y,
 					..
 				})
 			]
@@ -74,14 +74,14 @@ impl PeepholePass for OptimizeScaleValPass {
 			[
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Take,
-					offset: Offset::Relative(x),
+					offset: x,
 					..
 				}),
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
-					offset: Offset::Relative(y),
+					offset: y,
 					..
-				}) | Instruction::TakeVal(Offset::Relative(y))
+				}) | Instruction::TakeVal(y)
 			]
 			if *x == -y
 		)

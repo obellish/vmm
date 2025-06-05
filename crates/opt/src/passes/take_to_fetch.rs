@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::Instruction;
 
 use crate::{Change, PeepholePass};
 
@@ -10,15 +10,14 @@ impl PeepholePass for OptimizeTakeFetchValPass {
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
-			[
-				Instruction::MovePtr(Offset::Relative(x)),
-				Instruction::TakeVal(Offset::Relative(y)),
-			] if *x == -y => Some(Change::replace(Instruction::fetch_val(*x))),
+			[Instruction::MovePtr(x), Instruction::TakeVal(y)] if *x == -y => {
+				Some(Change::replace(Instruction::fetch_val(*x)))
+			}
 			_ => None,
 		}
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [Instruction::MovePtr(Offset::Relative(x)), Instruction::TakeVal(Offset::Relative(y))] if *x == -y)
+		matches!(window, [Instruction::MovePtr(x), Instruction::TakeVal(y)] if *x == -y)
 	}
 }

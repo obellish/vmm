@@ -1,5 +1,5 @@
 use itertools::Itertools as _;
-use vmm_ir::{Instruction, Offset, SimdInstruction};
+use vmm_ir::{Instruction, SimdInstruction};
 use vmm_utils::GetOrZero as _;
 use vmm_wrap::ops::WrappingAdd;
 
@@ -36,16 +36,12 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] => Some(Change::replace(Instruction::inc_val(
 				WrappingAdd::wrapping_add(i1, i2),
 			))),
-			[
-				Instruction::MovePtr(Offset::Relative(i1)),
-				Instruction::MovePtr(Offset::Relative(i2)),
-			] if *i1 == -i2 => Some(Change::remove()),
-			[
-				Instruction::MovePtr(Offset::Relative(i1)),
-				Instruction::MovePtr(Offset::Relative(i2)),
-			] => Some(Change::replace(Instruction::move_ptr_by(
-				WrappingAdd::wrapping_add(i1, i2),
-			))),
+			[Instruction::MovePtr(i1), Instruction::MovePtr(i2)] if *i1 == -i2 => {
+				Some(Change::remove())
+			}
+			[Instruction::MovePtr(i1), Instruction::MovePtr(i2)] => Some(Change::replace(
+				Instruction::move_ptr(WrappingAdd::wrapping_add(i1, i2)),
+			)),
 			[
 				Instruction::SetVal { offset: None, .. },
 				Instruction::SetVal {
@@ -56,21 +52,21 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::IncVal {
 					value: i1,
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 				},
 				Instruction::IncVal {
 					value: i2,
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 				},
 			] if *i1 == -i2 && x == y => Some(Change::remove()),
 			[
 				Instruction::IncVal {
 					value: i1,
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 				},
 				Instruction::IncVal {
 					value: i2,
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 				},
 			] if x == y => Some(Change::replace(Instruction::inc_val_at(
 				WrappingAdd::wrapping_add(i1, i2),
@@ -89,20 +85,19 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::SetVal {
 					value: None,
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 				},
 				Instruction::SetVal {
 					value: None,
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 				},
 			] if *x == *y => Some(Change::remove_offset(1)),
 			[
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(x)),
-					..
+					offset: Some(x), ..
 				},
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					value,
 				},
 			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
@@ -129,11 +124,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::Write {
 					count: a,
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 				},
 				Instruction::Write {
 					count: b,
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 				},
 			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
 			[
@@ -175,13 +170,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::IncVal { offset: None, .. },
 				Instruction::IncVal { offset: None, .. }
-			] | [
-				Instruction::MovePtr(Offset::Relative(_)),
-				Instruction::MovePtr(Offset::Relative(_))
-			] | [
-				Instruction::SetVal { offset: None, .. },
-				Instruction::SetVal { offset: None, .. }
-			] | [
+			] | [Instruction::MovePtr(..), Instruction::MovePtr(..)]
+				| [
+					Instruction::SetVal { offset: None, .. },
+					Instruction::SetVal { offset: None, .. }
+				] | [
 				Instruction::Write { offset: None, .. },
 				Instruction::Write { offset: None, .. }
 			]
@@ -189,29 +182,29 @@ impl PeepholePass for CollapseStackedInstrPass {
 			window,
 			[
 				Instruction::IncVal {
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 					..
 				},
 				Instruction::IncVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					..
 				}
 			] | [
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 					..
 				},
 				Instruction::SetVal {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					..
 				}
 			] | [
 				Instruction::Write {
-					offset: Some(Offset::Relative(x)),
+					offset: Some(x),
 					..
 				},
 				Instruction::Write {
-					offset: Some(Offset::Relative(y)),
+					offset: Some(y),
 					..
 				}
 			]
