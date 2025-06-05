@@ -76,11 +76,10 @@ impl Display for SuperInstruction {
 				Display::fmt(&action, f)?;
 				f.write_char(' ')?;
 				Display::fmt(&factor, f)?;
-				if let Offset::Relative(offset) = offset {
-					f.write_str(" [")?;
-					Display::fmt(&offset, f)?;
-					f.write_char(']')?;
-				}
+				let Offset::Relative(offset) = offset;
+				f.write_str(" [")?;
+				Display::fmt(&offset, f)?;
+				f.write_char(']')?;
 			}
 			_ => f.write_char('*')?,
 		}

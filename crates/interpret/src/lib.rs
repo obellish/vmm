@@ -185,7 +185,7 @@ where
 	fn move_ptr(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		match offset {
 			Offset::Relative(i) => *self.ptr_mut() += i,
-			Offset::Absolute(i) => self.ptr_mut().set(i),
+			_ => unimplemented!(),
 		}
 
 		Ok(())
@@ -462,13 +462,7 @@ where
 		match offset {
 			None => self.ptr().value(),
 			Some(Offset::Relative(offset)) => (*self.ptr() + offset).value(),
-			Some(Offset::Absolute(i)) => {
-				let mut ptr = *self.ptr();
-
-				ptr.set(i);
-
-				ptr.value()
-			}
+			Some(_) => unreachable!(),
 		}
 	}
 }

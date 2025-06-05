@@ -1,12 +1,15 @@
-use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
+use core::{
+	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	ops::*,
+};
 
 use serde::{Deserialize, Serialize};
-use vmm_wrap::ops::{WrappingAdd, WrappingAddAssign, WrappingNeg, WrappingSub, WrappingSubAssign};
+use vmm_wrap::ops::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum Offset {
 	Relative(isize),
-	Absolute(usize),
 }
 
 impl Offset {
@@ -14,7 +17,6 @@ impl Offset {
 	pub const fn abs(self) -> Self {
 		match self {
 			Self::Relative(i) => Self::Relative(i.abs()),
-			Self::Absolute(a) => Self::Absolute(a),
 		}
 	}
 
@@ -22,10 +24,97 @@ impl Offset {
 	pub const fn is_relative(self) -> bool {
 		matches!(self, Self::Relative(_))
 	}
+}
 
-	#[must_use]
-	pub const fn is_absolute(self) -> bool {
-		matches!(self, Self::Absolute(_))
+impl Add for Offset {
+	type Output = Self;
+
+	fn add(self, rhs: Self) -> Self::Output {
+		match (self, rhs) {
+			(Self::Relative(lhs), Self::Relative(rhs)) => Self::Relative(Add::add(lhs, rhs))
+		}
+	}
+}
+
+impl Add<&Self> for Offset {
+	type Output = Self;
+
+	fn add(self, rhs: &Self) -> Self::Output {
+		Add::add(self, *rhs)
+	}
+}
+
+impl Add<Offset> for &Offset {
+	type Output = Offset;
+
+	fn add(self, rhs: Offset) -> Self::Output {
+		Add::add(*self, rhs)
+	}
+}
+
+impl Add for &Offset {
+	type Output = Offset;
+
+	fn add(self, rhs: Self) -> Self::Output {
+		Add::add(*self, *rhs)
+	}
+}
+
+impl Add<isize> for Offset {
+	type Output = Self;
+
+	fn add(self, rhs: isize) -> Self::Output {
+		match self {
+			Self::Relative(lhs) => Self::Relative(Add::add(lhs, rhs))
+		}
+	}
+}
+
+impl Add<&isize> for Offset {
+	type Output = Self;
+
+	fn add(self, rhs: &isize) -> Self::Output {
+		Add::add(self, *rhs)
+	}
+}
+
+impl Add<isize> for &Offset {
+	type Output = Offset;
+
+	fn add(self, rhs: isize) -> Self::Output {
+		Add::add(*self, rhs)
+	}
+}
+
+impl Add<&isize> for &Offset {
+	type Output = Offset;
+
+	fn add(self, rhs: &isize) -> Self::Output {
+		Add::add(*self, *rhs)
+	}
+}
+
+impl AddAssign for Offset {
+	fn add_assign(&mut self, rhs: Self) {
+		*self = Add::add(*self, rhs);
+	}
+}
+
+impl AddAssign<&Self> for Offset {
+	fn add_assign(&mut self, rhs: &Self) {
+		*self = Add::add(*self, *rhs);
+	}
+}
+
+impl AddAssign<isize> for Offset {
+	fn add_assign(&mut self, rhs: isize) {
+		*self = Add::add(*self, rhs);
+	}
+}
+
+impl AddAssign<&isize> for Offset {
+	fn add_assign(&mut self, rhs: &isize) {
+		*self = Add::add(*self, *rhs);
 	}
 }
 
@@ -43,17 +132,6 @@ impl Display for Offset {
 
 				if alt {
 					f.write_char(']')?;
-				}
-			}
-			Self::Absolute(offset) => {
-				if alt {
-					f.write_char('{')?;
-				}
-
-				Display::fmt(&offset, f)?;
-
-				if alt {
-					f.write_char('}')?;
 				}
 			}
 		}
@@ -74,336 +152,36 @@ impl From<&isize> for Offset {
 	}
 }
 
-impl From<usize> for Offset {
-	fn from(value: usize) -> Self {
-		Self::Absolute(value)
-	}
-}
-
-impl From<&usize> for Offset {
-	fn from(value: &usize) -> Self {
-		(*value).into()
-	}
-}
-
-impl WrappingAdd for Offset {
+impl Sub for Offset {
 	type Output = Self;
 
-	fn wrapping_add(self, rhs: Self) -> Self::Output {
+	fn sub(self, rhs: Self) -> Self::Output {
 		match (self, rhs) {
-			(Self::Relative(l), Self::Relative(r)) => {
-				Self::Relative(WrappingAdd::wrapping_add(l, r))
-			}
-			(Self::Absolute(l), Self::Absolute(r)) => {
-				Self::Absolute(WrappingAdd::wrapping_add(l, r))
-			}
-			(Self::Absolute(l), Self::Relative(r)) => {
-				Self::Absolute(WrappingAdd::wrapping_add(l, r))
-			}
-			(Self::Relative(l), Self::Absolute(r)) => {
-				Self::Relative(WrappingAdd::wrapping_add(l, r))
-			}
+			(Self::Relative(lhs), Self::Relative(rhs)) => Self::Relative(Sub::sub(lhs, rhs))
 		}
 	}
 }
 
-impl WrappingAdd<Offset> for &Offset {
-	type Output = <Offset as WrappingAdd>::Output;
-
-	fn wrapping_add(self, rhs: Offset) -> Self::Output {
-		(*self).wrapping_add(rhs)
-	}
-}
-
-impl WrappingAdd<&Self> for Offset {
+impl Sub<&Self> for Offset {
 	type Output = Self;
 
-	fn wrapping_add(self, rhs: &Self) -> Self::Output {
-		self.wrapping_add(*rhs)
+	fn sub(self, rhs: &Self) -> Self::Output {
+		Sub::sub(self, *rhs)
 	}
 }
 
-impl WrappingAdd for &Offset {
-	type Output = <Offset as WrappingAdd>::Output;
-
-	fn wrapping_add(self, rhs: Self) -> Self::Output {
-		(*self).wrapping_add(*rhs)
-	}
-}
-
-impl WrappingAdd<isize> for Offset {
-	type Output = Self;
-
-	fn wrapping_add(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Absolute(a) => Self::Absolute(WrappingAdd::wrapping_add(a, rhs)),
-			Self::Relative(r) => Self::Relative(WrappingAdd::wrapping_add(r, rhs)),
-		}
-	}
-}
-
-impl WrappingAdd<isize> for &Offset {
-	type Output = <Offset as WrappingAdd<isize>>::Output;
-
-	fn wrapping_add(self, rhs: isize) -> Self::Output {
-		(*self).wrapping_add(rhs)
-	}
-}
-
-impl WrappingAdd<&isize> for Offset {
-	type Output = Self;
-
-	fn wrapping_add(self, rhs: &isize) -> Self::Output {
-		self.wrapping_add(*rhs)
-	}
-}
-
-impl WrappingAdd<&isize> for &Offset {
-	type Output = <Offset as WrappingAdd<isize>>::Output;
-
-	fn wrapping_add(self, rhs: &isize) -> Self::Output {
-		(*self).wrapping_add(*rhs)
-	}
-}
-
-impl WrappingAdd<usize> for Offset {
-	type Output = Self;
-
-	fn wrapping_add(self, rhs: usize) -> Self::Output {
-		match self {
-			Self::Absolute(a) => Self::Absolute(WrappingAdd::wrapping_add(a, rhs)),
-			Self::Relative(r) => Self::Relative(WrappingAdd::wrapping_add(r, rhs)),
-		}
-	}
-}
-
-impl WrappingAdd<usize> for &Offset {
-	type Output = <Offset as WrappingAdd<usize>>::Output;
-
-	fn wrapping_add(self, rhs: usize) -> Self::Output {
-		(*self).wrapping_add(rhs)
-	}
-}
-
-impl WrappingAdd<&usize> for Offset {
-	type Output = Self;
-
-	fn wrapping_add(self, rhs: &usize) -> Self::Output {
-		self.wrapping_add(*rhs)
-	}
-}
-
-impl WrappingAdd<&usize> for &Offset {
-	type Output = <Offset as WrappingAdd<usize>>::Output;
-
-	fn wrapping_add(self, rhs: &usize) -> Self::Output {
-		(*self).wrapping_add(*rhs)
-	}
-}
-
-impl WrappingAddAssign for Offset {
-	fn wrapping_add_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<&Self> for Offset {
-	fn wrapping_add_assign(&mut self, rhs: &Self) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<isize> for Offset {
-	fn wrapping_add_assign(&mut self, rhs: isize) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<&isize> for Offset {
-	fn wrapping_add_assign(&mut self, rhs: &isize) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<usize> for Offset {
-	fn wrapping_add_assign(&mut self, rhs: usize) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingAddAssign<&usize> for Offset {
-	fn wrapping_add_assign(&mut self, rhs: &usize) {
-		*self = self.wrapping_add(rhs);
-	}
-}
-
-impl WrappingNeg for Offset {
-	type Output = Self;
-
-	#[inline]
-	fn wrapping_neg(self) -> Self::Output {
-		match self {
-			Self::Absolute(a) => Self::Absolute(a.wrapping_neg()),
-			Self::Relative(r) => Self::Relative(r.wrapping_neg()),
-		}
-	}
-}
-
-impl WrappingNeg for &Offset {
+impl Sub<Offset> for &Offset {
 	type Output = Offset;
 
-	fn wrapping_neg(self) -> Self::Output {
-		(*self).wrapping_neg()
+	fn sub(self, rhs: Offset) -> Self::Output {
+		Sub::sub(*self, rhs)
 	}
 }
 
-impl WrappingSub for Offset {
-	type Output = Self;
+impl Sub for &Offset {
+	type Output = Offset;
 
-	fn wrapping_sub(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(l), Self::Relative(r)) => {
-				Self::Relative(WrappingSub::wrapping_sub(l, r))
-			}
-			(Self::Absolute(l), Self::Absolute(r)) => {
-				Self::Absolute(WrappingSub::wrapping_sub(l, r))
-			}
-			(Self::Relative(l), Self::Absolute(r)) => {
-				Self::Relative(WrappingSub::wrapping_sub(l, r))
-			}
-			(Self::Absolute(l), Self::Relative(r)) => {
-				Self::Absolute(WrappingSub::wrapping_sub(l, r))
-			}
-		}
-	}
-}
-
-impl WrappingSub<Offset> for &Offset {
-	type Output = <Offset as WrappingSub>::Output;
-
-	fn wrapping_sub(self, rhs: Offset) -> Self::Output {
-		(*self).wrapping_sub(rhs)
-	}
-}
-
-impl WrappingSub<&Self> for Offset {
-	type Output = Self;
-
-	fn wrapping_sub(self, rhs: &Self) -> Self::Output {
-		self.wrapping_sub(*rhs)
-	}
-}
-
-impl WrappingSub for &Offset {
-	type Output = <Offset as WrappingSub>::Output;
-
-	fn wrapping_sub(self, rhs: Self) -> Self::Output {
-		(*self).wrapping_sub(*rhs)
-	}
-}
-
-impl WrappingSub<isize> for Offset {
-	type Output = Self;
-
-	fn wrapping_sub(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Absolute(a) => Self::Absolute(WrappingSub::wrapping_sub(a, rhs)),
-			Self::Relative(r) => Self::Relative(WrappingSub::wrapping_sub(r, rhs)),
-		}
-	}
-}
-
-impl WrappingSub<isize> for &Offset {
-	type Output = <Offset as WrappingSub<isize>>::Output;
-
-	fn wrapping_sub(self, rhs: isize) -> Self::Output {
-		(*self).wrapping_sub(rhs)
-	}
-}
-
-impl WrappingSub<&isize> for Offset {
-	type Output = Self;
-
-	fn wrapping_sub(self, rhs: &isize) -> Self::Output {
-		self.wrapping_sub(*rhs)
-	}
-}
-
-impl WrappingSub<&isize> for &Offset {
-	type Output = <Offset as WrappingAdd<isize>>::Output;
-
-	fn wrapping_sub(self, rhs: &isize) -> Self::Output {
-		(*self).wrapping_sub(*rhs)
-	}
-}
-
-impl WrappingSub<usize> for Offset {
-	type Output = Self;
-
-	fn wrapping_sub(self, rhs: usize) -> Self::Output {
-		match self {
-			Self::Absolute(a) => Self::Absolute(WrappingSub::wrapping_sub(a, rhs)),
-			Self::Relative(r) => Self::Relative(WrappingSub::wrapping_sub(r, rhs)),
-		}
-	}
-}
-
-impl WrappingSub<usize> for &Offset {
-	type Output = <Offset as WrappingSub<usize>>::Output;
-
-	fn wrapping_sub(self, rhs: usize) -> Self::Output {
-		(*self).wrapping_sub(rhs)
-	}
-}
-
-impl WrappingSub<&usize> for Offset {
-	type Output = Self;
-
-	fn wrapping_sub(self, rhs: &usize) -> Self::Output {
-		self.wrapping_sub(*rhs)
-	}
-}
-
-impl WrappingSub<&usize> for &Offset {
-	type Output = <Offset as WrappingSub<usize>>::Output;
-
-	fn wrapping_sub(self, rhs: &usize) -> Self::Output {
-		(*self).wrapping_sub(*rhs)
-	}
-}
-
-impl WrappingSubAssign for Offset {
-	fn wrapping_sub_assign(&mut self, rhs: Self) {
-		*self = self.wrapping_sub(rhs);
-	}
-}
-
-impl WrappingSubAssign<&Self> for Offset {
-	fn wrapping_sub_assign(&mut self, rhs: &Self) {
-		*self = self.wrapping_sub(rhs);
-	}
-}
-
-impl WrappingSubAssign<isize> for Offset {
-	fn wrapping_sub_assign(&mut self, rhs: isize) {
-		*self = self.wrapping_sub(rhs);
-	}
-}
-
-impl WrappingSubAssign<&isize> for Offset {
-	fn wrapping_sub_assign(&mut self, rhs: &isize) {
-		*self = self.wrapping_sub(rhs);
-	}
-}
-
-impl WrappingSubAssign<usize> for Offset {
-	fn wrapping_sub_assign(&mut self, rhs: usize) {
-		*self = self.wrapping_sub(rhs);
-	}
-}
-
-impl WrappingSubAssign<&usize> for Offset {
-	fn wrapping_sub_assign(&mut self, rhs: &usize) {
-		*self = self.wrapping_sub(rhs);
+	fn sub(self, rhs: Self) -> Self::Output {
+		Sub::sub(*self, *rhs)
 	}
 }

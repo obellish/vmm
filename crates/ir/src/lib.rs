@@ -193,11 +193,6 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn move_ptr_to(index: usize) -> Self {
-		Self::MovePtr(Offset::Absolute(index))
-	}
-
-	#[must_use]
 	pub const fn find_zero(jump_by: isize) -> Self {
 		Self::FindZero(jump_by)
 	}
