@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, SpanInstructionType};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -38,6 +38,19 @@ impl PeepholePass for CollapseRelativeInstrPass {
 				},
 				Instruction::MovePtr(y),
 			] if *x == -y => Some(Change::replace(Instruction::write_many_at(*count, *x))),
+			[
+				Instruction::MovePtr(x),
+				Instruction::Span(span),
+				Instruction::MovePtr(y),
+			] if *x == -y => Some(Change::replace(match span.ty() {
+				SpanInstructionType::Inc { value } => {
+					Instruction::inc_span(value, span.start + x, span.end + x)
+				}
+				SpanInstructionType::Set { value } => {
+					Instruction::set_span(value.get_or_zero(), span.start + x, span.end + x)
+				}
+				_ => return None,
+			})),
 			_ => None,
 		}
 	}
@@ -49,7 +62,8 @@ impl PeepholePass for CollapseRelativeInstrPass {
 				Instruction::MovePtr(x),
 				Instruction::IncVal { offset: None, .. }
 					| Instruction::SetVal { offset: None, .. }
-					| Instruction::Write { offset: None, .. },
+					| Instruction::Write { offset: None, .. }
+					| Instruction::Span(..),
 				Instruction::MovePtr(y)
 			]
 			if *x == -y

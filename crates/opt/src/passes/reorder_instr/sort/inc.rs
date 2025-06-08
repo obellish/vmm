@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 
 use itertools::Itertools as _;
 use vmm_ir::{Instruction, SpanInstruction, SpanInstructionType};
+use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
 
@@ -26,7 +27,8 @@ impl PeepholePass for SortIncInstrPass {
 
 fn sorter(a: &Instruction, b: &Instruction) -> Ordering {
 	a.offset()
-		.cmp(&b.offset())
+		.get_or_zero()
+		.cmp(&b.offset().get_or_zero())
 		.then(get_inc_value(a).cmp(&get_inc_value(b)))
 }
 

@@ -35,6 +35,17 @@ impl PeepholePass for OptimizeSetSpanPass {
 					value: b,
 					offset: x,
 				},
+			]
+			| [
+				Instruction::SetVal {
+					value: b,
+					offset: x,
+				},
+				Instruction::Span(SpanInstruction {
+					ty: SpanInstructionType::Set { value: a },
+					start,
+					..
+				}),
 			] if *a == *b => Some(Change::replace(Instruction::set_span(
 				a.get_or_zero(),
 				start,
@@ -71,6 +82,17 @@ impl PeepholePass for OptimizeSetSpanPass {
 					value: b,
 					offset: x,
 				},
+			]
+			| [
+				Instruction::SetVal {
+					value: b,
+					offset: x,
+				},
+				Instruction::Span(SpanInstruction {
+					ty: SpanInstructionType::Set { value: a },
+					end,
+					..
+				}),
 			] if *a == *b => {
 				let x = x.get_or_zero();
 
