@@ -1,12 +1,10 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
-#![cfg_attr(feature = "nightly", feature(step_trait))]
 #![no_std]
 
 extern crate alloc;
 
 mod block_instr;
 mod offset;
-#[cfg(feature = "nightly")]
 mod span_instr;
 mod super_instr;
 mod utils;
@@ -20,9 +18,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-#[cfg(feature = "nightly")]
-pub use self::span_instr::*;
-pub use self::{block_instr::*, offset::*, super_instr::*, utils::*};
+pub use self::{block_instr::*, offset::*, span_instr::*, super_instr::*, utils::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -68,7 +64,6 @@ pub enum Instruction {
 	Block(BlockInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
-	#[cfg(feature = "nightly")]
 	Span(SpanInstruction),
 }
 
@@ -241,6 +236,21 @@ impl Instruction {
 	#[must_use]
 	pub fn if_nz(instructions: impl IntoIterator<Item = Self>) -> Self {
 		BlockInstruction::if_nz(instructions).into()
+	}
+
+	#[must_use]
+	pub fn inc_range(value: i8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
+		Self::Span(SpanInstruction::inc_range(value, start, end))
+	}
+
+	#[must_use]
+	pub fn set_range(value: u8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
+		Self::Span(SpanInstruction::set_range(value, start, end))
+	}
+
+	#[must_use]
+	pub fn clear_range(start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
+		Self::Span(SpanInstruction::clear_range(start, end))
 	}
 
 	#[must_use]
@@ -440,6 +450,12 @@ impl Display for Instruction {
 impl From<BlockInstruction> for Instruction {
 	fn from(value: BlockInstruction) -> Self {
 		Self::Block(value)
+	}
+}
+
+impl From<SpanInstruction> for Instruction {
+	fn from(value: SpanInstruction) -> Self {
+		Self::Span(value)
 	}
 }
 

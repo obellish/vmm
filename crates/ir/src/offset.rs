@@ -1,5 +1,3 @@
-#[cfg(feature = "nightly")]
-use core::iter::Step;
 use core::{
 	cmp::Ordering,
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
@@ -512,32 +510,6 @@ impl Serialize for Offset {
 		match self {
 			Self::Relative(value) => serializer.serialize_i64(*value as i64),
 		}
-	}
-}
-
-#[cfg(feature = "nightly")]
-impl Step for Offset {
-	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
-		let Self::Relative(start) = *start;
-		let Self::Relative(end) = *end;
-
-		isize::steps_between(&start, &end)
-	}
-
-	fn forward_checked(start: Self, count: usize) -> Option<Self> {
-		let Self::Relative(start) = start;
-
-		let end = isize::forward_checked(start, count)?;
-
-		Some(Self::Relative(end))
-	}
-
-	fn backward_checked(start: Self, count: usize) -> Option<Self> {
-		let Self::Relative(start) = start;
-
-		let end = isize::backward_checked(start, count)?;
-
-		Some(Self::Relative(end))
 	}
 }
 

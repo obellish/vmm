@@ -1,4 +1,5 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
+#![cfg_attr(feature = "nightly", feature(portable_simd))]
 
 mod profiler;
 
