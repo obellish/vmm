@@ -14,12 +14,12 @@ pub struct SpanInstruction {
 
 impl SpanInstruction {
 	#[must_use]
-	pub fn inc_range(value: i8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
+	pub fn inc_span(value: i8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
 		Self::from_range(SpanInstructionType::Inc { value }, start.into(), end.into())
 	}
 
 	#[must_use]
-	pub fn set_range(value: u8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
+	pub fn set_span(value: u8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
 		Self::from_range(
 			SpanInstructionType::Set {
 				value: NonZeroU8::new(value),
@@ -31,7 +31,7 @@ impl SpanInstruction {
 
 	#[must_use]
 	pub fn clear_range(start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
-		Self::set_range(0, start, end)
+		Self::set_span(0, start, end)
 	}
 
 	#[must_use]
@@ -81,6 +81,7 @@ impl PtrMovement for SpanInstruction {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum SpanInstructionType {
 	Inc { value: i8 },
 	Set { value: Option<NonZeroU8> },

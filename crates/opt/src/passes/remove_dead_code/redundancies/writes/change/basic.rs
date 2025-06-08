@@ -71,6 +71,9 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				Instruction::move_ptr(*offset),
 				Instruction::set_val(value.get_or_zero()),
 			])),
+			[Instruction::Span(a), Instruction::Span(b)] if *a == *b => {
+				Some(Change::remove_offset(1))
+			}
 			_ => None,
 		}
 	}

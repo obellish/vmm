@@ -239,13 +239,13 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn inc_range(value: i8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
-		Self::Span(SpanInstruction::inc_range(value, start, end))
+	pub fn inc_span(value: i8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
+		Self::Span(SpanInstruction::inc_span(value, start, end))
 	}
 
 	#[must_use]
-	pub fn set_range(value: u8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
-		Self::Span(SpanInstruction::set_range(value, start, end))
+	pub fn set_span(value: u8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
+		Self::Span(SpanInstruction::set_span(value, start, end))
 	}
 
 	#[must_use]

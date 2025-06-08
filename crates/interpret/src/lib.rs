@@ -11,10 +11,13 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::{
+	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
+	SuperInstruction,
+};
 use vmm_program::Program;
 use vmm_tape::{Tape, TapePointer};
-use vmm_utils::GetOrZero as _;
+use vmm_utils::{GetOrZero as _, SpanInclusive};
 use vmm_wrap::Wrapping;
 
 pub use self::profiler::*;
@@ -343,6 +346,26 @@ where
 		Ok(())
 	}
 
+	fn set_span(
+		&mut self,
+		value: Option<NonZeroU8>,
+		span: SpanInclusive<Offset>,
+	) -> Result<(), RuntimeError> {
+		let range = {
+			let start = self.calculate_index(Some(*span.start()));
+
+			let end = self.calculate_index(Some(*span.end()));
+
+			start..=end
+		};
+
+		for idx in range {
+			self.tape_mut()[idx].0 = value.get_or_zero();
+		}
+
+		Ok(())
+	}
+
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -364,6 +387,7 @@ where
 			Instruction::MoveVal(offset) => self.move_val(*offset)?,
 			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
+			Instruction::Span(i) => self.execute_span_instruction(*i)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -413,6 +437,15 @@ where
 				self.set_until_zero(value, offset)?;
 			}
 			i => return Err(RuntimeError::Unimplemented((i).into())),
+		}
+
+		Ok(())
+	}
+
+	fn execute_span_instruction(&mut self, instr: SpanInstruction) -> Result<(), RuntimeError> {
+		match instr.ty() {
+			SpanInstructionType::Set { value } => self.set_span(value, instr.span())?,
+			_ => return Err(RuntimeError::Unimplemented(instr.into())),
 		}
 
 		Ok(())
