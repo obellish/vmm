@@ -1,8 +1,9 @@
 use core::{cmp, num::NonZeroU8};
 
 use serde::{Deserialize, Serialize};
+use vmm_utils::SpanInclusive;
 
-use super::{IsZeroingCell, Offset, PtrMovement, SpanInclusive};
+use super::{IsZeroingCell, Offset, PtrMovement};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SpanInstruction {

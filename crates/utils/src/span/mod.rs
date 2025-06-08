@@ -32,19 +32,19 @@ impl<Idx> SpanInclusive<Idx> {
 }
 
 impl<Idx: PartialOrd> SpanInclusive<Idx> {
+	pub fn is_empty(&self) -> bool {
+		matches!(
+			self.start.partial_cmp(&self.end),
+			None | Some(Ordering::Greater)
+		)
+	}
+
 	pub fn contains<U>(&self, item: &U) -> bool
 	where
 		Idx: PartialOrd<U>,
 		U: ?Sized + PartialOrd<Idx>,
 	{
 		<Self as RangeBounds<Idx>>::contains(self, item)
-	}
-
-	pub fn is_empty(&self) -> bool {
-		matches!(
-			self.start.partial_cmp(&self.end),
-			None | Some(Ordering::Greater)
-		)
 	}
 }
 
@@ -58,7 +58,7 @@ impl<Idx> From<RangeInclusive<Idx>> for SpanInclusive<Idx> {
 impl<Idx> From<SpanInclusive<Idx>> for RangeInclusive<Idx> {
 	fn from(value: SpanInclusive<Idx>) -> Self {
 		let (start, end) = value.into_inner();
-		start..=end
+		Self::new(start, end)
 	}
 }
 

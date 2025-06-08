@@ -7,6 +7,7 @@ use core::{
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use vmm_utils::Step;
 use vmm_wrap::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingNeg,
 	WrappingSub, WrappingSubAssign,
@@ -481,6 +482,20 @@ impl Serialize for Offset {
 		S: Serializer,
 	{
 		self.0.serialize(serializer)
+	}
+}
+
+impl Step for Offset {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		isize::steps_between(&start.0, &end.0)
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		Some(Self(isize::forward_checked(start.0, count)?))
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		Some(Self(isize::backward_checked(start.0, count)?))
 	}
 }
 
