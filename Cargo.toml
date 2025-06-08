@@ -31,7 +31,7 @@ members = [
     "crates/opt",
     "crates/parse",
     "crates/program",
-    "crates/serde_array",
+    "crates/serde_array", "crates/span",
     "crates/tape",
     "crates/type_name",
     "crates/utils",

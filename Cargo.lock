@@ -814,6 +814,7 @@ name = "vmm_ir"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "vmm_span",
  "vmm_utils",
  "vmm_wrap",
 ]
@@ -859,6 +860,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "vmm_span"
+version = "0.1.0"
+
+[[package]]
 name = "vmm_tape"
 version = "0.1.0"
 dependencies = [
@@ -874,9 +879,6 @@ version = "0.1.0"
 [[package]]
 name = "vmm_utils"
 version = "0.1.0"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "vmm_wrap"

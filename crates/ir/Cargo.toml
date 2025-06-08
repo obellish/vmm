@@ -12,5 +12,6 @@ serde = { workspace = true, features = [
     "alloc",
     "derive"
 ], default-features = false }
-vmm_utils = { workspace = true, features = ["get_or_zero", "span"] }
+vmm_span = { path = "../span" }
+vmm_utils = { workspace = true, features = ["get_or_zero"] }
 vmm_wrap.workspace = true
