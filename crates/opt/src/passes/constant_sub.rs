@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -13,7 +13,7 @@ impl PeepholePass for OptimizeConstantSubPass {
 			[
 				Instruction::SetVal {
 					value: Some(value),
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::SubCell { offset },
 			] if i8::try_from(value.get()).is_ok() => {
@@ -33,7 +33,7 @@ impl PeepholePass for OptimizeConstantSubPass {
 			[
 				Instruction::SetVal {
 					value: Some(i),
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::SubCell { .. }
 			]

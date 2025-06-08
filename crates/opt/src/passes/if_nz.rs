@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, LoopPass};
 
@@ -12,7 +12,7 @@ impl LoopPass for OptimizeIfNzPass {
 				rest @ ..,
 				Instruction::SetVal {
 					value: None,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::if_nz(rest.iter().cloned()))),
 			_ => None,
@@ -30,7 +30,7 @@ impl LoopPass for OptimizeIfNzPass {
 				..,
 				Instruction::SetVal {
 					value: None,
-					offset: None
+					offset: Offset(0)
 				}
 			]
 		)

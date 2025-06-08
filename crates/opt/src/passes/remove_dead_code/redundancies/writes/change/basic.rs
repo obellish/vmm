@@ -1,4 +1,4 @@
-use vmm_ir::{BlockInstruction, Instruction, ScaleAnd, SuperInstruction};
+use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
 use vmm_utils::GetOrZero as _;
 use vmm_wrap::ops::WrappingAdd;
 
@@ -14,23 +14,32 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 		match window {
 			[
 				Instruction::SetVal {
-					offset: None,
+					offset: Offset(0),
 					value: x,
 				},
 				Instruction::IncVal {
 					value: y,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::set_val(
 				WrappingAdd::wrapping_add(x.get_or_zero(), *y),
 			))),
 			[
-				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. },
+				Instruction::IncVal {
+					offset: Offset(0), ..
+				}
+				| Instruction::SetVal {
+					offset: Offset(0), ..
+				},
 				Instruction::Read,
 			]
 			| [
-				Instruction::IncVal { offset: None, .. },
-				Instruction::SetVal { offset: None, .. },
+				Instruction::IncVal {
+					offset: Offset(0), ..
+				},
+				Instruction::SetVal {
+					offset: Offset(0), ..
+				},
 			] => Some(Change::remove_offset(0)),
 			[
 				Instruction::Block(BlockInstruction::DynamicLoop(..) | BlockInstruction::IfNz(..))
@@ -45,13 +54,13 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				| Instruction::MoveVal(..),
 				Instruction::SetVal {
 					value: None,
-					offset: None,
+					offset: Offset(0),
 				},
 			]
 			| [
 				Instruction::SetVal {
 					value: None,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::SubCell { .. },
 			] => Some(Change::remove_offset(1)),
@@ -64,7 +73,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				}),
 				Instruction::SetVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::swap([
 				Instruction::clear_val(),
@@ -82,8 +91,14 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 		matches!(
 			window,
 			[
-				Instruction::SetVal { offset: None, .. },
-				Instruction::IncVal { offset: None, .. } | Instruction::Read
+				Instruction::SetVal {
+					offset: Offset(0),
+					..
+				},
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				} | Instruction::Read
 			] | [
 				Instruction::Block(BlockInstruction::DynamicLoop(..) | BlockInstruction::IfNz(..))
 					| Instruction::Super(
@@ -94,27 +109,35 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					) | Instruction::SubCell { .. }
 					| Instruction::MoveVal(..),
 				Instruction::SetVal {
-					offset: None,
+					offset: Offset(0),
 					value: None
 				}
 			] | [
 				Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Fetch,
 					..
-				}) | Instruction::IncVal { offset: None, .. },
+				}) | Instruction::IncVal {
+					offset: Offset(0),
+					..
+				},
 				Instruction::Read
 			] | [
-				Instruction::IncVal { offset: None, .. }
-					| Instruction::TakeVal(..)
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				} | Instruction::TakeVal(..)
 					| Instruction::Super(SuperInstruction::ScaleAnd {
 						action: ScaleAnd::Take,
 						..
 					}),
-				Instruction::SetVal { offset: None, .. }
+				Instruction::SetVal {
+					offset: Offset(0),
+					..
+				}
 			] | [
 				Instruction::SetVal {
 					value: None,
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::SubCell { .. }
 			]

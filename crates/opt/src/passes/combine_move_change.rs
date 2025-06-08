@@ -14,7 +14,7 @@ impl PeepholePass for CombineMoveChangePass {
 				Instruction::MovePtr(Offset(x @ 1..=isize::MAX)),
 				Instruction::IncVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(Offset(y @ isize::MIN..=0)),
 			] => Some(Change::swap([
@@ -30,7 +30,10 @@ impl PeepholePass for CombineMoveChangePass {
 			window,
 			[
 				Instruction::MovePtr(Offset(1..=isize::MAX)),
-				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				},
 				Instruction::MovePtr(Offset(isize::MIN..=0))
 			]
 		)

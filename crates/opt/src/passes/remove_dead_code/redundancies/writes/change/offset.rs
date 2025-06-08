@@ -13,20 +13,16 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::IncVal {
-					offset: Some(x), ..
-				},
-				Instruction::SetVal {
-					offset: Some(y), ..
-				},
+				Instruction::IncVal { offset: x, .. },
+				Instruction::SetVal { offset: y, .. },
 			] if *x == *y => Some(Change::remove_offset(0)),
 			[
 				Instruction::SetVal {
 					value: a,
-					offset: Some(x),
+					offset: x,
 				},
 				Instruction::IncVal {
-					offset: Some(y),
+					offset: y,
 					value: b,
 				},
 			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
@@ -39,10 +35,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: x,
 					..
 				}),
-				Instruction::SetVal {
-					offset: Some(y),
-					value,
-				},
+				Instruction::SetVal { offset: y, value },
 			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
 				value.get_or_zero(),
 				*x,
@@ -51,7 +44,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 				Instruction::FetchVal(x),
 				Instruction::SetVal {
 					value: None,
-					offset: Some(y),
+					offset: y,
 				},
 			] if *x == *y => Some(Change::remove_offset(1)),
 			_ => None,
@@ -63,16 +56,16 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 			window,
 			[
 				Instruction::SetVal {
-					offset: Some(x),
+					offset: x,
 					..
 				},
 				Instruction::IncVal {
-					offset: Some(y),
+					offset: y,
 					..
 				}
 			] | [
 				Instruction::IncVal {
-					offset: Some(x),
+					offset: x,
 					..
 				} | Instruction::Super(SuperInstruction::ScaleAnd {
 					action: ScaleAnd::Move,
@@ -80,14 +73,14 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					..
 				}),
 				Instruction::SetVal {
-					offset: Some(y),
+					offset: y,
 					..
 				}
 			] | [
 				Instruction::FetchVal(x),
 				Instruction::SetVal {
 					value: None,
-					offset: Some(y)
+					offset: y
 				}
 			]
 			if *x == *y

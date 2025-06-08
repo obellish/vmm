@@ -29,7 +29,7 @@ pub enum Instruction {
 	/// Increment the value at the current cell (offset = None) or at an offset
 	IncVal {
 		value: i8,
-		offset: Option<Offset>,
+		offset: Offset,
 	},
 	SubCell {
 		offset: Offset,
@@ -37,7 +37,7 @@ pub enum Instruction {
 	/// Set the value at the current cell (offset = None) or at an offset
 	SetVal {
 		value: Option<NonZeroU8>,
-		offset: Option<Offset>,
+		offset: Offset,
 	},
 	/// Multiply self by factor
 	ScaleVal {
@@ -58,7 +58,7 @@ pub enum Instruction {
 	/// Write the value to an output
 	Write {
 		count: usize,
-		offset: Option<Offset>,
+		offset: Offset,
 	},
 	/// A block of instructions
 	Block(BlockInstruction),
@@ -69,18 +69,21 @@ pub enum Instruction {
 
 impl Instruction {
 	#[must_use]
-	pub const fn inc_val(v: i8) -> Self {
-		Self::IncVal {
-			value: v,
-			offset: None,
-		}
+	pub fn inc_val(v: i8) -> Self {
+		Self::inc_val_at(v, 0)
 	}
 
 	#[must_use]
 	pub const fn changes_current_cell(&self) -> bool {
 		matches!(
 			self,
-			Self::SetVal { offset: None, .. } | Self::IncVal { offset: None, .. }
+			Self::SetVal {
+				offset: Offset(0),
+				..
+			} | Self::IncVal {
+				offset: Offset(0),
+				..
+			}
 		)
 	}
 
@@ -105,7 +108,7 @@ impl Instruction {
 	pub fn inc_val_at(v: i8, offset: impl Into<Offset>) -> Self {
 		Self::IncVal {
 			value: v,
-			offset: Some(offset.into()),
+			offset: offset.into(),
 		}
 	}
 
@@ -115,34 +118,28 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn set_val(v: u8) -> Self {
-		Self::SetVal {
-			value: NonZeroU8::new(v),
-			offset: None,
-		}
+	pub fn set_val(v: u8) -> Self {
+		Self::set_val_at(v, 0)
 	}
 
 	#[must_use]
 	pub fn set_val_at(v: u8, offset: impl Into<Offset>) -> Self {
 		Self::SetVal {
 			value: NonZeroU8::new(v),
-			offset: Some(offset.into()),
+			offset: offset.into(),
 		}
 	}
 
 	#[must_use]
-	pub const fn clear_val() -> Self {
-		Self::SetVal {
-			value: None,
-			offset: None,
-		}
+	pub fn clear_val() -> Self {
+		Self::clear_val_at(0)
 	}
 
 	#[must_use]
 	pub fn clear_val_at(offset: impl Into<Offset>) -> Self {
 		Self::SetVal {
 			value: None,
-			offset: Some(offset.into()),
+			offset: offset.into(),
 		}
 	}
 
@@ -192,33 +189,27 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn write_once() -> Self {
-		Self::Write {
-			offset: None,
-			count: 1,
-		}
+	pub fn write_once() -> Self {
+		Self::write_once_at(0)
 	}
 
 	#[must_use]
 	pub fn write_once_at(offset: impl Into<Offset>) -> Self {
 		Self::Write {
-			offset: Some(offset.into()),
+			offset: offset.into(),
 			count: 1,
 		}
 	}
 
 	#[must_use]
-	pub const fn write_many(count: usize) -> Self {
-		Self::Write {
-			offset: None,
-			count,
-		}
+	pub fn write_many(count: usize) -> Self {
+		Self::write_many_at(count, 0)
 	}
 
 	#[must_use]
 	pub fn write_many_at(count: usize, offset: impl Into<Offset>) -> Self {
 		Self::Write {
-			offset: Some(offset.into()),
+			offset: offset.into(),
 			count,
 		}
 	}
@@ -262,11 +253,14 @@ impl Instruction {
 	pub fn is_overwriting_current_cell(&self) -> bool {
 		matches!(
 			self,
-			Self::SetVal { offset: None, .. }
-				| Self::Read | Self::Super(SuperInstruction::ScaleAnd {
-				action: ScaleAnd::Move,
+			Self::SetVal {
+				offset: Offset(0),
 				..
-			}) | Self::Block(BlockInstruction::IfNz(..))
+			} | Self::Read
+				| Self::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Move,
+					..
+				}) | Self::Block(BlockInstruction::IfNz(..))
 				| Self::MoveVal(..)
 		) || matches!(self, Self::Span(s) if s.is_clear() && s.span().contains(&0))
 	}
@@ -389,7 +383,9 @@ impl Instruction {
 	#[must_use]
 	pub const fn offset(&self) -> Option<Offset> {
 		match self {
-			Self::SetVal { offset, .. } | Self::IncVal { offset, .. } => *offset,
+			Self::SetVal { offset, .. }
+			| Self::IncVal { offset, .. }
+			| Self::Write { offset, .. } => Some(*offset),
 			_ => None,
 		}
 	}
@@ -420,18 +416,16 @@ impl Display for Instruction {
 			Self::IncVal { value, offset } => {
 				f.write_str("inc ")?;
 				Display::fmt(&value, f)?;
-				if let Some(offset) = *offset {
-					f.write_char(' ')?;
-					write!(f, "{offset:#}")?;
-				}
+				let Offset(offset) = *offset;
+				f.write_char(' ')?;
+				write!(f, "{offset:#}")?;
 			}
 			Self::SetVal { value, offset } => {
 				f.write_str("set ")?;
 				Display::fmt(&value.get_or_zero(), f)?;
-				if let Some(offset) = *offset {
-					f.write_char(' ')?;
-					write!(f, "{offset:#}")?;
-				}
+				let Offset(offset) = *offset;
+				f.write_char(' ')?;
+				write!(f, "{offset:#}")?;
 			}
 			Self::MovePtr(offset) => {
 				f.write_str("movby ")?;
@@ -444,10 +438,9 @@ impl Display for Instruction {
 			Self::Write { count, offset } => {
 				f.write_str("putc ")?;
 				Display::fmt(&count, f)?;
-				if let Some(offset) = *offset {
-					f.write_char(' ')?;
-					write!(f, "{offset:#}")?;
-				}
+				let Offset(offset) = offset;
+				write!(f, "{offset:#}")?;
+				f.write_char(' ')?;
 			}
 			Self::FindZero(offset) => {
 				f.write_str("findz [")?;
@@ -492,7 +485,7 @@ impl IsZeroingCell for Instruction {
 			Self::Span(s) => s.is_zeroing_cell(),
 			Self::SetVal {
 				value: None,
-				offset: None,
+				offset: Offset(0),
 			}
 			| Self::MoveVal(..)
 			| Self::DuplicateVal { .. }

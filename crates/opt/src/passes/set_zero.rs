@@ -1,6 +1,6 @@
 use std::num::NonZeroU8;
 
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -16,7 +16,7 @@ impl PeepholePass for OptimizeSetZeroPass {
 				Instruction::FindZero(offset),
 				Instruction::IncVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::find_and_set_zero(
 				NonZeroU8::new(*value as u8)?,
@@ -26,7 +26,7 @@ impl PeepholePass for OptimizeSetZeroPass {
 				Instruction::FindZero(offset),
 				Instruction::SetVal {
 					value: Some(value),
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::find_and_set_zero(
 				*value, *offset,
@@ -34,7 +34,7 @@ impl PeepholePass for OptimizeSetZeroPass {
 			[
 				Instruction::FindZero(..),
 				Instruction::SetVal {
-					offset: None,
+					offset: Offset(0),
 					value: None,
 				},
 			] => Some(Change::remove_offset(1)),
@@ -47,7 +47,13 @@ impl PeepholePass for OptimizeSetZeroPass {
 			window,
 			[
 				Instruction::FindZero(..),
-				Instruction::IncVal { offset: None, .. } | Instruction::SetVal { offset: None, .. }
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				} | Instruction::SetVal {
+					offset: Offset(0),
+					..
+				}
 			]
 		)
 	}

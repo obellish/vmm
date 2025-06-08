@@ -15,7 +15,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 			] => Some(Change::swap([
@@ -26,7 +26,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 				Instruction::MovePtr(x),
 				Instruction::SetVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 			] => Some(Change::swap([
@@ -36,7 +36,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::Write {
-					offset: None,
+					offset: Offset(0),
 					count,
 				},
 				Instruction::MovePtr(y),
@@ -53,9 +53,16 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			window,
 			[
 				Instruction::MovePtr(Offset(_)),
-				Instruction::IncVal { offset: None, .. }
-					| Instruction::SetVal { offset: None, .. }
-					| Instruction::Write { offset: None, .. },
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				} | Instruction::SetVal {
+					offset: Offset(0),
+					..
+				} | Instruction::Write {
+					offset: Offset(0),
+					..
+				},
 				Instruction::MovePtr(Offset(_))
 			]
 		)

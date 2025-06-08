@@ -11,6 +11,7 @@ use std::{
 	num::NonZeroU8,
 };
 
+use serde::de::value;
 use vmm_ir::{
 	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
 	SuperInstruction,
@@ -143,7 +144,7 @@ where
 		Ok(())
 	}
 
-	fn write_char(&mut self, count: usize, offset: Option<Offset>) -> Result<(), RuntimeError> {
+	fn write_char(&mut self, count: usize, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
 		let ch = self.tape()[idx].0;
@@ -164,7 +165,7 @@ where
 	}
 
 	#[inline]
-	fn inc_val(&mut self, value: i8, offset: Option<Offset>) -> Result<(), RuntimeError> {
+	fn inc_val(&mut self, value: i8, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
 		self.tape_mut()[idx] += value;
@@ -173,11 +174,7 @@ where
 	}
 
 	#[inline]
-	fn set_val(
-		&mut self,
-		value: Option<NonZeroU8>,
-		offset: Option<Offset>,
-	) -> Result<(), RuntimeError> {
+	fn set_val(&mut self, value: Option<NonZeroU8>, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
 		self.tape_mut()[idx].0 = value.get_or_zero();
@@ -224,7 +221,7 @@ where
 	fn move_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_value = mem::take(self.cell_mut()).0;
 
-		let dst_offset = self.calculate_index(Some(offset));
+		let dst_offset = self.calculate_index(offset);
 
 		self.tape_mut()[dst_offset] += src_value;
 
@@ -233,7 +230,7 @@ where
 
 	#[inline]
 	fn fetch_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
-		let src_offset = self.calculate_index(Some(offset));
+		let src_offset = self.calculate_index(offset);
 
 		let value = mem::take(&mut self.tape_mut()[src_offset]).0;
 
@@ -245,7 +242,7 @@ where
 	#[inline]
 	fn scale_and_move_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.ptr().value();
-		let dst_offset = self.calculate_index(Some(offset));
+		let dst_offset = self.calculate_index(offset);
 
 		let tape = self.tape_mut();
 
@@ -258,7 +255,7 @@ where
 
 	#[inline]
 	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
-		let src_offset = self.calculate_index(Some(offset));
+		let src_offset = self.calculate_index(offset);
 
 		let value = mem::take(&mut self.tape_mut()[src_offset]);
 
@@ -291,7 +288,7 @@ where
 
 	#[inline]
 	fn sub_cell(&mut self, offset: Offset) -> Result<(), RuntimeError> {
-		let idx = self.calculate_index(Some(offset));
+		let idx = self.calculate_index(offset);
 
 		let current_value = mem::take(self.cell_mut());
 
@@ -327,7 +324,7 @@ where
 		let value = mem::take(self.cell_mut()).0;
 
 		for offset in offsets {
-			let idx = self.calculate_index(Some(*offset));
+			let idx = self.calculate_index(*offset);
 
 			self.tape_mut()[idx] += value;
 		}
@@ -348,7 +345,7 @@ where
 
 	fn inc_span(&mut self, value: i8, span: SpanInclusive<Offset>) -> Result<(), RuntimeError> {
 		for idx in span {
-			self.inc_val(value, Some(idx))?;
+			self.inc_val(value, idx)?;
 		}
 
 		Ok(())
@@ -360,7 +357,7 @@ where
 		span: SpanInclusive<Offset>,
 	) -> Result<(), RuntimeError> {
 		for idx in span {
-			self.set_val(value, Some(idx))?;
+			self.set_val(value, idx)?;
 		}
 
 		Ok(())
@@ -453,10 +450,10 @@ where
 	}
 
 	#[allow(clippy::missing_const_for_fn)]
-	fn calculate_index(&self, offset: Option<Offset>) -> usize {
-		match offset {
-			None | Some(Offset(0)) => self.ptr().value(),
-			Some(Offset(offset)) => (*self.ptr() + offset).value(),
+	fn calculate_index(&self, offset: Offset) -> usize {
+		match offset.0 {
+			0 => self.ptr().value(),
+			x => (*self.ptr() + x).value(),
 		}
 	}
 }

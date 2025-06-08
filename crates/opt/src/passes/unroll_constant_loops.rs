@@ -1,4 +1,4 @@
-use vmm_ir::{BlockInstruction, Instruction, PtrMovement};
+use vmm_ir::{BlockInstruction, Instruction, Offset, PtrMovement};
 
 use crate::{Change, PeepholePass};
 
@@ -12,7 +12,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 		match window {
 			[
 				Instruction::SetVal {
-					offset: None,
+					offset: Offset(0),
 					value: Some(i),
 				},
 				Instruction::Block(BlockInstruction::DynamicLoop(inner)),
@@ -29,7 +29,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					[
 						Instruction::IncVal {
 							value: -1,
-							offset: None,
+							offset: Offset(0),
 						},
 						rest @ ..,
 					]
@@ -37,7 +37,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 						rest @ ..,
 						Instruction::IncVal {
 							value: -1,
-							offset: None,
+							offset: Offset(0),
 						},
 					] => {
 						let mut output = Vec::with_capacity((i.get() as usize) * rest.len());
@@ -57,7 +57,9 @@ impl PeepholePass for UnrollConstantLoopsPass {
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		let [
-			Instruction::SetVal { offset: None, .. },
+			Instruction::SetVal {
+				offset: Offset(0), ..
+			},
 			Instruction::Block(BlockInstruction::DynamicLoop(inner)),
 		] = window
 		else {
@@ -76,14 +78,14 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			inner.as_slice(),
 			[
 				Instruction::IncVal {
-					offset: None,
+					offset: Offset(0),
 					value: -1
 				},
 				..
 			] | [
 				..,
 				Instruction::IncVal {
-					offset: None,
+					offset: Offset(0),
 					value: -1
 				}
 			]

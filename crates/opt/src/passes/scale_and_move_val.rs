@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, LoopPass};
 
@@ -11,24 +11,24 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			[
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value: j @ 0..=i8::MAX,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 			]
 			| [
 				Instruction::IncVal {
 					value: j @ 0..=i8::MAX,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(x),
 			] if *x == -y => {
@@ -41,21 +41,21 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			[
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::IncVal {
 					value: value @ 0..=i8::MAX,
-					offset: Some(x),
+					offset: x,
 				},
 			]
 			| [
 				Instruction::IncVal {
 					value: value @ 0..=i8::MAX,
-					offset: Some(x),
+					offset: x,
 				},
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::scale_and_move_val(
 				*value as u8,
@@ -75,17 +75,17 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			[
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::MovePtr(x),
-				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal { offset: Offset(0), .. },
 				Instruction::MovePtr(y)
 			] | [
-				Instruction::IncVal { offset: None, .. },
+				Instruction::IncVal { offset: Offset(0), .. },
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::MovePtr(y)
 			]
@@ -95,20 +95,20 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			[
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::IncVal {
 					value: 0..=i8::MAX,
-					offset: Some(_)
+					..
 				}
 			] | [
 				Instruction::IncVal {
 					value: 0..=i8::MAX,
-					offset: Some(_)
+					..
 				},
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				}
 			]
 		)

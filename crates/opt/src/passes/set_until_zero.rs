@@ -12,7 +12,7 @@ impl LoopPass for OptimizeSetUntilZeroPass {
 			[
 				Instruction::SetVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(Offset(x)),
 			] => Some(Change::replace(Instruction::set_until_zero(
@@ -31,7 +31,10 @@ impl LoopPass for OptimizeSetUntilZeroPass {
 		matches!(
 			loop_values,
 			[
-				Instruction::SetVal { offset: None, .. },
+				Instruction::SetVal {
+					offset: Offset(0),
+					..
+				},
 				Instruction::MovePtr(Offset(..))
 			]
 		)

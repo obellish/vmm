@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, SpanInstructionType};
+use vmm_ir::{Instruction, Offset, SpanInstructionType};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -15,7 +15,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 			] if *x == -y => Some(Change::replace(Instruction::inc_val_at(*value, x))),
@@ -23,7 +23,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 				Instruction::MovePtr(x),
 				Instruction::SetVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 			] if *x == -y => Some(Change::replace(Instruction::set_val_at(
@@ -33,7 +33,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::Write {
-					offset: None,
+					offset: Offset(0),
 					count,
 				},
 				Instruction::MovePtr(y),
@@ -60,9 +60,9 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			window,
 			[
 				Instruction::MovePtr(x),
-				Instruction::IncVal { offset: None, .. }
-					| Instruction::SetVal { offset: None, .. }
-					| Instruction::Write { offset: None, .. }
+				Instruction::IncVal { offset: Offset(0), .. }
+					| Instruction::SetVal { offset: Offset(0), .. }
+					| Instruction::Write { offset: Offset(0), .. }
 					| Instruction::Span(..),
 				Instruction::MovePtr(y)
 			]

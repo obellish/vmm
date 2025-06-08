@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, SpanInstruction, SpanInstructionType};
+use vmm_ir::{Instruction, Offset, SpanInstruction, SpanInstructionType};
 
 use crate::{Change, LoopPass};
 
@@ -11,7 +11,7 @@ impl LoopPass for OptimizeDupeValPass {
 			[
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::Span(
 					span @ SpanInstruction {
@@ -36,7 +36,7 @@ impl LoopPass for OptimizeDupeValPass {
 			[
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::Span(SpanInstruction {
 					ty: SpanInstructionType::Inc { value: 1 },

@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, LoopPass};
 
@@ -19,7 +19,7 @@ impl LoopPass for OptimizeClearCellPass {
 			loop_values,
 			[Instruction::IncVal {
 				value: -1 | 1,
-				offset: None
+				offset: Offset(0)
 			}]
 		)
 	}

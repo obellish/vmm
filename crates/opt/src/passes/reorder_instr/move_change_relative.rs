@@ -13,20 +13,14 @@ impl PeepholePass for ReorderMoveChangePass {
 		match window {
 			[
 				Instruction::MovePtr(x),
-				Instruction::IncVal {
-					value,
-					offset: Some(y),
-				},
+				Instruction::IncVal { value, offset: y },
 			] if *x == -y => Some(Change::swap([
 				Instruction::inc_val(*value),
 				Instruction::move_ptr(*x),
 			])),
 			[
 				Instruction::MovePtr(x),
-				Instruction::SetVal {
-					value,
-					offset: Some(y),
-				},
+				Instruction::SetVal { value, offset: y },
 			] if *x == -y => Some(Change::swap([
 				Instruction::set_val(value.get_or_zero()),
 				Instruction::move_ptr(*x),
@@ -41,10 +35,10 @@ impl PeepholePass for ReorderMoveChangePass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					offset: Some(y),
+					offset: y,
 					..
 				} | Instruction::SetVal {
-					offset: Some(y),
+					offset: y,
 					..
 				}
 			]

@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 use vmm_utils::GetOrZero as _;
 use vmm_wrap::ops::WrappingAdd;
 
@@ -16,21 +16,21 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::IncVal {
 					value: i1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::IncVal {
 					value: i2,
-					offset: None,
+					offset: Offset(0),
 				},
 			] if *i1 == -i2 => Some(Change::remove()),
 			[
 				Instruction::IncVal {
 					value: i1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::IncVal {
 					value: i2,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::inc_val(
 				WrappingAdd::wrapping_add(i1, i2),
@@ -42,30 +42,32 @@ impl PeepholePass for CollapseStackedInstrPass {
 				Instruction::move_ptr(WrappingAdd::wrapping_add(i1, i2)),
 			)),
 			[
-				Instruction::SetVal { offset: None, .. },
+				Instruction::SetVal {
+					offset: Offset(0), ..
+				},
 				Instruction::SetVal {
 					value: Some(x),
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::set_val(x.get()))),
 			[
 				Instruction::IncVal {
 					value: i1,
-					offset: Some(x),
+					offset: x,
 				},
 				Instruction::IncVal {
 					value: i2,
-					offset: Some(y),
+					offset: y,
 				},
 			] if *i1 == -i2 && x == y => Some(Change::remove()),
 			[
 				Instruction::IncVal {
 					value: i1,
-					offset: Some(x),
+					offset: x,
 				},
 				Instruction::IncVal {
 					value: i2,
-					offset: Some(y),
+					offset: y,
 				},
 			] if x == y => Some(Change::replace(Instruction::inc_val_at(
 				WrappingAdd::wrapping_add(i1, i2),
@@ -74,60 +76,57 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::SetVal {
 					value: None,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::SetVal {
 					value: None,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::remove_offset(1)),
 			[
 				Instruction::SetVal {
 					value: None,
-					offset: Some(x),
+					offset: x,
 				},
 				Instruction::SetVal {
 					value: None,
-					offset: Some(y),
+					offset: y,
 				},
 			] if *x == *y => Some(Change::remove_offset(1)),
 			[
-				Instruction::SetVal {
-					offset: Some(x), ..
-				},
-				Instruction::SetVal {
-					offset: Some(y),
-					value,
-				},
+				Instruction::SetVal { offset: x, .. },
+				Instruction::SetVal { offset: y, value },
 			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
 				value.get_or_zero(),
 				*x,
 			))),
 			[
-				Instruction::SetVal { offset: None, .. },
+				Instruction::SetVal {
+					offset: Offset(0), ..
+				},
 				Instruction::SetVal {
 					value,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::set_val(value.get_or_zero()))),
 			[
 				Instruction::Write {
-					offset: None,
+					offset: Offset(0),
 					count: a,
 				},
 				Instruction::Write {
-					offset: None,
+					offset: Offset(0),
 					count: b,
 				},
 			] => Some(Change::replace(Instruction::write_many(a + b))),
 			[
 				Instruction::Write {
 					count: a,
-					offset: Some(x),
+					offset: x,
 				},
 				Instruction::Write {
 					count: b,
-					offset: Some(y),
+					offset: y,
 				},
 			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
 
@@ -139,43 +138,61 @@ impl PeepholePass for CollapseStackedInstrPass {
 		matches!(
 			window,
 			[
-				Instruction::IncVal { offset: None, .. },
-				Instruction::IncVal { offset: None, .. }
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				},
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				}
 			] | [Instruction::MovePtr(..), Instruction::MovePtr(..)]
 				| [
-					Instruction::SetVal { offset: None, .. },
-					Instruction::SetVal { offset: None, .. }
+					Instruction::SetVal {
+						offset: Offset(0),
+						..
+					},
+					Instruction::SetVal {
+						offset: Offset(0),
+						..
+					}
 				] | [
-				Instruction::Write { offset: None, .. },
-				Instruction::Write { offset: None, .. }
+				Instruction::Write {
+					offset: Offset(0),
+					..
+				},
+				Instruction::Write {
+					offset: Offset(0),
+					..
+				}
 			]
 		) || matches!(
 			window,
 			[
 				Instruction::IncVal {
-					offset: Some(x),
+					offset: x,
 					..
 				},
 				Instruction::IncVal {
-					offset: Some(y),
+					offset: y,
 					..
 				}
 			] | [
 				Instruction::SetVal {
-					offset: Some(x),
+					offset: x,
 					..
 				},
 				Instruction::SetVal {
-					offset: Some(y),
+					offset: y,
 					..
 				}
 			] | [
 				Instruction::Write {
-					offset: Some(x),
+					offset: x,
 					..
 				},
 				Instruction::Write {
-					offset: Some(y),
+					offset: y,
 					..
 				}
 			]

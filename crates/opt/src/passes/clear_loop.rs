@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, SpanInstruction, SpanInstructionType};
+use vmm_ir::{Instruction, Offset, SpanInstruction, SpanInstructionType};
 
 use crate::{Change, LoopPass};
 
@@ -12,24 +12,24 @@ impl LoopPass for OptimizeClearLoopPass {
 				Instruction::MovePtr(x),
 				Instruction::SetVal {
 					value: None,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 			]
 			| [
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 				Instruction::SetVal {
 					value: None,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::swap([
 				Instruction::move_ptr(*x),
@@ -39,12 +39,12 @@ impl LoopPass for OptimizeClearLoopPass {
 			])),
 			[
 				Instruction::SetVal {
-					offset: Some(offset),
+					offset,
 					value: None,
 				},
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::swap([
 				Instruction::clear_val_at(*offset),
@@ -53,11 +53,11 @@ impl LoopPass for OptimizeClearLoopPass {
 			[
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 				Instruction::SetVal {
 					value: None,
-					offset: Some(offset),
+					offset,
 				},
 			] => Some(Change::swap([
 				Instruction::clear_val(),
@@ -70,7 +70,7 @@ impl LoopPass for OptimizeClearLoopPass {
 				}),
 				Instruction::IncVal {
 					value: -1,
-					offset: None,
+					offset: Offset(0),
 				},
 			] => Some(Change::swap([span.clone(), Instruction::clear_val()])),
 			_ => None,
@@ -88,44 +88,39 @@ impl LoopPass for OptimizeClearLoopPass {
 				Instruction::MovePtr(_),
 				Instruction::SetVal {
 					value: None,
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::MovePtr(_),
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				}
 			] | [
 				Instruction::MovePtr(_),
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				},
 				Instruction::MovePtr(_),
 				Instruction::SetVal {
 					value: None,
-					offset: None
+					offset: Offset(0)
 				}
 			] | [
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				},
-				Instruction::SetVal {
-					offset: Some(..),
-					value: None
-				}
+				Instruction::SetVal { value: None, .. }
 			] | [
-				Instruction::SetVal {
-					offset: Some(..),
-					value: None
-				} | Instruction::Span(SpanInstruction {
-					ty: SpanInstructionType::Set { value: None },
-					..
-				}),
+				Instruction::SetVal { value: None, .. }
+					| Instruction::Span(SpanInstruction {
+						ty: SpanInstructionType::Set { value: None },
+						..
+					}),
 				Instruction::IncVal {
 					value: -1,
-					offset: None
+					offset: Offset(0)
 				}
 			]
 		)

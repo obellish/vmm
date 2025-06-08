@@ -175,7 +175,6 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<RemoveRedundantChangeValOffsetPass>(progress);
 		self.run_default_peephole_pass::<RemoveRedundantScaleValInstrPass>(progress);
 		self.run_default_peephole_pass::<RemovePointlessInstrPass>(progress);
-		self.run_default_peephole_pass::<RemoveNonMovementOffsetsPass>(progress);
 		self.run_default_peephole_pass::<RemoveRedundantChangeValSpanPass>(progress);
 
 		self.run_default_dynamic_loop_pass::<RemoveEmptyLoopsPass>(progress);
