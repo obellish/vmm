@@ -7,9 +7,9 @@ use super::{IsZeroingCell, Offset, PtrMovement};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SpanInstruction {
-	ty: SpanInstructionType,
-	start: Offset,
-	end: Offset,
+	pub ty: SpanInstructionType,
+	pub start: Offset,
+	pub end: Offset,
 }
 
 impl SpanInstruction {
@@ -70,7 +70,7 @@ impl SpanInstruction {
 
 impl IsZeroingCell for SpanInstruction {
 	fn is_zeroing_cell(&self) -> bool {
-		false
+		self.is_clear() && self.span().contains(&0)
 	}
 }
 

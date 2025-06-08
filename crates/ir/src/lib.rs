@@ -259,7 +259,7 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn is_overwriting_current_cell(&self) -> bool {
+	pub fn is_overwriting_current_cell(&self) -> bool {
 		matches!(
 			self,
 			Self::SetVal { offset: None, .. }
@@ -268,7 +268,7 @@ impl Instruction {
 				..
 			}) | Self::Block(BlockInstruction::IfNz(..))
 				| Self::MoveVal(..)
-		)
+		) || matches!(self, Self::Span(s) if s.is_clear() && s.span().contains(&0))
 	}
 
 	pub fn needs_input(&self) -> bool {
@@ -294,7 +294,14 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_change_val(&self) -> bool {
-		matches!(self, Self::IncVal { .. })
+		matches!(
+			self,
+			Self::IncVal { .. }
+				| Self::Span(SpanInstruction {
+					ty: SpanInstructionType::Inc { .. },
+					..
+				})
+		)
 	}
 
 	#[must_use]
@@ -304,12 +311,26 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_set_val(&self) -> bool {
-		matches!(self, Self::SetVal { .. })
+		matches!(
+			self,
+			Self::SetVal { .. }
+				| Self::Span(SpanInstruction {
+					ty: SpanInstructionType::Set { .. },
+					..
+				})
+		)
 	}
 
 	#[must_use]
 	pub const fn is_clear_val(&self) -> bool {
-		matches!(self, Self::SetVal { .. })
+		matches!(
+			self,
+			Self::SetVal { value: None, .. }
+				| Self::Span(SpanInstruction {
+					ty: SpanInstructionType::Set { value: None },
+					..
+				})
+		)
 	}
 
 	#[must_use]
@@ -399,11 +420,6 @@ impl Display for Instruction {
 			Self::IncVal { value, offset } => {
 				f.write_str("inc ")?;
 				Display::fmt(&value, f)?;
-				// if let Some(Offset::Relative(offset)) = *offset {
-				// 	f.write_str(" [")?;
-				// 	Display::fmt(&offset, f)?;
-				// 	f.write_char(']')?;
-				// }
 				if let Some(offset) = *offset {
 					f.write_char(' ')?;
 					write!(f, "{offset:#}")?;
@@ -473,6 +489,7 @@ impl IsZeroingCell for Instruction {
 		match self {
 			Self::Block(l) => l.is_zeroing_cell(),
 			Self::Super(s) => s.is_zeroing_cell(),
+			Self::Span(s) => s.is_zeroing_cell(),
 			Self::SetVal {
 				value: None,
 				offset: None,
@@ -492,6 +509,7 @@ impl PtrMovement for Instruction {
 		match self {
 			Self::Super(s) => s.ptr_movement(),
 			Self::Block(l) => l.ptr_movement(),
+			Self::Span(s) => s.ptr_movement(),
 			Self::ScaleVal { .. }
 			| Self::SetVal { .. }
 			| Self::IncVal { .. }

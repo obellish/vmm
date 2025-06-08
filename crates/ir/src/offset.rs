@@ -7,7 +7,7 @@ use core::{
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use vmm_utils::Step;
+use vmm_utils::{GetOrZero, Step};
 use vmm_wrap::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingNeg,
 	WrappingSub, WrappingSubAssign,
@@ -245,7 +245,6 @@ impl From<&Self> for Offset {
 
 impl From<isize> for Offset {
 	fn from(value: isize) -> Self {
-		// Self::Relative(value)
 		Self::new(value)
 	}
 }
@@ -253,6 +252,21 @@ impl From<isize> for Offset {
 impl From<&isize> for Offset {
 	fn from(value: &isize) -> Self {
 		(*value).into()
+	}
+}
+
+impl GetOrZero<Self> for Offset {
+	fn get_or_zero(self) -> Self {
+		self
+	}
+}
+
+impl GetOrZero<Offset> for Option<Offset> {
+	fn get_or_zero(self) -> Offset {
+		match self {
+			Some(offset) => offset,
+			None => Offset::new(0),
+		}
 	}
 }
 
@@ -382,9 +396,21 @@ impl PartialEq<isize> for Offset {
 	}
 }
 
+impl PartialEq<Offset> for isize {
+	fn eq(&self, other: &Offset) -> bool {
+		PartialEq::eq(self, &other.0)
+	}
+}
+
 impl PartialOrd<isize> for Offset {
 	fn partial_cmp(&self, other: &isize) -> Option<Ordering> {
 		Some(self.0.cmp(other))
+	}
+}
+
+impl PartialOrd<Offset> for isize {
+	fn partial_cmp(&self, other: &Offset) -> Option<Ordering> {
+		Some(self.cmp(&other.0))
 	}
 }
 
