@@ -15,7 +15,7 @@ impl PeepholePass for RemovePointlessInstrPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,
-			[Instruction::MovePtr(Offset::Relative(0))
+			[Instruction::MovePtr(Offset(0))
 				| Instruction::IncVal { value: 0, .. }
 				| Instruction::Write { count: 0, .. }]
 		)

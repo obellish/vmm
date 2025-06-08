@@ -11,12 +11,12 @@ impl PeepholePass for CombineMoveChangePass {
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::MovePtr(Offset::Relative(x @ 1..=isize::MAX)),
+				Instruction::MovePtr(Offset(x @ 1..=isize::MAX)),
 				Instruction::IncVal {
 					value,
 					offset: None,
 				},
-				Instruction::MovePtr(Offset::Relative(y @ isize::MIN..=0)),
+				Instruction::MovePtr(Offset(y @ isize::MIN..=0)),
 			] => Some(Change::swap([
 				Instruction::inc_val_at(*value, x),
 				Instruction::move_ptr_by(*x + *y),
@@ -29,9 +29,9 @@ impl PeepholePass for CombineMoveChangePass {
 		matches!(
 			window,
 			[
-				Instruction::MovePtr(Offset::Relative(1..=isize::MAX)),
+				Instruction::MovePtr(Offset(1..=isize::MAX)),
 				Instruction::IncVal { offset: None, .. },
-				Instruction::MovePtr(Offset::Relative(isize::MIN..=0))
+				Instruction::MovePtr(Offset(isize::MIN..=0))
 			]
 		)
 	}

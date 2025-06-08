@@ -17,7 +17,7 @@ impl PeepholePass for OptimizeFetchAndScaleValPass {
 					factor,
 					action: ScaleAnd::Move,
 				}),
-				Instruction::MovePtr(Offset::Relative(z)),
+				Instruction::MovePtr(Offset(z)),
 			] if *y == *z && -x == *y => Some(Change::replace(Instruction::fetch_and_scale_val(
 				*factor, x,
 			))),
@@ -35,7 +35,7 @@ impl PeepholePass for OptimizeFetchAndScaleValPass {
 					offset: y,
 					..
 				}),
-				Instruction::MovePtr(Offset::Relative(z))
+				Instruction::MovePtr(Offset(z))
 			]
 			if *y == *z && -x == *y
 		)

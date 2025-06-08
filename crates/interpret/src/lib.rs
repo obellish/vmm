@@ -184,10 +184,7 @@ where
 
 	#[inline]
 	fn move_ptr(&mut self, offset: Offset) -> Result<(), RuntimeError> {
-		match offset {
-			Offset::Relative(i) => *self.ptr_mut() += i,
-			_ => unimplemented!(),
-		}
+		*self.ptr_mut() += offset.value();
 
 		Ok(())
 	}
@@ -425,8 +422,7 @@ where
 	fn calculate_index(&self, offset: Option<Offset>) -> usize {
 		match offset {
 			None => self.ptr().value(),
-			Some(Offset::Relative(offset)) => (*self.ptr() + offset).value(),
-			Some(_) => unreachable!(),
+			Some(offset) => (*self.ptr() + offset.value()).value(),
 		}
 	}
 }

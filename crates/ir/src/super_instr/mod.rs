@@ -76,7 +76,7 @@ impl Display for SuperInstruction {
 				Display::fmt(&action, f)?;
 				f.write_char(' ')?;
 				Display::fmt(&factor, f)?;
-				let Offset::Relative(offset) = offset;
+				let offset = offset.value();
 				f.write_str(" [")?;
 				Display::fmt(&offset, f)?;
 				f.write_char(']')?;
@@ -109,9 +109,9 @@ impl PtrMovement for SuperInstruction {
 			} => Some(0),
 			Self::ScaleAnd {
 				action: ScaleAnd::Take,
-				offset: Offset::Relative(offset),
+				offset,
 				..
-			} => Some(*offset),
+			} => Some(offset.value()),
 			_ => None,
 		}
 	}

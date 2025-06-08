@@ -178,7 +178,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn move_ptr_by(offset: isize) -> Self {
-		Self::MovePtr(Offset::Relative(offset))
+		Self::MovePtr(Offset::new(offset))
 	}
 
 	#[must_use]
@@ -399,24 +399,27 @@ impl Display for Instruction {
 			Self::IncVal { value, offset } => {
 				f.write_str("inc ")?;
 				Display::fmt(&value, f)?;
-				if let Some(Offset::Relative(offset)) = *offset {
-					f.write_str(" [")?;
-					Display::fmt(&offset, f)?;
-					f.write_char(']')?;
+				// if let Some(Offset::Relative(offset)) = *offset {
+				// 	f.write_str(" [")?;
+				// 	Display::fmt(&offset, f)?;
+				// 	f.write_char(']')?;
+				// }
+				if let Some(offset) = *offset {
+					f.write_char(' ')?;
+					write!(f, "{offset:#}")?;
 				}
 			}
 			Self::SetVal { value, offset } => {
 				f.write_str("set ")?;
 				Display::fmt(&value.get_or_zero(), f)?;
-				if let Some(Offset::Relative(offset)) = *offset {
-					f.write_str(" [")?;
-					Display::fmt(&offset, f)?;
-					f.write_char(']')?;
+				if let Some(offset) = *offset {
+					f.write_char(' ')?;
+					write!(f, "{offset:#}")?;
 				}
 			}
-			Self::MovePtr(Offset::Relative(offset)) => {
+			Self::MovePtr(offset) => {
 				f.write_str("movby ")?;
-				Display::fmt(&offset, f)?;
+				write!(f, "{offset:#}")?;
 			}
 			Self::ScaleVal { factor } => {
 				f.write_str("scale ")?;
@@ -425,10 +428,9 @@ impl Display for Instruction {
 			Self::Write { count, offset } => {
 				f.write_str("putc ")?;
 				Display::fmt(&count, f)?;
-				if let Some(Offset::Relative(offset)) = *offset {
-					f.write_str(" [")?;
-					Display::fmt(&offset, f)?;
-					f.write_char(']')?;
+				if let Some(offset) = *offset {
+					f.write_char(' ')?;
+					write!(f, "{offset:#}")?;
 				}
 			}
 			Self::FindZero(offset) => {
@@ -500,9 +502,7 @@ impl PtrMovement for Instruction {
 			| Self::FetchVal(..)
 			| Self::MoveVal(..)
 			| Self::DuplicateVal { .. } => Some(0),
-			Self::MovePtr(Offset::Relative(offset)) | Self::TakeVal(Offset::Relative(offset)) => {
-				Some(*offset)
-			}
+			Self::MovePtr(offset) | Self::TakeVal(offset) => Some(offset.value()),
 			_ => None,
 		}
 	}

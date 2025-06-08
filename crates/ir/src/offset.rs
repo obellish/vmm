@@ -14,22 +14,22 @@ use vmm_wrap::ops::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
-#[non_exhaustive]
-pub enum Offset {
-	Relative(isize),
-}
+pub struct Offset(pub isize);
 
 impl Offset {
 	#[must_use]
 	pub const fn abs(self) -> Self {
-		match self {
-			Self::Relative(i) => Self::Relative(i.abs()),
-		}
+		Self(self.0.abs())
 	}
 
 	#[must_use]
-	pub const fn is_relative(self) -> bool {
-		matches!(self, Self::Relative(_))
+	pub const fn value(self) -> isize {
+		self.0
+	}
+
+	#[must_use]
+	pub const fn new(value: isize) -> Self {
+		Self(value)
 	}
 }
 
@@ -37,9 +37,7 @@ impl Add for Offset {
 	type Output = Self;
 
 	fn add(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => Self::Relative(Add::add(lhs, rhs)),
-		}
+		Self(Add::add(self.0, rhs.0))
 	}
 }
 
@@ -71,9 +69,7 @@ impl Add<isize> for Offset {
 	type Output = Self;
 
 	fn add(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(Add::add(lhs, rhs)),
-		}
+		Self(Add::add(self.0, rhs))
 	}
 }
 
@@ -130,7 +126,7 @@ impl<'de> Deserialize<'de> for Offset {
 	where
 		D: Deserializer<'de>,
 	{
-		isize::deserialize(deserializer).map(Self::Relative)
+		isize::deserialize(deserializer).map(Self::new)
 	}
 }
 
@@ -138,18 +134,14 @@ impl Display for Offset {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		let alt = f.alternate();
 
-		match self {
-			Self::Relative(offset) => {
-				if alt {
-					f.write_char('[')?;
-				}
+		if alt {
+			f.write_char('[')?;
+		}
 
-				Display::fmt(&offset, f)?;
+		Display::fmt(&self.value(), f)?;
 
-				if alt {
-					f.write_char(']')?;
-				}
-			}
+		if alt {
+			f.write_char(']')?;
 		}
 
 		Ok(())
@@ -160,9 +152,7 @@ impl Div for Offset {
 	type Output = Self;
 
 	fn div(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => Self::Relative(Div::div(lhs, rhs)),
-		}
+		Self(Div::div(self.0, rhs.0))
 	}
 }
 
@@ -194,9 +184,7 @@ impl Div<isize> for Offset {
 	type Output = Self;
 
 	fn div(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(Div::div(lhs, rhs)),
-		}
+		Self(Div::div(self.0, rhs))
 	}
 }
 
@@ -256,7 +244,8 @@ impl From<&Self> for Offset {
 
 impl From<isize> for Offset {
 	fn from(value: isize) -> Self {
-		Self::Relative(value)
+		// Self::Relative(value)
+		Self::new(value)
 	}
 }
 
@@ -270,9 +259,7 @@ impl Mul for Offset {
 	type Output = Self;
 
 	fn mul(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => Self::Relative(Mul::mul(lhs, rhs)),
-		}
+		Self(Mul::mul(self.0, rhs.0))
 	}
 }
 
@@ -304,9 +291,7 @@ impl Mul<isize> for Offset {
 	type Output = Self;
 
 	fn mul(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(Mul::mul(lhs, rhs)),
-		}
+		Self(Mul::mul(self.0, rhs))
 	}
 }
 
@@ -362,9 +347,7 @@ impl Neg for Offset {
 	type Output = Self;
 
 	fn neg(self) -> Self::Output {
-		match self {
-			Self::Relative(v) => Self::Relative(Neg::neg(v)),
-		}
+		Self(Neg::neg(self.0))
 	}
 }
 
@@ -380,9 +363,7 @@ impl Not for Offset {
 	type Output = Self;
 
 	fn not(self) -> Self::Output {
-		match self {
-			Self::Relative(v) => Self::Relative(Not::not(v)),
-		}
+		Self(Not::not(self.0))
 	}
 }
 
@@ -396,17 +377,13 @@ impl Not for &Offset {
 
 impl PartialEq<isize> for Offset {
 	fn eq(&self, other: &isize) -> bool {
-		match self {
-			Self::Relative(lhs) => lhs.eq(other),
-		}
+		PartialEq::eq(&self.0, other)
 	}
 }
 
 impl PartialOrd<isize> for Offset {
 	fn partial_cmp(&self, other: &isize) -> Option<Ordering> {
-		let Self::Relative(offset) = *self;
-
-		Some(offset.cmp(other))
+		Some(self.0.cmp(other))
 	}
 }
 
@@ -414,9 +391,7 @@ impl Rem for Offset {
 	type Output = Self;
 
 	fn rem(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => Self::Relative(Rem::rem(lhs, rhs)),
-		}
+		Self(Rem::rem(self.0, rhs.0))
 	}
 }
 
@@ -448,9 +423,7 @@ impl Rem<isize> for Offset {
 	type Output = Self;
 
 	fn rem(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(Rem::rem(lhs, rhs)),
-		}
+		Self(Rem::rem(self.0, rhs))
 	}
 }
 
@@ -507,9 +480,7 @@ impl Serialize for Offset {
 	where
 		S: Serializer,
 	{
-		match self {
-			Self::Relative(value) => serializer.serialize_i64(*value as i64),
-		}
+		self.0.serialize(serializer)
 	}
 }
 
@@ -517,9 +488,7 @@ impl Sub for Offset {
 	type Output = Self;
 
 	fn sub(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => Self::Relative(Sub::sub(lhs, rhs)),
-		}
+		Self(Sub::sub(self.0, rhs.0))
 	}
 }
 
@@ -551,9 +520,7 @@ impl Sub<isize> for Offset {
 	type Output = Self;
 
 	fn sub(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(Sub::sub(lhs, rhs)),
-		}
+		Self(Sub::sub(self.0, rhs))
 	}
 }
 
@@ -609,11 +576,7 @@ impl WrappingAdd for Offset {
 	type Output = Self;
 
 	fn wrapping_add(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => {
-				Self::Relative(WrappingAdd::wrapping_add(lhs, rhs))
-			}
-		}
+		Self(WrappingAdd::wrapping_add(self.0, rhs.0))
 	}
 }
 
@@ -645,9 +608,7 @@ impl WrappingAdd<isize> for Offset {
 	type Output = Self;
 
 	fn wrapping_add(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(WrappingAdd::wrapping_add(lhs, rhs)),
-		}
+		Self(WrappingAdd::wrapping_add(self.0, rhs))
 	}
 }
 
@@ -703,11 +664,7 @@ impl WrappingDiv for Offset {
 	type Output = Self;
 
 	fn wrapping_div(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => {
-				Self::Relative(WrappingDiv::wrapping_div(lhs, rhs))
-			}
-		}
+		Self(WrappingDiv::wrapping_div(self.0, rhs.0))
 	}
 }
 
@@ -739,9 +696,7 @@ impl WrappingDiv<isize> for Offset {
 	type Output = Self;
 
 	fn wrapping_div(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(WrappingDiv::wrapping_div(lhs, rhs)),
-		}
+		Self(WrappingDiv::wrapping_div(self.0, rhs))
 	}
 }
 
@@ -797,11 +752,7 @@ impl WrappingMul for Offset {
 	type Output = Self;
 
 	fn wrapping_mul(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => {
-				Self::Relative(WrappingMul::wrapping_mul(lhs, rhs))
-			}
-		}
+		Self(WrappingMul::wrapping_mul(self.0, rhs.0))
 	}
 }
 
@@ -833,9 +784,7 @@ impl WrappingMul<isize> for Offset {
 	type Output = Self;
 
 	fn wrapping_mul(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(WrappingMul::wrapping_mul(lhs, rhs)),
-		}
+		Self(WrappingMul::wrapping_mul(self.0, rhs))
 	}
 }
 
@@ -867,9 +816,7 @@ impl WrappingNeg for Offset {
 	type Output = Self;
 
 	fn wrapping_neg(self) -> Self::Output {
-		match self {
-			Self::Relative(v) => Self::Relative(WrappingNeg::wrapping_neg(v)),
-		}
+		Self(WrappingNeg::wrapping_neg(self.0))
 	}
 }
 
@@ -885,11 +832,7 @@ impl WrappingSub for Offset {
 	type Output = Self;
 
 	fn wrapping_sub(self, rhs: Self) -> Self::Output {
-		match (self, rhs) {
-			(Self::Relative(lhs), Self::Relative(rhs)) => {
-				Self::Relative(WrappingSub::wrapping_sub(lhs, rhs))
-			}
-		}
+		Self(WrappingSub::wrapping_sub(self.0, rhs.0))
 	}
 }
 
@@ -921,9 +864,7 @@ impl WrappingSub<isize> for Offset {
 	type Output = Self;
 
 	fn wrapping_sub(self, rhs: isize) -> Self::Output {
-		match self {
-			Self::Relative(lhs) => Self::Relative(WrappingSub::wrapping_sub(lhs, rhs)),
-		}
+		Self(WrappingSub::wrapping_sub(self.0, rhs))
 	}
 }
 
