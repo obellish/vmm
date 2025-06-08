@@ -1,5 +1,5 @@
 use alloc::{
-	fmt::{Formatter, Result as FmtResult, format},
+	fmt::{Formatter, Result as FmtResult},
 	string::String,
 };
 use core::marker::PhantomData;
