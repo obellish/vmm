@@ -3,6 +3,7 @@ mod serde;
 
 use core::{
 	cmp::Ordering,
+	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Bound, RangeBounds, RangeInclusive},
 };
 
@@ -46,6 +47,14 @@ impl<Idx: PartialOrd> SpanInclusive<Idx> {
 		U: ?Sized + PartialOrd<Idx>,
 	{
 		<Self as RangeBounds<Idx>>::contains(self, item)
+	}
+}
+
+impl<Idx: Debug> Debug for SpanInclusive<Idx> {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		Debug::fmt(&self.start, f)?;
+		f.write_str("..=")?;
+		Debug::fmt(&self.end, f)
 	}
 }
 
