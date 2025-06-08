@@ -1,8 +1,8 @@
-use core::{cmp, num::NonZeroU8, ops::RangeInclusive};
+use core::{cmp, num::NonZeroU8};
 
 use serde::{Deserialize, Serialize};
 
-use super::{IsZeroingCell, Offset, PtrMovement};
+use super::{IsZeroingCell, Offset, PtrMovement, SpanInclusive};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SpanInstruction {
@@ -54,8 +54,8 @@ impl SpanInstruction {
 	}
 
 	#[must_use]
-	pub const fn range(self) -> RangeInclusive<Offset> {
-		self.start..=self.end
+	pub const fn span(self) -> SpanInclusive<Offset> {
+		SpanInclusive::new(self.start, self.end)
 	}
 
 	fn from_range(kind: SpanInstructionType, start: Offset, end: Offset) -> Self {
@@ -111,5 +111,9 @@ mod tests {
 	#[test]
 	fn range_matches_expected() {
 		let span = SpanInstruction::clear_range(-2, 2);
+
+		let range = span.span().into_iter().collect::<Vec<_>>();
+
+		assert_eq!(range, [-2, -1, 0, 1, 2]);
 	}
 }
