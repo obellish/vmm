@@ -1,4 +1,5 @@
 mod iter;
+mod serde;
 
 use core::{
 	cmp::Ordering,

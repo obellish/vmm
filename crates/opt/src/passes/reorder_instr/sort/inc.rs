@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use itertools::Itertools as _;
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, SpanInstruction, SpanInstructionType};
 
 use crate::{Change, PeepholePass};
 
@@ -32,7 +32,11 @@ fn sorter(a: &Instruction, b: &Instruction) -> Ordering {
 
 const fn get_inc_value(i: &Instruction) -> Option<i8> {
 	match i {
-		Instruction::IncVal { value, .. } => Some(*value),
+		Instruction::IncVal { value, .. }
+		| Instruction::Span(SpanInstruction {
+			ty: SpanInstructionType::Inc { value },
+			..
+		}) => Some(*value),
 		_ => None,
 	}
 }

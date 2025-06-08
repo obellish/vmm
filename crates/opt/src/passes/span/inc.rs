@@ -4,39 +4,39 @@ use vmm_utils::GetOrZero as _;
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct OptimizeSetSpanPass;
+pub struct OptimizeIncSpanPass;
 
-impl PeepholePass for OptimizeSetSpanPass {
+impl PeepholePass for OptimizeIncSpanPass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
-				Instruction::SetVal {
-					value: a,
+				Instruction::IncVal {
+					value: 1,
 					offset: x,
 				},
-				Instruction::SetVal {
-					value: b,
+				Instruction::IncVal {
+					value: 1,
 					offset: y,
 				},
-			] if *a == *b => Some(Change::replace(Instruction::set_span(
-				a.get_or_zero(),
+			] => Some(Change::replace(Instruction::inc_span(
+				1,
 				x.get_or_zero(),
 				y.get_or_zero(),
 			))),
 			[
 				Instruction::Span(SpanInstruction {
-					ty: SpanInstructionType::Set { value: a },
+					ty: SpanInstructionType::Inc { value: a },
 					start,
 					..
 				}),
-				Instruction::SetVal {
+				Instruction::IncVal {
 					value: b,
 					offset: x,
 				},
-			] if *a == *b => Some(Change::replace(Instruction::set_span(
-				a.get_or_zero(),
+			] if *a == *b => Some(Change::replace(Instruction::inc_span(
+				*a,
 				start,
 				x.get_or_zero(),
 			))),
@@ -47,15 +47,15 @@ impl PeepholePass for OptimizeSetSpanPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		match window {
 			[
-				Instruction::SetVal {
-					value: a,
+				Instruction::IncVal {
+					value: 1,
 					offset: x,
 				},
-				Instruction::SetVal {
-					value: b,
+				Instruction::IncVal {
+					value: 1,
 					offset: y,
 				},
-			] if *a == *b => {
+			] => {
 				let x = x.get_or_zero();
 				let y = y.get_or_zero();
 
@@ -63,11 +63,11 @@ impl PeepholePass for OptimizeSetSpanPass {
 			}
 			[
 				Instruction::Span(SpanInstruction {
-					ty: SpanInstructionType::Set { value: a },
+					ty: SpanInstructionType::Inc { value: a },
 					end,
 					..
 				}),
-				Instruction::SetVal {
+				Instruction::IncVal {
 					value: b,
 					offset: x,
 				},

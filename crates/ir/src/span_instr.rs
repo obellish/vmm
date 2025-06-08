@@ -1,4 +1,4 @@
-use core::{cmp, num::NonZeroU8};
+use core::num::NonZeroU8;
 
 use serde::{Deserialize, Serialize};
 use vmm_utils::SpanInclusive;
@@ -59,11 +59,11 @@ impl SpanInstruction {
 		SpanInclusive::new(self.start, self.end)
 	}
 
-	fn from_range(kind: SpanInstructionType, start: Offset, end: Offset) -> Self {
+	const fn from_range(kind: SpanInstructionType, start: Offset, end: Offset) -> Self {
 		Self {
 			ty: kind,
-			start: cmp::min(start, end),
-			end: cmp::max(start, end),
+			start,
+			end,
 		}
 	}
 }

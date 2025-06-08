@@ -874,6 +874,9 @@ version = "0.1.0"
 [[package]]
 name = "vmm_utils"
 version = "0.1.0"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "vmm_wrap"

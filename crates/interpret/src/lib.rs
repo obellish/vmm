@@ -346,21 +346,21 @@ where
 		Ok(())
 	}
 
+	fn inc_span(&mut self, value: i8, span: SpanInclusive<Offset>) -> Result<(), RuntimeError> {
+		for idx in span {
+			self.inc_val(value, Some(idx))?;
+		}
+
+		Ok(())
+	}
+
 	fn set_span(
 		&mut self,
 		value: Option<NonZeroU8>,
 		span: SpanInclusive<Offset>,
 	) -> Result<(), RuntimeError> {
-		let range = {
-			let start = self.calculate_index(Some(*span.start()));
-
-			let end = self.calculate_index(Some(*span.end()));
-
-			start..=end
-		};
-
-		for idx in range {
-			self.tape_mut()[idx].0 = value.get_or_zero();
+		for idx in span {
+			self.set_val(value, Some(idx))?;
 		}
 
 		Ok(())
@@ -445,6 +445,7 @@ where
 	fn execute_span_instruction(&mut self, instr: SpanInstruction) -> Result<(), RuntimeError> {
 		match instr.ty() {
 			SpanInstructionType::Set { value } => self.set_span(value, instr.span())?,
+			SpanInstructionType::Inc { value } => self.inc_span(value, instr.span())?,
 			_ => return Err(RuntimeError::Unimplemented(instr.into())),
 		}
 
@@ -454,8 +455,8 @@ where
 	#[allow(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Option<Offset>) -> usize {
 		match offset {
-			None => self.ptr().value(),
-			Some(offset) => (*self.ptr() + offset.value()).value(),
+			None | Some(Offset(0)) => self.ptr().value(),
+			Some(Offset(offset)) => (*self.ptr() + offset).value(),
 		}
 	}
 }

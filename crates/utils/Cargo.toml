@@ -7,9 +7,12 @@ name = "vmm_utils"
 rust-version.workspace = true
 version.workspace = true
 
+[dependencies]
+serde = { workspace = true, optional = true }
+
 [features]
 alloc = []
 get_or_zero = []
 heap_size = ["alloc"]
 insert_or_push = ["alloc"]
-span = []
+span = ["dep:serde"]
