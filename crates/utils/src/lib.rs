@@ -10,8 +10,6 @@ mod get_or_zero;
 mod heap_size;
 #[cfg(feature = "insert_or_push")]
 mod insert_or_push;
-#[cfg(feature = "span")]
-mod span;
 
 #[cfg(feature = "get_or_zero")]
 pub use self::get_or_zero::GetOrZero;
@@ -19,5 +17,3 @@ pub use self::get_or_zero::GetOrZero;
 pub use self::heap_size::HeapSize;
 #[cfg(feature = "insert_or_push")]
 pub use self::insert_or_push::InsertOrPush;
-#[cfg(feature = "span")]
-pub use self::span::*;

@@ -11,6 +11,7 @@ version.workspace = true
 serde = { workspace = true, features = ["derive", "std"] }
 vmm_ir.workspace = true
 vmm_program.workspace = true
+vmm_span.workspace = true
 vmm_tape.workspace = true
 vmm_utils = { workspace = true, features = ["insert_or_push"] }
 vmm_wrap = { workspace = true, features = ["nightly"] }

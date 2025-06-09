@@ -1,7 +1,8 @@
 use core::{cmp, num::NonZeroU8};
 
 use serde::{Deserialize, Serialize};
-use vmm_utils::SpanInclusive;
+// use vmm_utils::SpanInclusive;
+use vmm_span::SpannedInclusive;
 
 use super::{IsZeroingCell, Offset, PtrMovement};
 
@@ -55,8 +56,8 @@ impl SpanInstruction {
 	}
 
 	#[must_use]
-	pub const fn span(self) -> SpanInclusive<Offset> {
-		SpanInclusive::new(self.start, self.end)
+	pub const fn span(self) -> SpannedInclusive<Offset> {
+		SpannedInclusive::new(self.start, self.end)
 	}
 
 	fn from_range(kind: SpanInstructionType, start: Offset, end: Offset) -> Self {
@@ -107,6 +108,7 @@ impl SpanInstructionType {
 #[cfg(test)]
 mod tests {
 	use alloc::vec::Vec;
+	use core::ops::{Bound, Range};
 
 	use super::SpanInstruction;
 

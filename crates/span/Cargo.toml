@@ -3,12 +3,6 @@ lints.workspace = true
 [package]
 edition.workspace = true
 license.workspace = true
-name = "vmm_utils"
+name = "vmm_span"
 rust-version.workspace = true
 version.workspace = true
-
-[features]
-alloc = []
-get_or_zero = []
-heap_size = ["alloc"]
-insert_or_push = ["alloc"]
