@@ -204,6 +204,37 @@ impl Walk for u8 {
 	}
 }
 
+impl Walk for u16 {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = (*end - *start) as usize;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = Self::try_from(count).ok()?;
+
+		start.checked_add(n)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = Self::try_from(count).ok()?;
+
+		start.checked_sub(n)
+	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.unchecked_add(count as Self) }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.unchecked_sub(count as Self) }
+	}
+}
+
 impl Walk for u32 {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		if *start <= *end {
@@ -232,6 +263,64 @@ impl Walk for u32 {
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
 		unsafe { start.unchecked_sub(count as Self) }
+	}
+}
+
+impl Walk for u64 {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = (*end - *start) as usize;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = Self::try_from(count).ok()?;
+
+		start.checked_add(n)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = Self::try_from(count).ok()?;
+
+		start.checked_sub(n)
+	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.unchecked_add(count as Self) }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.unchecked_sub(count as Self) }
+	}
+}
+
+impl Walk for usize {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = *end - *start;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		start.checked_add(count)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		start.checked_sub(count)
+	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.unchecked_add(count) }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.unchecked_sub(count) }
 	}
 }
 
