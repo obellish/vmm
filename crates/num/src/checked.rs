@@ -19,6 +19,57 @@ use crate::ops::{
 #[repr(transparent)]
 pub struct Checked<T>(pub T);
 
+impl<T> Checked<T> {
+	pub fn add<Rhs>(lhs: T, rhs: Rhs) -> Option<T::Output>
+	where
+		T: CheckedAdd<Rhs>,
+	{
+		Some(Add::add(Self(lhs), rhs)?.0)
+	}
+
+	pub fn sub<Rhs>(lhs: T, rhs: Rhs) -> Option<T::Output>
+	where
+		T: CheckedSub<Rhs>,
+	{
+		Some(Sub::sub(Self(lhs), rhs)?.0)
+	}
+
+	pub fn mul<Rhs>(lhs: T, rhs: Rhs) -> Option<T::Output>
+	where
+		T: CheckedMul<Rhs>,
+	{
+		Some(Mul::mul(Self(lhs), rhs)?.0)
+	}
+
+	pub fn div<Rhs>(lhs: T, rhs: Rhs) -> Option<T::Output>
+	where
+		T: CheckedDiv<Rhs>,
+	{
+		Some(Div::div(Self(lhs), rhs)?.0)
+	}
+
+	pub fn neg(lhs: T) -> Option<T::Output>
+	where
+		T: CheckedNeg,
+	{
+		Some(Neg::neg(Self(lhs))?.0)
+	}
+
+	pub fn shr<Rhs>(lhs: T, rhs: Rhs) -> Option<T::Output>
+	where
+		T: CheckedShr<Rhs>,
+	{
+		Some(Shr::shr(Self(lhs), rhs)?.0)
+	}
+
+	pub fn shl<Rhs>(lhs: T, rhs: Rhs) -> Option<T::Output>
+	where
+		T: CheckedShl<Rhs>,
+	{
+		Some(Shl::shl(Self(lhs), rhs)?.0)
+	}
+}
+
 impl<T, Rhs> Add<Rhs> for Checked<T>
 where
 	T: CheckedAdd<Rhs>,
