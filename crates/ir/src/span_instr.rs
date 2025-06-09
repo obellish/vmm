@@ -107,7 +107,6 @@ impl SpanInstructionType {
 #[cfg(test)]
 mod tests {
 	use alloc::vec::Vec;
-	use core::ops::{Bound, Range};
 
 	use super::SpanInstruction;
 

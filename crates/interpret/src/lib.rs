@@ -11,7 +11,6 @@ use std::{
 	num::NonZeroU8,
 };
 
-use rayon::prelude::*;
 use vmm_ir::{
 	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
 	SuperInstruction,
