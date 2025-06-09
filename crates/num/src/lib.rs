@@ -2,8 +2,10 @@
 #![cfg_attr(feature = "nightly", feature(mixed_integer_ops_unsigned_sub))]
 #![no_std]
 
+mod checked;
 pub mod ops;
 mod sat;
+mod unchecked;
 mod wrap;
 
-pub use self::{sat::*, wrap::*};
+pub use self::{checked::*, sat::*, unchecked::*, wrap::*};

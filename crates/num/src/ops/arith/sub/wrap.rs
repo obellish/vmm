@@ -13,7 +13,7 @@ macro_rules! impl_wrapping_sub {
 		impl_wrapping_sub!($signed, $signed, wrapping_sub);
 		impl_wrapping_sub!($unsigned, $unsigned, wrapping_sub);
 		impl_wrapping_sub!($signed, $unsigned, wrapping_sub_unsigned);
-        impl_wrapping_sub!(@nightly $unsigned, $signed, wrapping_sub_signed);
+		impl_wrapping_sub!(@nightly $unsigned, $signed, wrapping_sub_signed);
 	};
 	($left:ty, $right:ty, $func:ident) => {
 		impl $crate::ops::WrappingSub<$right> for $left {

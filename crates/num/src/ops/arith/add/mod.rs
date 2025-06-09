@@ -1,4 +1,5 @@
+mod checked;
 mod sat;
 mod wrap;
 
-pub use self::{sat::*, wrap::*};
+pub use self::{checked::*, sat::*, wrap::*};
