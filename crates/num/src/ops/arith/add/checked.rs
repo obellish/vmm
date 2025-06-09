@@ -10,60 +10,60 @@ pub trait CheckedAddAssign<Rhs = Self> {
 
 macro_rules! impl_checked_add {
 	($signed:ty, $unsigned:ty) => {
-        impl_checked_add!($signed, $signed, checked_add);
-        impl_checked_add!($unsigned, $unsigned, checked_add);
-        impl_checked_add!($signed, $unsigned, checked_add_unsigned);
-        impl_checked_add!($unsigned, $signed, checked_add_signed);
-    };
-    ($left:ty, $right:ty, $func:ident) => {
-        impl $crate::ops::CheckedAdd<$right> for $left {
-            type Output = Self;
+		impl_checked_add!($signed, $signed, checked_add);
+		impl_checked_add!($unsigned, $unsigned, checked_add);
+		impl_checked_add!($signed, $unsigned, checked_add_unsigned);
+		impl_checked_add!($unsigned, $signed, checked_add_signed);
+	};
+	($left:ty, $right:ty, $func:ident) => {
+		impl $crate::ops::CheckedAdd<$right> for $left {
+			type Output = Self;
 
-            fn checked_add(self, rhs: $right) -> ::core::option::Option<Self> {
-                <$left>::$func(self, rhs)
-            }
-        }
+			fn checked_add(self, rhs: $right) -> ::core::option::Option<Self> {
+				<$left>::$func(self, rhs)
+			}
+		}
 
-        impl $crate::ops::CheckedAdd<&$right> for $left {
-            type Output = Self;
+		impl $crate::ops::CheckedAdd<&$right> for $left {
+			type Output = Self;
 
-            fn checked_add(self, rhs: &$right) -> ::core::option::Option<Self> {
-                <$left>::$func(self, *rhs)
-            }
-        }
+			fn checked_add(self, rhs: &$right) -> ::core::option::Option<Self> {
+				<$left>::$func(self, *rhs)
+			}
+		}
 
-        impl $crate::ops::CheckedAdd<$right> for &$left {
-            type Output = <$left as $crate::ops::CheckedAdd<$right>>::Output;
+		impl $crate::ops::CheckedAdd<$right> for &$left {
+			type Output = <$left as $crate::ops::CheckedAdd<$right>>::Output;
 
-            fn checked_add(self, rhs: $right) -> ::core::option::Option<Self::Output> {
-                <$left>::$func(*self, rhs)
-            }
-        }
+			fn checked_add(self, rhs: $right) -> ::core::option::Option<Self::Output> {
+				<$left>::$func(*self, rhs)
+			}
+		}
 
-        impl $crate::ops::CheckedAdd<&$right> for &$left {
-            type Output = <$left as $crate::ops::CheckedAdd<$right>>::Output;
+		impl $crate::ops::CheckedAdd<&$right> for &$left {
+			type Output = <$left as $crate::ops::CheckedAdd<$right>>::Output;
 
-            fn checked_add(self, rhs: &$right) -> ::core::option::Option<Self::Output> {
-                <$left>::$func(*self, *rhs)
-            }
-        }
+			fn checked_add(self, rhs: &$right) -> ::core::option::Option<Self::Output> {
+				<$left>::$func(*self, *rhs)
+			}
+		}
 
-        impl $crate::ops::CheckedAddAssign<$right> for $left {
-            fn checked_add_assign(&mut self, rhs: $right) {
-                if let ::core::option::Option::Some(value) = <$left>::$func(*self, rhs) {
-                    *self = value;
-                }
-            }
-        }
+		impl $crate::ops::CheckedAddAssign<$right> for $left {
+			fn checked_add_assign(&mut self, rhs: $right) {
+				if let ::core::option::Option::Some(value) = <$left>::$func(*self, rhs) {
+					*self = value;
+				}
+			}
+		}
 
-        impl $crate::ops::CheckedAddAssign<&$right> for $left {
-            fn checked_add_assign(&mut self, rhs: &$right) {
-                if let ::core::option::Option::Some(value) = <$left>::$func(*self, *rhs) {
-                    *self = value;
-                }
-            }
-        }
-    };
+		impl $crate::ops::CheckedAddAssign<&$right> for $left {
+			fn checked_add_assign(&mut self, rhs: &$right) {
+				if let ::core::option::Option::Some(value) = <$left>::$func(*self, *rhs) {
+					*self = value;
+				}
+			}
+		}
+	};
 }
 
 impl_checked_add!(i8, u8);

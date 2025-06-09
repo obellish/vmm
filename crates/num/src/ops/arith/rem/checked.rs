@@ -1,11 +1,11 @@
 pub trait CheckedRem<Rhs = Self> {
-    type Output;
+	type Output;
 
-    fn checked_rem(self, rhs: Rhs) -> Option<Self::Output>;
+	fn checked_rem(self, rhs: Rhs) -> Option<Self::Output>;
 }
 
 pub trait CheckedRemAssign<Rhs = Self> {
-    fn checked_rem_assign(&mut self, rhs: Rhs);
+	fn checked_rem_assign(&mut self, rhs: Rhs);
 }
 
 macro_rules! impl_checked_rem {
