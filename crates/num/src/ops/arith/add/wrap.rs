@@ -33,7 +33,7 @@ macro_rules! impl_wrapping_add {
 		}
 
 		impl $crate::ops::WrappingAdd<$right> for &$left {
-			type Output = <$left as $crate::ops::WrappingAdd>::Output;
+			type Output = <$left as $crate::ops::WrappingAdd<$right>>::Output;
 
 			fn wrapping_add(self, rhs: $right) -> Self::Output {
 				<$left>::$func(*self, rhs)
@@ -41,7 +41,7 @@ macro_rules! impl_wrapping_add {
 		}
 
 		impl $crate::ops::WrappingAdd<&$right> for &$left {
-			type Output = <$left as $crate::ops::WrappingAdd>::Output;
+			type Output = <$left as $crate::ops::WrappingAdd<$right>>::Output;
 
 			fn wrapping_add(self, rhs: &$right) -> Self::Output {
 				<$left>::$func(*self, *rhs)

@@ -3,6 +3,7 @@
 #![no_std]
 
 pub mod ops;
+mod sat;
 mod wrap;
 
-pub use self::wrap::*;
+pub use self::{sat::*, wrap::*};
