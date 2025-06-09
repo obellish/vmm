@@ -324,6 +324,39 @@ impl Walk for usize {
 	}
 }
 
+impl Walk for i8 {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u8::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_add(n as Self);
+		if wrapped >= start {
+			Some(wrapped)
+		} else {
+			None
+		}
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u8::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_sub(n as Self);
+		if wrapped <= start {
+			Some(wrapped)
+		} else {
+			None
+		}
+	}
+}
+
 impl Walk for char {
 	fn steps_between(&start: &Self, &end: &Self) -> (usize, Option<usize>) {
 		let start = start as u32;

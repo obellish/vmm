@@ -9,3 +9,4 @@ version.workspace = true
 
 [dependencies]
 rayon.workspace = true
+vmm_num.workspace = true

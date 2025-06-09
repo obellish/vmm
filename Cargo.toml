@@ -27,7 +27,8 @@ vmm_utils = { workspace = true, features = ["heap_size"] }
 members = [
     "crates/alloc",
     "crates/interpret",
-    "crates/ir", "crates/num",
+    "crates/ir",
+    "crates/num",
     "crates/opt",
     "crates/parse",
     "crates/program",
@@ -47,6 +48,7 @@ serde = { version = "1", default-features = false }
 serde_array = { path = "crates/serde_array" }
 tracing = { version = "0.1", features = ["attributes"] }
 vmm_ir = { path = "crates/ir" }
+vmm_num = { path = "crates/num" }
 vmm_program = { path = "crates/program" }
 vmm_span = { path = "crates/span" }
 vmm_tape = { path = "crates/tape" }
