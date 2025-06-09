@@ -338,22 +338,14 @@ impl Walk for i8 {
 		let n = u8::try_from(count).ok()?;
 
 		let wrapped = start.wrapping_add(n as Self);
-		if wrapped >= start {
-			Some(wrapped)
-		} else {
-			None
-		}
+		(wrapped >= start).then_some(wrapped)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u8::try_from(count).ok()?;
 
 		let wrapped = start.wrapping_sub(n as Self);
-		if wrapped <= start {
-			Some(wrapped)
-		} else {
-			None
-		}
+		(wrapped <= start).then_some(wrapped)
 	}
 
 	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
@@ -362,6 +354,56 @@ impl Walk for i8 {
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
 		unsafe { start.checked_sub_unsigned(count as u8).unwrap_unchecked() }
+	}
+}
+
+impl Walk for i16 {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u16::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_add(n as Self);
+		(wrapped >= start).then_some(wrapped)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u16::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_sub(n as Self);
+		(wrapped <= start).then_some(wrapped)
+	}
+}
+
+impl Walk for i32 {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u32::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_add(n as Self);
+		(wrapped >= start).then_some(wrapped)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u32::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_sub(n as Self);
+		(wrapped <= start).then_some(wrapped)
 	}
 }
 
