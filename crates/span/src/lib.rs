@@ -1,12 +1,17 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![no_std]
 
+mod iter;
 mod sealed;
 
 use core::{
 	marker::PhantomData,
 	ops::{Bound, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive},
 };
+
+use rayon::prelude::*;
+
+pub use self::iter::*;
 
 #[repr(transparent)]
 pub struct Unbounded<T: ?Sized>(PhantomData<T>);
@@ -157,15 +162,12 @@ impl<T> From<RangeToInclusive<T>> for SpannedToInclusive<T> {
 	}
 }
 
-impl<T> IntoIterator for Spanned<T>
-where
-	Range<T>: Iterator<Item = T>,
-{
-	type IntoIter = Range<T>;
+impl<T: Walk> IntoIterator for Spanned<T> {
+	type IntoIter = SpannedIter<T>;
 	type Item = T;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.start.unwrap()..self.end.unwrap()
+		SpannedIter::new(self.start, self.end)
 	}
 }
 
@@ -190,6 +192,19 @@ where
 
 	fn into_iter(self) -> Self::IntoIter {
 		self.start.unwrap()..=self.end.unwrap()
+	}
+}
+
+impl<T> IntoParallelIterator for SpannedInclusive<T>
+where
+	RangeInclusive<T>: IntoParallelIterator,
+	Self: IntoIterator<IntoIter = RangeInclusive<T>>,
+{
+	type Item = <RangeInclusive<T> as IntoParallelIterator>::Item;
+	type Iter = <RangeInclusive<T> as IntoParallelIterator>::Iter;
+
+	fn into_par_iter(self) -> Self::Iter {
+		IntoIterator::into_iter(self).into_par_iter()
 	}
 }
 

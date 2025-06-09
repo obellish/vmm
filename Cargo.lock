@@ -801,6 +801,7 @@ version = "0.1.0"
 name = "vmm_interpret"
 version = "0.1.0"
 dependencies = [
+ "rayon",
  "serde",
  "vmm_ir",
  "vmm_program",
@@ -863,6 +864,9 @@ dependencies = [
 [[package]]
 name = "vmm_span"
 version = "0.1.0"
+dependencies = [
+ "rayon",
+]
 
 [[package]]
 name = "vmm_tape"

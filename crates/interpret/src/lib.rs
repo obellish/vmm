@@ -11,6 +11,7 @@ use std::{
 	num::NonZeroU8,
 };
 
+use rayon::prelude::*;
 use vmm_ir::{
 	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
 	SuperInstruction,
@@ -344,9 +345,8 @@ where
 	}
 
 	fn inc_span(&mut self, value: i8, span: SpannedInclusive<Offset>) -> Result<(), RuntimeError> {
-		for idx in span {
-			self.inc_val(value, idx)?;
-		}
+		span.into_iter()
+			.try_for_each(|idx| self.inc_val(value, idx))?;
 
 		Ok(())
 	}
