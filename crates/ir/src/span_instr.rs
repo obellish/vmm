@@ -1,7 +1,6 @@
 use core::{cmp, num::NonZeroU8};
 
 use serde::{Deserialize, Serialize};
-// use vmm_utils::SpanInclusive;
 use vmm_span::SpannedInclusive;
 
 use super::{IsZeroingCell, Offset, PtrMovement};
