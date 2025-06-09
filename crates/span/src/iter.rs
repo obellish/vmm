@@ -407,6 +407,52 @@ impl Walk for i32 {
 	}
 }
 
+impl Walk for i64 {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u64::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_add(n as Self);
+		(wrapped >= start).then_some(wrapped)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		let n = u64::try_from(count).ok()?;
+
+		let wrapped = start.wrapping_sub(n as Self);
+		(wrapped <= start).then_some(wrapped)
+	}
+}
+
+impl Walk for isize {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		if *start <= *end {
+			let steps = end.wrapping_sub(*start) as usize;
+			(steps, Some(steps))
+		} else {
+			(0, None)
+		}
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		let wrapped = start.wrapping_add(count as Self);
+		(wrapped >= start).then_some(wrapped)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		let wrapped = start.wrapping_sub(count as Self);
+		(wrapped <= start).then_some(wrapped)
+	}
+}
+
 impl Walk for char {
 	fn steps_between(&start: &Self, &end: &Self) -> (usize, Option<usize>) {
 		let start = start as u32;
@@ -487,10 +533,28 @@ mod tests {
 	use crate::*;
 
 	#[test]
+	#[expect(clippy::reversed_empty_ranges)]
 	fn span() {
 		assert_eq!(
-			Span::from(0u8..5).into_iter().collect::<Vec<_>>(),
+			Span::from(0..5).into_iter().collect::<Vec<_>>(),
 			[0, 1, 2, 3, 4]
 		);
+
+		assert_eq!(
+			Span::from(-10..-1).into_iter().collect::<Vec<_>>(),
+			[-10, -9, -8, -7, -6, -5, -4, -3, -2]
+		);
+
+		assert_eq!(
+			Span::from(0..5).into_iter().rev().collect::<Vec<_>>(),
+			[4, 3, 2, 1, 0]
+		);
+
+		assert_eq!(Span::from(200..-5).into_iter().count(), 0);
+		assert_eq!(Span::from(200..-5).into_iter().rev().count(), 0);
+		assert_eq!(Span::from(200..200).into_iter().count(), 0);
+		assert_eq!(Span::from(200..200).into_iter().rev().count(), 0);
+
+		assert_eq!(Span::from(0..100).into_iter().size_hint(), (100, Some(100)));
 	}
 }
