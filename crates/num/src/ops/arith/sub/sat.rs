@@ -1,11 +1,11 @@
 pub trait SaturatingSub<Rhs = Self> {
-    type Output;
+	type Output;
 
-    fn saturating_sub(self, rhs: Rhs) -> Self::Output;
+	fn saturating_sub(self, rhs: Rhs) -> Self::Output;
 }
 
 pub trait SaturatingSubAssign<Rhs = Self> {
-    fn saturating_sub_assign(&mut self, rhs: Rhs);
+	fn saturating_sub_assign(&mut self, rhs: Rhs);
 }
 
 macro_rules! impl_saturating_sub {

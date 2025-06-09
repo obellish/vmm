@@ -1,11 +1,11 @@
 pub trait SaturatingMul<Rhs = Self> {
-    type Output;
+	type Output;
 
-    fn saturating_mul(self, rhs: Rhs) -> Self::Output;
+	fn saturating_mul(self, rhs: Rhs) -> Self::Output;
 }
 
 pub trait SaturatingMulAssign<Rhs = Self> {
-    fn saturating_mul_assign(&mut self, rhs: Rhs);
+	fn saturating_mul_assign(&mut self, rhs: Rhs);
 }
 
 macro_rules! impl_saturating_mul {

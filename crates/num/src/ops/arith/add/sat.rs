@@ -48,17 +48,17 @@ macro_rules! impl_saturating_add {
 			}
 		}
 
-        impl $crate::ops::SaturatingAddAssign<$right> for $left {
-            fn saturating_add_assign(&mut self, rhs: $right) {
-                *self = <$left>::$func(*self, rhs);
-            }
-        }
+		impl $crate::ops::SaturatingAddAssign<$right> for $left {
+			fn saturating_add_assign(&mut self, rhs: $right) {
+				*self = <$left>::$func(*self, rhs);
+			}
+		}
 
-        impl $crate::ops::SaturatingAddAssign<&$right> for $left {
-            fn saturating_add_assign(&mut self, rhs: &$right) {
-                *self = <$left>::$func(*self, *rhs);
-            }
-        }
+		impl $crate::ops::SaturatingAddAssign<&$right> for $left {
+			fn saturating_add_assign(&mut self, rhs: &$right) {
+				*self = <$left>::$func(*self, *rhs);
+			}
+		}
 	};
 }
 
