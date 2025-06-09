@@ -1,13 +1,14 @@
 use core::{
 	cmp::Ordering,
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	iter::Step,
 	ops::{
 		Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Sub, SubAssign,
 	},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use vmm_utils::{GetOrZero, Step};
+use vmm_utils::GetOrZero;
 use vmm_wrap::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingNeg,
 	WrappingSub, WrappingSubAssign,

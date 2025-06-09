@@ -804,6 +804,7 @@ dependencies = [
  "serde",
  "vmm_ir",
  "vmm_program",
+ "vmm_span",
  "vmm_tape",
  "vmm_utils",
  "vmm_wrap",

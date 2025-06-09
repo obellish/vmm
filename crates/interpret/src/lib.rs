@@ -11,14 +11,14 @@ use std::{
 	num::NonZeroU8,
 };
 
-use serde::de::value;
 use vmm_ir::{
 	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
 	SuperInstruction,
 };
 use vmm_program::Program;
+use vmm_span::SpannedInclusive;
 use vmm_tape::{Tape, TapePointer};
-use vmm_utils::{GetOrZero as _, SpanInclusive};
+use vmm_utils::GetOrZero as _;
 use vmm_wrap::Wrapping;
 
 pub use self::profiler::*;
@@ -343,7 +343,7 @@ where
 		Ok(())
 	}
 
-	fn inc_span(&mut self, value: i8, span: SpanInclusive<Offset>) -> Result<(), RuntimeError> {
+	fn inc_span(&mut self, value: i8, span: SpannedInclusive<Offset>) -> Result<(), RuntimeError> {
 		for idx in span {
 			self.inc_val(value, idx)?;
 		}
@@ -354,7 +354,7 @@ where
 	fn set_span(
 		&mut self,
 		value: Option<NonZeroU8>,
-		span: SpanInclusive<Offset>,
+		span: SpannedInclusive<Offset>,
 	) -> Result<(), RuntimeError> {
 		for idx in span {
 			self.set_val(value, idx)?;

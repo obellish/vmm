@@ -31,7 +31,8 @@ members = [
     "crates/opt",
     "crates/parse",
     "crates/program",
-    "crates/serde_array", "crates/span",
+    "crates/serde_array",
+    "crates/span",
     "crates/tape",
     "crates/type_name",
     "crates/utils",
@@ -46,6 +47,7 @@ serde_array = { path = "crates/serde_array" }
 tracing = { version = "0.1", features = ["attributes"] }
 vmm_ir = { path = "crates/ir" }
 vmm_program = { path = "crates/program" }
+vmm_span = { path = "crates/span" }
 vmm_tape = { path = "crates/tape" }
 vmm_utils = { path = "crates/utils" }
 vmm_wrap = { path = "crates/wrap" }

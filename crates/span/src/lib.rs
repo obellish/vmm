@@ -22,8 +22,8 @@ where
 	From: ?Sized + SpanBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
-	start: Bound<T>,
-	end: Bound<T>,
+	start: Option<T>,
+	end: Option<T>,
 	marker_from: PhantomData<From>,
 	marker_to: PhantomData<To>,
 }
@@ -33,14 +33,66 @@ where
 	From: ?Sized + SpanBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
-	pub fn new(start: T, end: T) -> Self {
+	pub const fn new(start: T, end: T) -> Self {
 		Self {
-			start: From::into_bound(start),
-			end: To::into_bound(end),
+			start: Some(start),
+			end: Some(end),
 			marker_from: PhantomData,
 			marker_to: PhantomData,
 		}
 	}
+
+	pub fn start_bound(&self) -> Bound<&T> {
+		match &self.start {
+			None => Bound::Unbounded,
+			Some(value) => From::as_ref_bound(value),
+		}
+	}
+
+	pub fn end_bound(&self) -> Bound<&T> {
+		match &self.end {
+			None => Bound::Unbounded,
+			Some(value) => To::as_ref_bound(value),
+		}
+	}
+
+	pub fn contains<U>(&self, item: &U) -> bool
+	where
+		T: PartialOrd<U>,
+		U: ?Sized + PartialOrd<T>,
+	{
+		(match self.start_bound() {
+			Bound::Included(start) => start <= item,
+			Bound::Excluded(start) => start < item,
+			Bound::Unbounded => true,
+		}) && (match self.end_bound() {
+			Bound::Included(end) => item <= end,
+			Bound::Excluded(end) => item < end,
+			Bound::Unbounded => true,
+		})
+	}
+}
+
+impl<T: Clone, From, To> Clone for Span<T, From, To>
+where
+	From: ?Sized + SpanBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn clone(&self) -> Self {
+		Self {
+			start: self.start.clone(),
+			end: self.end.clone(),
+			marker_from: PhantomData,
+			marker_to: PhantomData,
+		}
+	}
+}
+
+impl<T: Copy, From, To> Copy for Span<T, From, To>
+where
+	From: ?Sized + SpanBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
 }
 
 impl<T> From<Range<T>> for Spanned<T> {
@@ -52,8 +104,8 @@ impl<T> From<Range<T>> for Spanned<T> {
 impl<T> From<RangeFull> for SpannedFull<T> {
 	fn from(_: RangeFull) -> Self {
 		Self {
-			start: Bound::Unbounded,
-			end: Bound::Unbounded,
+			start: None,
+			end: None,
 			marker_from: PhantomData,
 			marker_to: PhantomData,
 		}
@@ -63,8 +115,8 @@ impl<T> From<RangeFull> for SpannedFull<T> {
 impl<T> From<RangeFrom<T>> for SpannedFrom<T> {
 	fn from(value: RangeFrom<T>) -> Self {
 		Self {
-			start: Included::<T>::into_bound(value.start),
-			end: Bound::Unbounded,
+			start: Some(value.start),
+			end: None,
 			marker_from: PhantomData,
 			marker_to: PhantomData,
 		}
@@ -74,8 +126,8 @@ impl<T> From<RangeFrom<T>> for SpannedFrom<T> {
 impl<T> From<RangeTo<T>> for SpannedTo<T> {
 	fn from(value: RangeTo<T>) -> Self {
 		Self {
-			start: Bound::Unbounded,
-			end: Excluded::<T>::into_bound(value.end),
+			start: None,
+			end: Some(value.end),
 			marker_from: PhantomData,
 			marker_to: PhantomData,
 		}
@@ -86,8 +138,8 @@ impl<T> From<RangeTo<T>> for SpannedTo<T> {
 impl<T: Clone> From<RangeInclusive<T>> for SpannedInclusive<T> {
 	fn from(value: RangeInclusive<T>) -> Self {
 		Self {
-			start: Bound::Included(value.start().clone()),
-			end: Bound::Included(value.end().clone()),
+			start: Some(value.start().clone()),
+			end: Some(value.end().clone()),
 			marker_from: PhantomData,
 			marker_to: PhantomData,
 		}
@@ -97,11 +149,71 @@ impl<T: Clone> From<RangeInclusive<T>> for SpannedInclusive<T> {
 impl<T> From<RangeToInclusive<T>> for SpannedToInclusive<T> {
 	fn from(value: RangeToInclusive<T>) -> Self {
 		Self {
-			start: Bound::Unbounded,
-			end: Included::into_bound(value.end),
+			start: None,
+			end: Some(value.end),
 			marker_from: PhantomData,
 			marker_to: PhantomData,
 		}
+	}
+}
+
+impl<T> IntoIterator for Spanned<T>
+where
+	Range<T>: Iterator<Item = T>,
+{
+	type IntoIter = Range<T>;
+	type Item = T;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.start.unwrap()..self.end.unwrap()
+	}
+}
+
+impl<T> IntoIterator for SpannedFrom<T>
+where
+	RangeFrom<T>: Iterator<Item = T>,
+{
+	type IntoIter = RangeFrom<T>;
+	type Item = T;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.start.unwrap()..
+	}
+}
+
+impl<T> IntoIterator for SpannedInclusive<T>
+where
+	RangeInclusive<T>: Iterator<Item = T>,
+{
+	type IntoIter = RangeInclusive<T>;
+	type Item = T;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.start.unwrap()..=self.end.unwrap()
+	}
+}
+
+impl<T> IntoIterator for SpannedTo<T>
+where
+	RangeTo<T>: Iterator<Item = T>,
+{
+	type IntoIter = RangeTo<T>;
+	type Item = T;
+
+	fn into_iter(self) -> Self::IntoIter {
+		..self.end.unwrap()
+	}
+}
+
+impl<T> IntoIterator for SpannedToInclusive<T>
+where
+	RangeToInclusive<T>: Iterator<Item = T>,
+{
+	type IntoIter = RangeToInclusive<T>;
+	type Item = T;
+
+	fn into_iter(self) -> Self::IntoIter {
+		..=self.end.unwrap()
 	}
 }
 
@@ -120,24 +232,38 @@ where
 }
 
 pub trait SpanBound<T>: self::sealed::Sealed {
-	fn into_bound(value: T) -> Bound<T>;
+	fn into_bound(item: T) -> Bound<T>;
+
+	fn as_ref_bound(item: &T) -> Bound<&T>;
 }
 
 impl<T> SpanBound<T> for Unbounded<T> {
 	fn into_bound(_: T) -> Bound<T> {
 		Bound::Unbounded
 	}
+
+	fn as_ref_bound(_: &T) -> Bound<&T> {
+		Bound::Unbounded
+	}
 }
 
 impl<T> SpanBound<T> for Included<T> {
-	fn into_bound(value: T) -> Bound<T> {
-		Bound::Included(value)
+	fn into_bound(item: T) -> Bound<T> {
+		Bound::Included(item)
+	}
+
+	fn as_ref_bound(item: &T) -> Bound<&T> {
+		Bound::Included(item)
 	}
 }
 
 impl<T> SpanBound<T> for Excluded<T> {
-	fn into_bound(value: T) -> Bound<T> {
-		Bound::Excluded(value)
+	fn into_bound(item: T) -> Bound<T> {
+		Bound::Excluded(item)
+	}
+
+	fn as_ref_bound(item: &T) -> Bound<&T> {
+		Bound::Excluded(item)
 	}
 }
 
