@@ -70,6 +70,26 @@ impl<T> Wrapping<T> {
 	}
 }
 
+impl<T, Rhs> Add<Rhs> for Wrapping<T>
+where
+	T: WrappingAdd<Rhs>,
+{
+	type Output = Wrapping<T::Output>;
+
+	fn add(self, rhs: Rhs) -> Self::Output {
+		Wrapping(WrappingAdd::wrapping_add(self.0, rhs))
+	}
+}
+
+impl<T, Rhs> AddAssign<Rhs> for Wrapping<T>
+where
+	T: WrappingAddAssign<Rhs>,
+{
+	fn add_assign(&mut self, rhs: Rhs) {
+		WrappingAddAssign::wrapping_add_assign(&mut self.0, rhs);
+	}
+}
+
 #[cfg(feature = "arbitrary")]
 impl<'a, T> arbitrary::Arbitrary<'a> for Wrapping<T>
 where
@@ -91,26 +111,6 @@ where
 		depth: usize,
 	) -> arbitrary::Result<(usize, Option<usize>), arbitrary::MaxRecursionReached> {
 		T::try_size_hint(depth)
-	}
-}
-
-impl<T, Rhs> Add<Rhs> for Wrapping<T>
-where
-	T: WrappingAdd<Rhs>,
-{
-	type Output = Wrapping<T::Output>;
-
-	fn add(self, rhs: Rhs) -> Self::Output {
-		Wrapping(WrappingAdd::wrapping_add(self.0, rhs))
-	}
-}
-
-impl<T, Rhs> AddAssign<Rhs> for Wrapping<T>
-where
-	T: WrappingAddAssign<Rhs>,
-{
-	fn add_assign(&mut self, rhs: Rhs) {
-		WrappingAddAssign::wrapping_add_assign(&mut self.0, rhs);
 	}
 }
 
