@@ -355,6 +355,14 @@ impl Walk for i8 {
 			None
 		}
 	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.checked_add_unsigned(count as u8).unwrap_unchecked() }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { start.checked_sub_unsigned(count as u8).unwrap_unchecked() }
+	}
 }
 
 impl Walk for char {
