@@ -464,23 +464,38 @@ where
 
 #[cfg(test)]
 mod tests {
-	use super::Wrapping;
+	use core::fmt::Debug;
+
+	use crate::{
+		Wrapping,
+		ops::{WrappingAdd, WrappingMul, WrappingSub},
+	};
+
+	fn check_add<T>(value: T, one: T, expected: T)
+	where
+		T: Debug + PartialEq + WrappingAdd<T, Output = T>,
+	{
+		assert_eq!(Wrapping::add(value, one), expected);
+	}
 
 	#[test]
-	fn add() {
-		assert_eq!(Wrapping::add(i8::MAX, 1i8), i8::MIN);
-		assert_eq!(Wrapping::add(i16::MAX, 1i16), i16::MIN);
-		assert_eq!(Wrapping::add(i32::MAX, 1i32), i32::MIN);
-		assert_eq!(Wrapping::add(i64::MAX, 1i64), i64::MIN);
-		assert_eq!(Wrapping::add(i128::MAX, 1i128), i128::MIN);
-		assert_eq!(Wrapping::add(isize::MAX, 1isize), isize::MIN);
+	fn add_signed() {
+		check_add(i8::MAX, 1, i8::MIN);
+		check_add(i16::MAX, 1, i16::MIN);
+		check_add(i32::MAX, 1, i32::MIN);
+		check_add(i64::MAX, 1, i64::MIN);
+		check_add(i128::MAX, 1, i128::MIN);
+		check_add(isize::MAX, 1, isize::MIN);
+	}
 
-		assert_eq!(Wrapping::add(u8::MAX, 1u8), u8::MIN);
-		assert_eq!(Wrapping::add(u16::MAX, 1u16), u16::MIN);
-		assert_eq!(Wrapping::add(u32::MAX, 1u32), u32::MIN);
-		assert_eq!(Wrapping::add(u64::MAX, 1u64), u64::MIN);
-		assert_eq!(Wrapping::add(u128::MAX, 1u128), u128::MIN);
-		assert_eq!(Wrapping::add(usize::MAX, 1usize), usize::MIN);
+	#[test]
+	fn add_unsigned() {
+		check_add(u8::MAX, 1, u8::MIN);
+		check_add(u16::MAX, 1, u16::MIN);
+		check_add(u32::MAX, 1, u32::MIN);
+		check_add(u64::MAX, 1, u64::MIN);
+		check_add(u128::MAX, 1, u128::MIN);
+		check_add(usize::MAX, 1, usize::MIN);
 	}
 
 	#[test]
