@@ -478,9 +478,9 @@ mod tests {
 		assert_eq!(Wrapping::add(value, one), expected);
 	}
 
-	fn check_sub<T>(value: T, one: T, expected: T)
+	fn check_sub<T, Rhs>(value: T, one: Rhs, expected: T)
 	where
-		T: Debug + PartialEq + WrappingSub<T, Output = T>,
+		T: Debug + PartialEq + WrappingSub<Rhs, Output = T>,
 	{
 		assert_eq!(Wrapping::sub(value, one), expected);
 	}
@@ -542,22 +542,47 @@ mod tests {
 
 	#[test]
 	fn sub_signed() {
-		check_sub(i8::MIN, 1, i8::MAX);
-		check_sub(i16::MIN, 1, i16::MAX);
-		check_sub(i32::MIN, 1, i32::MAX);
-		check_sub(i64::MIN, 1, i64::MAX);
-		check_sub(i128::MIN, 1, i128::MAX);
-		check_sub(isize::MIN, 1, isize::MAX);
+		check_sub(i8::MIN, 1i8, i8::MAX);
+		check_sub(i16::MIN, 1i16, i16::MAX);
+		check_sub(i32::MIN, 1i32, i32::MAX);
+		check_sub(i64::MIN, 1i64, i64::MAX);
+		check_sub(i128::MIN, 1i128, i128::MAX);
+		check_sub(isize::MIN, 1isize, isize::MAX);
+	}
+
+	#[test]
+	fn sub_signed_unsigned() {
+		check_sub(i8::MAX, u8::MAX, i8::MIN);
+		check_sub(i16::MAX, u16::MAX, i16::MIN);
+		check_sub(i32::MAX, u32::MAX, i32::MIN);
+		check_sub(i64::MAX, u64::MAX, i64::MIN);
+		check_sub(i128::MAX, u128::MAX, i128::MIN);
+		check_sub(isize::MAX, usize::MAX, isize::MIN);
 	}
 
 	#[test]
 	fn sub_unsigned() {
-		check_sub(u8::MIN, 1, u8::MAX);
-		check_sub(u16::MIN, 1, u16::MAX);
-		check_sub(u32::MIN, 1, u32::MAX);
-		check_sub(u64::MIN, 1, u64::MAX);
-		check_sub(u128::MIN, 1, u128::MAX);
-		check_sub(usize::MIN, 1, usize::MAX);
+		check_sub(u8::MIN, 1u8, u8::MAX);
+		check_sub(u16::MIN, 1u16, u16::MAX);
+		check_sub(u32::MIN, 1u32, u32::MAX);
+		check_sub(u64::MIN, 1u64, u64::MAX);
+		check_sub(u128::MIN, 1u128, u128::MAX);
+		check_sub(usize::MIN, 1usize, usize::MAX);
+	}
+
+	#[test]
+	#[cfg(feature = "nightly")]
+	fn sub_unsigned_signed() {
+		check_sub(u8::MAX, i8::MAX, 128);
+		check_sub(u16::MAX, i16::MAX, 32768);
+		check_sub(u32::MAX, i32::MAX, 2_147_483_648);
+		check_sub(u64::MAX, i64::MAX, 9_223_372_036_854_775_808);
+		check_sub(
+			u128::MAX,
+			i128::MAX,
+			170_141_183_460_469_231_731_687_303_715_884_105_728,
+		);
+		check_sub(usize::MAX, isize::MAX, 9_223_372_036_854_775_808);
 	}
 
 	#[test]
