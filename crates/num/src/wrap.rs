@@ -10,9 +10,9 @@ use core::{
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ops::{
-	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingMulAssign,
-	WrappingNeg, WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingShr,
-	WrappingShrAssign, WrappingSub, WrappingSubAssign,
+	CastTo, WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul,
+	WrappingMulAssign, WrappingNeg, WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign,
+	WrappingShr, WrappingShrAssign, WrappingSub, WrappingSubAssign,
 };
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -117,6 +117,15 @@ where
 impl<T: Binary> Binary for Wrapping<T> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		Binary::fmt(&self.0, f)
+	}
+}
+
+impl<T, To> CastTo<Wrapping<To>> for Wrapping<T>
+where
+	T: CastTo<To>,
+{
+	fn cast(self) -> Wrapping<To> {
+		Wrapping(CastTo::cast(self.0))
 	}
 }
 

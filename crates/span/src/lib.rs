@@ -9,8 +9,6 @@ use core::{
 	ops::{Bound, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive},
 };
 
-use rayon::prelude::*;
-
 pub use self::iter::*;
 
 #[repr(transparent)]
