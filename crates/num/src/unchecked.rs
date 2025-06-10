@@ -264,7 +264,10 @@ impl<T: UpperHex> UpperHex for Unchecked<T> {
 mod tests {
 	use core::fmt::Debug;
 
-	use crate::{Unchecked, ops::UncheckedAdd};
+	use crate::{
+		Unchecked,
+		ops::{UncheckedAdd, UncheckedSub},
+	};
 
 	fn check_add<T>(value: T, one: T, expected: T)
 	where
@@ -273,14 +276,50 @@ mod tests {
 		assert_eq!(unsafe { Unchecked::add(value, one) }, expected);
 	}
 
+	fn check_sub<T>(value: T, one: T, expected: T)
+	where
+		T: Debug + PartialEq + UncheckedSub<T, Output = T>,
+	{
+		assert_eq!(unsafe { Unchecked::sub(value, one) }, expected);
+	}
+
 	#[test]
 	fn add_signed() {
-		// assert_eq!(unsafe { Unchecked::add(i8::MAX - 1, 1i8) }, i8::MAX);
 		check_add(i8::MAX - 1, 1, i8::MAX);
 		check_add(i16::MAX - 1, 1, i16::MAX);
 		check_add(i32::MAX - 1, 1, i32::MAX);
 		check_add(i64::MAX - 1, 1, i64::MAX);
 		check_add(i128::MAX - 1, 1, i128::MAX);
 		check_add(isize::MAX - 1, 1, isize::MAX);
+	}
+
+	#[test]
+	fn add_unsigned() {
+		check_add(u8::MAX - 1, 1, u8::MAX);
+		check_add(u16::MAX - 1, 1, u16::MAX);
+		check_add(u32::MAX - 1, 1, u32::MAX);
+		check_add(u64::MAX - 1, 1, u64::MAX);
+		check_add(u128::MAX - 1, 1, u128::MAX);
+		check_add(usize::MAX - 1, 1, usize::MAX);
+	}
+
+	#[test]
+	fn sub_signed() {
+		check_sub(i8::MIN + 1, 1, i8::MIN);
+		check_sub(i16::MIN + 1, 1, i16::MIN);
+		check_sub(i32::MIN + 1, 1, i32::MIN);
+		check_sub(i64::MIN + 1, 1, i64::MIN);
+		check_sub(i128::MIN + 1, 1, i128::MIN);
+		check_sub(isize::MIN + 1, 1, isize::MIN);
+	}
+
+	#[test]
+	fn sub_unsigned() {
+		check_sub(u8::MIN + 1, 1, u8::MIN);
+		check_sub(u16::MIN + 1, 1, u16::MIN);
+		check_sub(u32::MIN + 1, 1, u32::MIN);
+		check_sub(u64::MIN + 1, 1, u64::MIN);
+		check_sub(u128::MIN + 1, 1, u128::MIN);
+		check_sub(usize::MIN + 1, 1, usize::MIN);
 	}
 }
