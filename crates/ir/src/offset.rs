@@ -1,13 +1,13 @@
 use core::{
 	cmp::Ordering,
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
-	iter::Step,
 	ops::{
 		Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Sub, SubAssign,
 	},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use vmm_span::Walk;
 use vmm_utils::GetOrZero;
 use vmm_wrap::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingNeg,
@@ -512,7 +512,7 @@ impl Serialize for Offset {
 	}
 }
 
-impl Step for Offset {
+impl Walk for Offset {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		isize::steps_between(&start.0, &end.0)
 	}

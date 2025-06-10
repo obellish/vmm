@@ -1,62 +1,65 @@
-use core::{iter::FusedIterator, marker::PhantomData, mem};
+use core::{cmp::Ordering, iter::FusedIterator, mem, net::Ipv4Addr};
 
-use super::SpanBound;
-use crate::{Excluded, Included};
+use super::{Excluded, Included, SpanBound, Unbounded};
+use crate::{Span, SpanStartBound};
 
 pub struct SpanIter<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
-	start: Option<T>,
-	end: Option<T>,
-	marker_from: PhantomData<From>,
-	marker_to: PhantomData<To>,
+	span: Span<T, From, To>,
+	exhausted: bool,
 }
 
 impl<T, From, To> SpanIter<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
-	pub(super) const fn new(start: Option<T>, end: Option<T>) -> Self {
+	pub(super) const fn new(span: Span<T, From, To>) -> Self {
 		Self {
-			start,
-			end,
-			marker_from: PhantomData,
-			marker_to: PhantomData,
+			span,
+			exhausted: false,
 		}
+	}
+
+	fn is_empty(&self) -> bool
+	where
+		T: PartialOrd,
+	{
+		self.span.is_empty() || self.exhausted
 	}
 }
 
 impl<T: Walk> DoubleEndedIterator for SpannedIter<T> {
 	fn next_back(&mut self) -> Option<Self::Item> {
-		debug_assert!(self.start.is_some());
-		debug_assert!(self.end.is_some());
+		debug_assert!(self.span.start.is_some());
+		debug_assert!(self.span.end.is_some());
 
-		let start = self.start.as_ref()?;
-		let end = self.end.as_ref()?;
+		let start = self.span.start.as_ref()?;
+		let end = self.span.end.as_ref()?;
 
 		if start < end {
-			self.end = Walk::backward_checked(end.clone(), 1);
-			self.end.clone()
+			self.span.end = Walk::backward_checked(end.clone(), 1);
+			self.span.end.clone()
 		} else {
 			None
 		}
 	}
 
 	fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-		let end = self.end.as_ref()?;
-		let start = self.start.as_ref()?;
+		let end = self.span.end.as_ref()?;
+		let start = self.span.start.as_ref()?;
 
 		if let Some(minus_n) = Walk::backward_checked(end.clone(), n) {
 			if minus_n > *start {
-				self.end = Walk::backward_checked(minus_n, 1);
-				return self.end.clone();
+				self.span.end = Walk::backward_checked(minus_n, 1);
+				return self.span.end.clone();
 			}
 		}
 
-		self.end = self.start.clone();
+		self.span.end = self.span.start.clone();
 		None
 	}
 }
@@ -67,11 +70,11 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		debug_assert!(self.start.is_some());
-		debug_assert!(self.end.is_some());
+		debug_assert!(self.span.start.is_some());
+		debug_assert!(self.span.end.is_some());
 
-		let start = self.start.as_mut()?;
-		let end = self.end.as_mut()?;
+		let start = self.span.start.as_mut()?;
+		let end = self.span.end.as_mut()?;
 
 		if start < end {
 			let n = Walk::forward_checked(start.clone(), 1)?;
@@ -82,14 +85,14 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
-		debug_assert!(self.start.is_some());
-		debug_assert!(self.end.is_some());
+		debug_assert!(self.span.start.is_some());
+		debug_assert!(self.span.end.is_some());
 
-		let Some(start) = self.start.as_ref() else {
+		let Some(start) = self.span.start.as_ref() else {
 			return (0, None);
 		};
 
-		let Some(end) = self.end.as_ref() else {
+		let Some(end) = self.span.end.as_ref() else {
 			return (0, None);
 		};
 
@@ -101,11 +104,11 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	}
 
 	fn count(self) -> usize {
-		debug_assert!(self.start.is_some());
-		debug_assert!(self.end.is_some());
+		debug_assert!(self.span.start.is_some());
+		debug_assert!(self.span.end.is_some());
 
-		let start = self.start.as_ref().unwrap();
-		let end = self.end.as_ref().unwrap();
+		let start = self.span.start.as_ref().unwrap();
+		let end = self.span.end.as_ref().unwrap();
 
 		if start < end {
 			Walk::steps_between(start, end)
@@ -117,18 +120,182 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	}
 
 	fn nth(&mut self, n: usize) -> Option<Self::Item> {
-		let start = self.start.as_mut()?;
-		let end = self.end.as_ref()?;
+		let start = self.span.start.as_mut()?;
+		let end = self.span.end.as_ref()?;
 
 		if let Some(plus_n) = Walk::forward_checked(start.clone(), n) {
 			if plus_n < *end {
-				self.start = Some(Walk::forward_checked(plus_n.clone(), 1)?);
+				self.span.start = Some(Walk::forward_checked(plus_n.clone(), 1)?);
 
 				return Some(plus_n);
 			}
 		}
 
-		self.start = self.end.clone();
+		self.span.start = self.span.end.clone();
+		None
+	}
+
+	fn last(mut self) -> Option<Self::Item> {
+		self.next_back()
+	}
+
+	fn min(mut self) -> Option<Self::Item> {
+		self.next()
+	}
+
+	fn max(mut self) -> Option<Self::Item> {
+		self.next_back()
+	}
+
+	fn is_sorted(self) -> bool {
+		true
+	}
+}
+
+impl<T: Walk> FusedIterator for SpannedFromIter<T> {}
+
+impl<T: Walk> Iterator for SpannedFromIter<T> {
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		let n = Walk::forward_checked(self.span.start.clone()?, 1);
+		mem::replace(&mut self.span.start, n)
+	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		(usize::MAX, None)
+	}
+
+	fn nth(&mut self, n: usize) -> Option<Self::Item> {
+		let plus_n = Walk::forward_checked(self.span.start.clone()?, n)?;
+		self.span.start = Walk::forward_checked(plus_n.clone(), 1);
+		Some(plus_n)
+	}
+}
+
+impl<T: Walk> DoubleEndedIterator for SpannedInclusiveIter<T> {
+	fn next_back(&mut self) -> Option<Self::Item> {
+		if self.is_empty() {
+			return None;
+		}
+
+		let start = self.span.start.as_ref()?;
+		let end = self.span.end.as_ref()?;
+		let is_iterating = start < end;
+		Some(if is_iterating {
+			let n = Walk::backward_checked(end.clone(), 1);
+			mem::replace(&mut self.span.end, n)?
+		} else {
+			self.exhausted = true;
+			end.clone()
+		})
+	}
+
+	fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
+		if self.is_empty() {
+			return None;
+		}
+
+		if let Some(minus_n) = Walk::backward_checked(self.span.end.clone()?, n) {
+			match minus_n.partial_cmp(self.span.start.as_ref()?) {
+				Some(Ordering::Greater) => {
+					self.span.end = Walk::backward_checked(minus_n.clone(), 1);
+					return Some(minus_n);
+				}
+				Some(Ordering::Equal) => {
+					self.span.end = Some(minus_n.clone());
+					self.exhausted = true;
+					return Some(minus_n);
+				}
+				_ => {}
+			}
+		}
+
+		self.span.end = self.span.start.clone();
+		self.exhausted = true;
+		None
+	}
+}
+
+impl<T: Walk> FusedIterator for SpannedInclusiveIter<T> {}
+
+impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
+	type Item = T;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		if self.is_empty() {
+			return None;
+		}
+
+		let start = self.span.start.as_ref()?;
+		let end = self.span.end.as_ref()?;
+		let is_iterating = start < end;
+		Some(if is_iterating {
+			let n = Walk::forward_checked(start.clone(), 1);
+			mem::replace(&mut self.span.start, n)?
+		} else {
+			self.exhausted = true;
+			start.clone()
+		})
+	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		if self.is_empty() {
+			return (0, Some(0));
+		}
+
+		let Some(start) = self.span.start.as_ref() else {
+			return (0, Some(0));
+		};
+
+		let Some(end) = self.span.end.as_ref() else {
+			return (0, Some(0));
+		};
+
+		let hint = Walk::steps_between(start, end);
+		(
+			hint.0.saturating_add(1),
+			hint.1.and_then(|steps| steps.checked_add(1)),
+		)
+	}
+
+	fn count(self) -> usize {
+		if self.is_empty() {
+			return 0;
+		}
+
+		let Some((start, end)) = self.span.start.as_ref().zip(self.span.end.as_ref()) else {
+			return 0;
+		};
+
+		Walk::steps_between(start, end)
+			.1
+			.and_then(|steps| steps.checked_add(1))
+			.expect("count overflowed usize")
+	}
+
+	fn nth(&mut self, n: usize) -> Option<Self::Item> {
+		if self.is_empty() {
+			return None;
+		}
+
+		if let Some(plus_n) = Walk::forward_checked(self.span.start.clone()?, n) {
+			match plus_n.partial_cmp(self.span.end.as_ref()?) {
+				Some(Ordering::Less) => {
+					self.span.start = Walk::forward_checked(plus_n.clone(), 1);
+					return Some(plus_n);
+				}
+				Some(Ordering::Equal) => {
+					self.span.start = Some(plus_n.clone());
+					self.exhausted = true;
+					return Some(plus_n);
+				}
+				_ => {}
+			}
+		}
+
+		self.span.start = self.span.end.clone();
+		self.exhausted = true;
 		None
 	}
 
@@ -522,7 +689,33 @@ impl Walk for char {
 	}
 }
 
+impl Walk for Ipv4Addr {
+	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
+		u32::steps_between(&start.to_bits(), &end.to_bits())
+	}
+
+	fn forward_checked(start: Self, count: usize) -> Option<Self> {
+		u32::forward_checked(start.to_bits(), count).map(Self::from_bits)
+	}
+
+	fn backward_checked(start: Self, count: usize) -> Option<Self> {
+		u32::backward_checked(start.to_bits(), count).map(Self::from_bits)
+	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		Self::from_bits(unsafe { u32::forward_unchecked(start.to_bits(), count) })
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		Self::from_bits(unsafe { u32::backward_unchecked(start.to_bits(), count) })
+	}
+}
+
 pub type SpannedIter<T> = SpanIter<T, Included<T>, Excluded<T>>;
+
+pub type SpannedFromIter<T> = SpanIter<T, Included<T>, Unbounded<T>>;
+
+pub type SpannedInclusiveIter<T> = SpanIter<T, Included<T>, Included<T>>;
 
 #[cfg(test)]
 mod tests {
@@ -556,5 +749,48 @@ mod tests {
 		assert_eq!(Span::from(200..200).into_iter().rev().count(), 0);
 
 		assert_eq!(Span::from(0..100).into_iter().size_hint(), (100, Some(100)));
+
+		assert_eq!(
+			Span::from(usize::MAX - 1..usize::MAX)
+				.into_iter()
+				.size_hint(),
+			(1, Some(1))
+		);
+		assert_eq!(Span::from(-10..-1).into_iter().size_hint(), (9, Some(9)));
+		assert_eq!(Span::from(-1..-10).into_iter().size_hint(), (0, Some(0)));
+
+		assert_eq!(
+			Span::from(-70..58).into_iter().size_hint(),
+			(128, Some(128))
+		);
+		assert_eq!(
+			Span::from(-128..127).into_iter().size_hint(),
+			(255, Some(255))
+		);
+		assert_eq!(
+			Span::from(-2..isize::MAX).into_iter().size_hint(),
+			(isize::MAX as usize + 2, Some(isize::MAX as usize + 2))
+		);
+	}
+
+	#[test]
+	fn char_span() {
+		let from = if cfg!(miri) {
+			char::from_u32(0xD800 - 10).unwrap()
+		} else {
+			'\0'
+		};
+		let to = if cfg!(miri) {
+			char::from_u32(0xDFFF + 10).unwrap()
+		} else {
+			char::MAX
+		};
+		assert!(
+			Span::from(from..=to)
+				.into_iter()
+				.eq(Span::from(from as u32..=to as u32)
+					.into_iter()
+					.filter_map(char::from_u32))
+		);
 	}
 }
