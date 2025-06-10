@@ -471,69 +471,84 @@ mod tests {
 		ops::{WrappingAdd, WrappingMul, WrappingSub},
 	};
 
-	fn check_add<T>(value: T, one: T, expected: T)
+	fn check_add<T, Rhs>(value: T, one: Rhs, expected: T)
 	where
-		T: Debug + PartialEq + WrappingAdd<T, Output = T>,
+		T: Debug + PartialEq + WrappingAdd<Rhs, Output = T>,
 	{
 		assert_eq!(Wrapping::add(value, one), expected);
 	}
 
+	fn check_sub<T>(value: T, one: T, expected: T)
+	where
+		T: Debug + PartialEq + WrappingSub<T, Output = T>,
+	{
+		assert_eq!(Wrapping::sub(value, one), expected);
+	}
+
+	fn check_mul<T, Rhs>(value: T, multiplier: Rhs, expected: T)
+	where
+		T: Debug + PartialEq + WrappingMul<Rhs, Output = T>,
+	{
+		assert_eq!(Wrapping::mul(value, multiplier), expected);
+	}
+
 	#[test]
 	fn add_signed() {
-		check_add(i8::MAX, 1, i8::MIN);
-		check_add(i16::MAX, 1, i16::MIN);
-		check_add(i32::MAX, 1, i32::MIN);
-		check_add(i64::MAX, 1, i64::MIN);
-		check_add(i128::MAX, 1, i128::MIN);
-		check_add(isize::MAX, 1, isize::MIN);
+		check_add(i8::MAX, 1i8, i8::MIN);
+		check_add(i16::MAX, 1i16, i16::MIN);
+		check_add(i32::MAX, 1i32, i32::MIN);
+		check_add(i64::MAX, 1i64, i64::MIN);
+		check_add(i128::MAX, 1i128, i128::MIN);
+		check_add(isize::MAX, 1isize, isize::MIN);
 	}
 
 	#[test]
 	fn add_unsigned() {
-		check_add(u8::MAX, 1, u8::MIN);
-		check_add(u16::MAX, 1, u16::MIN);
-		check_add(u32::MAX, 1, u32::MIN);
-		check_add(u64::MAX, 1, u64::MIN);
-		check_add(u128::MAX, 1, u128::MIN);
-		check_add(usize::MAX, 1, usize::MIN);
+		check_add(u8::MAX, 1u8, u8::MIN);
+		check_add(u16::MAX, 1u16, u16::MIN);
+		check_add(u32::MAX, 1u32, u32::MIN);
+		check_add(u64::MAX, 1u64, u64::MIN);
+		check_add(u128::MAX, 1u128, u128::MIN);
+		check_add(usize::MAX, 1usize, usize::MIN);
 	}
 
 	#[test]
-	fn sub() {
-		assert_eq!(Wrapping::sub(i8::MIN, 1i8), i8::MAX);
-		assert_eq!(Wrapping::sub(i16::MIN, 1i16), i16::MAX);
-		assert_eq!(Wrapping::sub(i32::MIN, 1i32), i32::MAX);
-		assert_eq!(Wrapping::sub(i64::MIN, 1i64), i64::MAX);
-		assert_eq!(Wrapping::sub(i128::MIN, 1i128), i128::MAX);
-		assert_eq!(Wrapping::sub(isize::MIN, 1isize), isize::MAX);
-
-		assert_eq!(Wrapping::sub(u8::MIN, 1u8), u8::MAX);
-		assert_eq!(Wrapping::sub(u16::MIN, 1u16), u16::MAX);
-		assert_eq!(Wrapping::sub(u32::MIN, 1u32), u32::MAX);
-		assert_eq!(Wrapping::sub(u64::MIN, 1u64), u64::MAX);
-		assert_eq!(Wrapping::sub(u128::MIN, 1u128), u128::MAX);
-		assert_eq!(Wrapping::sub(usize::MIN, 1usize), usize::MAX);
+	fn sub_signed() {
+		check_sub(i8::MIN, 1, i8::MAX);
+		check_sub(i16::MIN, 1, i16::MAX);
+		check_sub(i32::MIN, 1, i32::MAX);
+		check_sub(i64::MIN, 1, i64::MAX);
+		check_sub(i128::MIN, 1, i128::MAX);
+		check_sub(isize::MIN, 1, isize::MAX);
 	}
 
 	#[test]
-	fn mul() {
-		assert_eq!(Wrapping::mul(0xfeu8 as i8, 16i8), 0xe0u8 as i8);
-		assert_eq!(Wrapping::mul(0xfedcu16 as i16, 16i16), 0xedc0u16 as i16);
-		assert_eq!(
-			Wrapping::mul(0xfedc_ba98u32 as i32, 16i32),
-			0xedcb_a980u32 as i32
-		);
-		assert_eq!(
-			Wrapping::mul(0xfedc_ba98_7654_3217u64 as i64, 16i64),
-			0xedcb_a987_6543_2170_u64 as i64
-		);
+	fn sub_unsigned() {
+		check_sub(u8::MIN, 1, u8::MAX);
+		check_sub(u16::MIN, 1, u16::MAX);
+		check_sub(u32::MIN, 1, u32::MAX);
+		check_sub(u64::MIN, 1, u64::MAX);
+		check_sub(u128::MIN, 1, u128::MAX);
+		check_sub(usize::MIN, 1, usize::MAX);
+	}
 
-		assert_eq!(Wrapping::mul(0xfeu8, 16), 0xe0);
-		assert_eq!(Wrapping::mul(0xfedcu16, 16), 0xedc0);
-		assert_eq!(Wrapping::mul(0xfedc_ba98_u32, 16), 0xedcb_a980);
-		assert_eq!(
-			Wrapping::mul(0xfedc_ba98_7654_3217_u64, 16),
-			0xedcb_a987_6543_2170
+	#[test]
+	fn mul_signed() {
+		check_mul(0xfeu8 as i8, 16, 0xe0u8 as i8);
+		check_mul(0xfedcu16 as i16, 16, 0xedc0u16 as i16);
+		check_mul(0xfedc_ba98u32 as i32, 16, 0xedcb_a980_u32 as i32);
+		check_mul(
+			0xfedc_ba98_7654_3217u64 as i64,
+			16,
+			0xedcb_a987_6543_2170u64 as i64,
 		);
+	}
+
+	#[test]
+	fn mul_unsigned() {
+		check_mul(0xfeu8, 16, 0xe0);
+		check_mul(0xfedcu16, 16, 0xedc0);
+		check_mul(0xfedc_ba98_u32, 16, 0xedcb_a980);
+		check_mul(0xfedc_ba98_7654_3217u64, 16, 0xedcb_a987_6543_2170);
 	}
 }
