@@ -503,6 +503,20 @@ mod tests {
 	}
 
 	#[test]
+	fn add_signed_unsigned() {
+		check_add(i8::MAX, u8::MAX, 126);
+		check_add(i16::MAX, u16::MAX, 32766);
+		check_add(i32::MAX, u32::MAX, 2_147_483_646);
+		check_add(i64::MAX, u64::MAX, 9_223_372_036_854_775_806);
+		check_add(
+			i128::MAX,
+			u128::MAX,
+			170_141_183_460_469_231_731_687_303_715_884_105_726,
+		);
+		check_add(isize::MAX, usize::MAX, 9_223_372_036_854_775_806);
+	}
+
+	#[test]
 	fn add_unsigned() {
 		check_add(u8::MAX, 1u8, u8::MIN);
 		check_add(u16::MAX, 1u16, u16::MIN);
@@ -510,6 +524,20 @@ mod tests {
 		check_add(u64::MAX, 1u64, u64::MIN);
 		check_add(u128::MAX, 1u128, u128::MIN);
 		check_add(usize::MAX, 1usize, usize::MIN);
+	}
+
+	#[test]
+	fn add_unsigned_signed() {
+		check_add(u8::MAX, i8::MAX, 126);
+		check_add(u16::MAX, i16::MAX, 32766);
+		check_add(u32::MAX, i32::MAX, 2_147_483_646);
+		check_add(u64::MAX, i64::MAX, 9_223_372_036_854_775_806);
+		check_add(
+			u128::MAX,
+			i128::MAX,
+			170_141_183_460_469_231_731_687_303_715_884_105_726,
+		);
+		check_add(usize::MAX, isize::MAX, 9_223_372_036_854_775_806);
 	}
 
 	#[test]
