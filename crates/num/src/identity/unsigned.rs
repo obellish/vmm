@@ -7,61 +7,21 @@ pub trait Unsigned: Sized {
 
 	fn from_signed(signed: Self::Signed) -> Self;
 
-	fn try_into_signed(self) -> Option<Self::Signed>
-	where
-		Self: TryInto<Self::Signed>,
-	{
-		self.try_into().ok()
-	}
+	fn try_into_signed(self) -> Option<Self::Signed>;
 
-	fn try_from_signed(signed: Self::Signed) -> Option<Self>
-	where
-		Self::Signed: TryInto<Self>,
-	{
-		signed.try_into().ok()
-	}
+	fn try_from_signed(signed: Self::Signed) -> Option<Self>;
 
-	fn to_u8(self) -> u8
-	where
-		Self: Into<u8>,
-	{
-		self.into()
-	}
+	fn to_u8(self) -> u8;
 
-	fn to_u16(self) -> u16
-	where
-		Self: Into<u16>,
-	{
-		self.into()
-	}
+	fn to_u16(self) -> u16;
 
-	fn to_u32(self) -> u32
-	where
-		Self: Into<u32>,
-	{
-		self.into()
-	}
+	fn to_u32(self) -> u32;
 
-	fn to_u64(self) -> u64
-	where
-		Self: Into<u64>,
-	{
-		self.into()
-	}
+	fn to_u64(self) -> u64;
 
-	fn to_u128(self) -> u128
-	where
-		Self: Into<u128>,
-	{
-		self.into()
-	}
+	fn to_u128(self) -> u128;
 
-	fn to_usize(self) -> usize
-	where
-		Self: Into<usize>,
-	{
-		self.into()
-	}
+	fn to_usize(self) -> usize;
 }
 
 impl Unsigned for u8 {
@@ -73,5 +33,257 @@ impl Unsigned for u8 {
 
 	fn from_signed(signed: Self::Signed) -> Self {
 		signed as _
+	}
+
+	fn try_from_signed(signed: Self::Signed) -> Option<Self> {
+		signed.try_into().ok()
+	}
+
+	fn try_into_signed(self) -> Option<Self::Signed> {
+		self.try_into().ok()
+	}
+
+	fn to_u8(self) -> u8 {
+		self
+	}
+
+	fn to_u16(self) -> u16 {
+		self.into()
+	}
+
+	fn to_u32(self) -> u32 {
+		self.into()
+	}
+
+	fn to_u64(self) -> u64 {
+		self.into()
+	}
+
+	fn to_u128(self) -> u128 {
+		self.into()
+	}
+
+	fn to_usize(self) -> usize {
+		self.into()
+	}
+}
+
+impl Unsigned for u16 {
+	type Signed = i16;
+
+	fn to_signed(self) -> Self::Signed {
+		self as _
+	}
+
+	fn from_signed(signed: Self::Signed) -> Self {
+		signed as _
+	}
+
+	fn try_from_signed(signed: Self::Signed) -> Option<Self> {
+		signed.try_into().ok()
+	}
+
+	fn try_into_signed(self) -> Option<Self::Signed> {
+		self.try_into().ok()
+	}
+
+	fn to_u8(self) -> u8 {
+		self as _
+	}
+
+	fn to_u16(self) -> u16 {
+		self
+	}
+
+	fn to_u32(self) -> u32 {
+		self.into()
+	}
+
+	fn to_u64(self) -> u64 {
+		self.into()
+	}
+
+	fn to_u128(self) -> u128 {
+		self.into()
+	}
+
+	fn to_usize(self) -> usize {
+		self.into()
+	}
+}
+
+impl Unsigned for u32 {
+	type Signed = i32;
+
+	fn to_signed(self) -> Self::Signed {
+		self as _
+	}
+
+	fn from_signed(signed: Self::Signed) -> Self {
+		signed as _
+	}
+
+	fn try_from_signed(signed: Self::Signed) -> Option<Self> {
+		signed.try_into().ok()
+	}
+
+	fn try_into_signed(self) -> Option<Self::Signed> {
+		self.try_into().ok()
+	}
+
+	fn to_u8(self) -> u8 {
+		self as _
+	}
+
+	fn to_u16(self) -> u16 {
+		self as _
+	}
+
+	fn to_u32(self) -> u32 {
+		self
+	}
+
+	fn to_u64(self) -> u64 {
+		self.into()
+	}
+
+	fn to_u128(self) -> u128 {
+		self.into()
+	}
+
+	fn to_usize(self) -> usize {
+		self as _
+	}
+}
+
+impl Unsigned for u64 {
+	type Signed = i64;
+
+	fn to_signed(self) -> Self::Signed {
+		self as _
+	}
+
+	fn from_signed(signed: Self::Signed) -> Self {
+		signed as _
+	}
+
+	fn try_from_signed(signed: Self::Signed) -> Option<Self> {
+		signed.try_into().ok()
+	}
+
+	fn try_into_signed(self) -> Option<Self::Signed> {
+		self.try_into().ok()
+	}
+
+	fn to_u8(self) -> u8 {
+		self as _
+	}
+
+	fn to_u16(self) -> u16 {
+		self as _
+	}
+
+	fn to_u32(self) -> u32 {
+		self as _
+	}
+
+	fn to_u64(self) -> u64 {
+		self
+	}
+
+	fn to_u128(self) -> u128 {
+		self.into()
+	}
+
+	fn to_usize(self) -> usize {
+		self as _
+	}
+}
+
+impl Unsigned for u128 {
+	type Signed = i128;
+
+	fn to_signed(self) -> Self::Signed {
+		self as _
+	}
+
+	fn from_signed(signed: Self::Signed) -> Self {
+		signed as _
+	}
+
+	fn try_from_signed(signed: Self::Signed) -> Option<Self> {
+		signed.try_into().ok()
+	}
+
+	fn try_into_signed(self) -> Option<Self::Signed> {
+		self.try_into().ok()
+	}
+
+	fn to_u8(self) -> u8 {
+		self as _
+	}
+
+	fn to_u16(self) -> u16 {
+		self as _
+	}
+
+	fn to_u32(self) -> u32 {
+		self as _
+	}
+
+	fn to_u64(self) -> u64 {
+		self as _
+	}
+
+	fn to_u128(self) -> u128 {
+		self
+	}
+
+	fn to_usize(self) -> usize {
+		self as _
+	}
+}
+
+impl Unsigned for usize {
+	type Signed = isize;
+
+	fn to_signed(self) -> Self::Signed {
+		self as _
+	}
+
+	fn from_signed(signed: Self::Signed) -> Self {
+		signed as _
+	}
+
+	fn try_from_signed(signed: Self::Signed) -> Option<Self> {
+		signed.try_into().ok()
+	}
+
+	fn try_into_signed(self) -> Option<Self::Signed> {
+		self.try_into().ok()
+	}
+
+	fn to_u8(self) -> u8 {
+		self as _
+	}
+
+	fn to_u16(self) -> u16 {
+		self as _
+	}
+
+	fn to_u32(self) -> u32 {
+		self as _
+	}
+
+	fn to_u64(self) -> u64 {
+		self as _
+	}
+
+	fn to_u128(self) -> u128 {
+		self as _
+	}
+
+	fn to_usize(self) -> usize {
+		self
 	}
 }
