@@ -10,7 +10,7 @@ use core::{
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ops::{
-	CastTo, WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul,
+	CastTo, Primitive, WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul,
 	WrappingMulAssign, WrappingNeg, WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign,
 	WrappingShr, WrappingShrAssign, WrappingSub, WrappingSubAssign,
 };
@@ -120,12 +120,12 @@ impl<T: Binary> Binary for Wrapping<T> {
 	}
 }
 
-impl<T, To> CastTo<Wrapping<To>> for Wrapping<T>
+impl<T, To: Primitive> CastTo<Wrapping<To>> for Wrapping<T>
 where
 	T: CastTo<To>,
 {
-	fn cast(self) -> Wrapping<To> {
-		Wrapping(CastTo::cast(self.0))
+	fn cast_to(self) -> Wrapping<To> {
+		Wrapping(CastTo::cast_to(self.0))
 	}
 }
 
@@ -230,6 +230,8 @@ impl<T: PartialOrd> PartialOrd<T> for Wrapping<T> {
 		PartialOrd::partial_cmp(&self.0, other)
 	}
 }
+
+unsafe impl<T: Primitive> Primitive for Wrapping<T> {}
 
 impl<T, Rhs> Rem<Rhs> for Wrapping<T>
 where
