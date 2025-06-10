@@ -274,7 +274,7 @@ mod tests {
 	}
 
 	#[test]
-	fn add() {
+	fn add_signed() {
 		// assert_eq!(unsafe { Unchecked::add(i8::MAX - 1, 1i8) }, i8::MAX);
 		check_add(i8::MAX - 1, 1, i8::MAX);
 		check_add(i16::MAX - 1, 1, i16::MAX);
