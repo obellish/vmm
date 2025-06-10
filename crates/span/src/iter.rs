@@ -1,5 +1,7 @@
 use core::{cmp::Ordering, iter::FusedIterator, mem, net::Ipv4Addr};
 
+use vmm_num::{Checked, Unchecked};
+
 use super::{Excluded, Included, Span, SpanBound, SpanStartBound, Unbounded};
 
 pub struct SpanIter<T, From, To>
@@ -352,21 +354,21 @@ impl Walk for u8 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_add(n)
+		Checked::add(start, n)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_sub(n)
+		Checked::sub(start, n)
 	}
 
 	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_add(count as Self) }
+		unsafe { Unchecked::add(start, count as Self) }
 	}
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_sub(count as Self) }
+		unsafe { Unchecked::sub(start, count as Self) }
 	}
 }
 
