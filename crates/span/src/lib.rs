@@ -110,6 +110,13 @@ where
 {
 }
 
+impl<T: Eq, From, To> Eq for Span<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+}
+
 impl<T> From<Range<T>> for Spanned<T> {
 	fn from(value: Range<T>) -> Self {
 		Self::new(value.start, value.end)
@@ -196,6 +203,26 @@ impl<T: Walk> IntoIterator for SpannedInclusive<T> {
 
 	fn into_iter(self) -> Self::IntoIter {
 		SpanIter::new(self)
+	}
+}
+
+impl<T: PartialEq, From, To> PartialEq for Span<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn eq(&self, other: &Self) -> bool {
+		PartialEq::eq(&self.start, &other.start) && PartialEq::eq(&self.end, &other.end)
+	}
+}
+
+impl<T: PartialEq, From, To> PartialEq<SpanIter<T, From, To>> for Span<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn eq(&self, other: &SpanIter<T, From, To>) -> bool {
+		PartialEq::eq(self, &other.span)
 	}
 }
 

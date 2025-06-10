@@ -9,7 +9,7 @@ where
 	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
-	span: Span<T, From, To>,
+	pub(super) span: Span<T, From, To>,
 	exhausted: bool,
 }
 
@@ -30,6 +30,26 @@ where
 		T: PartialOrd,
 	{
 		self.span.is_empty() || self.exhausted
+	}
+}
+
+impl<T: PartialEq, From, To> PartialEq for SpanIter<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanStartBound<T>,
+{
+	fn eq(&self, other: &Self) -> bool {
+		PartialEq::eq(&self.span, &other.span)
+	}
+}
+
+impl<T: PartialEq, From, To> PartialEq<Span<T, From, To>> for SpanIter<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn eq(&self, other: &Span<T, From, To>) -> bool {
+		PartialEq::eq(&self.span, other)
 	}
 }
 
@@ -548,12 +568,20 @@ impl Walk for i16 {
 		let wrapped = Wrapping::sub(start, n as Self);
 		(wrapped <= start).then_some(wrapped)
 	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::add(start, count as u16).unwrap_unchecked() }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::sub(start, count as u16).unwrap_unchecked() }
+	}
 }
 
 impl Walk for i32 {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		if *start <= *end {
-			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			let steps = Wrapping::sub(*end as isize, *start as isize) as usize;
 			(steps, Some(steps))
 		} else {
 			(0, None)
@@ -563,22 +591,30 @@ impl Walk for i32 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u32::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_add(n as Self);
+		let wrapped = Wrapping::add(start, n as Self);
 		(wrapped >= start).then_some(wrapped)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u32::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_sub(n as Self);
+		let wrapped = Wrapping::sub(start, n as Self);
 		(wrapped <= start).then_some(wrapped)
+	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::add(start, count as u32).unwrap_unchecked() }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::sub(start, count as u32).unwrap_unchecked() }
 	}
 }
 
 impl Walk for i64 {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		if *start <= *end {
-			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			let steps = Wrapping::sub(*end as isize, *start as isize) as usize;
 			(steps, Some(steps))
 		} else {
 			(0, None)
@@ -588,22 +624,30 @@ impl Walk for i64 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u64::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_add(n as Self);
+		let wrapped = Wrapping::add(start, n as Self);
 		(wrapped >= start).then_some(wrapped)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u64::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_sub(n as Self);
+		let wrapped = Wrapping::sub(start, n as Self);
 		(wrapped <= start).then_some(wrapped)
+	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::add(start, count as u64).unwrap_unchecked() }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::sub(start, count as u64).unwrap_unchecked() }
 	}
 }
 
 impl Walk for isize {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		if *start <= *end {
-			let steps = end.wrapping_sub(*start) as usize;
+			let steps = Wrapping::sub(end, start) as usize;
 			(steps, Some(steps))
 		} else {
 			(0, None)
@@ -611,13 +655,21 @@ impl Walk for isize {
 	}
 
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
-		let wrapped = start.wrapping_add(count as Self);
+		let wrapped = Wrapping::add(start, count as Self);
 		(wrapped >= start).then_some(wrapped)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
-		let wrapped = start.wrapping_sub(count as Self);
+		let wrapped = Wrapping::sub(start, count as Self);
 		(wrapped <= start).then_some(wrapped)
+	}
+
+	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::add(start, count).unwrap_unchecked() }
+	}
+
+	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
+		unsafe { Checked::sub(start, count).unwrap_unchecked() }
 	}
 }
 
@@ -719,6 +771,7 @@ pub type SpannedFromIter<T> = SpanIter<T, Included<T>, Unbounded<T>>;
 pub type SpannedInclusiveIter<T> = SpanIter<T, Included<T>, Included<T>>;
 
 #[cfg(test)]
+#[expect(clippy::reversed_empty_ranges, clippy::iter_nth_zero)]
 mod tests {
 	extern crate alloc;
 
@@ -727,7 +780,6 @@ mod tests {
 	use crate::*;
 
 	#[test]
-	#[expect(clippy::reversed_empty_ranges)]
 	fn span() {
 		assert_eq!(
 			Span::from(0..5).into_iter().collect::<Vec<_>>(),
@@ -793,5 +845,138 @@ mod tests {
 					.into_iter()
 					.filter_map(char::from_u32))
 		);
+	}
+
+	#[test]
+	fn span_exhaustion() {
+		let mut s = Span::from(10..10).into_iter();
+		assert!(s.is_empty());
+		assert_eq!(s.next(), None);
+		assert_eq!(s.next_back(), None);
+		assert!(s == Span::from(10..10));
+
+		let mut s = Span::from(10..12).into_iter();
+		assert_eq!(s.next(), Some(10));
+		assert_eq!(s.next(), Some(11));
+		assert!(s.is_empty());
+		assert!(s == Span::from(12..12));
+		assert_eq!(s.next(), None);
+
+		let mut s = Span::from(10..12).into_iter();
+		assert_eq!(s.next_back(), Some(11));
+		assert_eq!(s.next_back(), Some(10));
+		assert!(s.is_empty());
+		assert!(s == Span::from(10..10));
+		assert_eq!(s.next_back(), None);
+
+		let mut s = Span::from(100..10).into_iter();
+		assert!(s.is_empty());
+		assert_eq!(s.next(), None);
+		assert_eq!(s.next_back(), None);
+		assert!(s == Span::from(100..10));
+	}
+
+	#[test]
+	fn span_inclusive_exhaustion() {
+		let mut s = Span::from(10..=10).into_iter();
+		assert_eq!(s.next(), Some(10));
+		assert!(s.is_empty());
+		assert_eq!(s.next(), None);
+		assert_eq!(s.next(), None);
+
+		let mut s = Span::from(10..=10).into_iter();
+		assert_eq!(s.next_back(), Some(10));
+		assert!(s.is_empty());
+		assert_eq!(s.next_back(), None);
+
+		let mut s = Span::from(10..=12).into_iter();
+		assert_eq!(s.next(), Some(10));
+		assert_eq!(s.next(), Some(11));
+		assert_eq!(s.next(), Some(12));
+		assert!(s.is_empty());
+		assert_eq!(s.next(), None);
+
+		let mut s = Span::from(10..=12).into_iter();
+		assert_eq!(s.next_back(), Some(12));
+		assert_eq!(s.next_back(), Some(11));
+		assert_eq!(s.next_back(), Some(10));
+		assert!(s.is_empty());
+		assert_eq!(s.next_back(), None);
+
+		let mut s = Span::from(10..=12).into_iter();
+		assert_eq!(s.nth(2), Some(12));
+		assert!(s.is_empty());
+		assert_eq!(s.next(), None);
+
+		let mut s = Span::from(10..=12).into_iter();
+		assert_eq!(s.nth(5), None);
+		assert!(s.is_empty());
+		assert_eq!(s.next(), None);
+
+		let mut s = Span::from(100..=10).into_iter();
+		assert_eq!(s.next(), None);
+		assert!(s.is_empty());
+		assert_eq!(s.next(), None);
+		assert_eq!(s.next(), None);
+		assert!(s == Span::from(100..=10));
+
+		let mut s = Span::from(100..=10).into_iter();
+		assert_eq!(s.next_back(), None);
+		assert!(s.is_empty());
+		assert_eq!(s.next_back(), None);
+		assert_eq!(s.next_back(), None);
+		assert!(s == Span::from(100..=10));
+	}
+
+	#[test]
+	fn span_nth() {
+		let s = Span::from(10..15);
+		assert_eq!(s.into_iter().nth(0), Some(10));
+		assert_eq!(s.into_iter().nth(1), Some(11));
+		assert_eq!(s.into_iter().nth(4), Some(14));
+		assert_eq!(s.into_iter().nth(5), None);
+
+		let mut s = Span::from(10..20).into_iter();
+		assert_eq!(s.nth(2), Some(12));
+		assert!(s == Span::from(13..20));
+		assert_eq!(s.nth(2), Some(15));
+		assert!(s == Span::from(16..20));
+		assert_eq!(s.nth(10), None);
+		assert!(s == Span::from(20..20));
+	}
+
+	#[test]
+	fn span_nth_back() {
+		let s = Span::from(10..15);
+		assert_eq!(s.into_iter().nth_back(0), Some(14));
+		assert_eq!(s.into_iter().nth_back(1), Some(13));
+		assert_eq!(s.into_iter().nth_back(4), Some(10));
+		assert_eq!(s.into_iter().nth_back(5), None);
+
+		let mut s = Span::from(10..20).into_iter();
+		assert_eq!(s.nth_back(2), Some(17));
+		assert!(s == Span::from(10..17));
+		assert_eq!(s.nth_back(2), Some(14));
+		assert!(s == Span::from(10..14));
+		assert_eq!(s.nth_back(10), None);
+		assert!(s == Span::from(10..10));
+	}
+
+	#[test]
+	fn span_from_nth() {
+		let s = Span::from(10..);
+		assert_eq!(s.into_iter().nth(0), Some(10));
+		assert_eq!(s.into_iter().nth(1), Some(11));
+		assert_eq!(s.into_iter().nth(4), Some(14));
+
+		let mut s = Span::from(10..).into_iter();
+		assert_eq!(s.nth(2), Some(12));
+		assert!(s == Span::from(13..));
+		assert_eq!(s.nth(2), Some(15));
+		assert!(s == Span::from(16..));
+		assert_eq!(s.nth(10), Some(26));
+		assert!(s == Span::from(27..));
+
+		assert_eq!(Span::from(0..).into_iter().size_hint(), (usize::MAX, None));
 	}
 }
