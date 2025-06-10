@@ -19,6 +19,7 @@ macro_rules! impl_checked_add {
 		impl $crate::ops::CheckedAdd<$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn checked_add(self, rhs: $right) -> ::core::option::Option<Self> {
 				<$left>::$func(self, rhs)
 			}
@@ -27,6 +28,7 @@ macro_rules! impl_checked_add {
 		impl $crate::ops::CheckedAdd<&$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn checked_add(self, rhs: &$right) -> ::core::option::Option<Self> {
 				<$left>::$func(self, *rhs)
 			}
@@ -35,6 +37,7 @@ macro_rules! impl_checked_add {
 		impl $crate::ops::CheckedAdd<$right> for &$left {
 			type Output = <$left as $crate::ops::CheckedAdd<$right>>::Output;
 
+			#[inline]
 			fn checked_add(self, rhs: $right) -> ::core::option::Option<Self::Output> {
 				<$left>::$func(*self, rhs)
 			}
@@ -43,12 +46,14 @@ macro_rules! impl_checked_add {
 		impl $crate::ops::CheckedAdd<&$right> for &$left {
 			type Output = <$left as $crate::ops::CheckedAdd<$right>>::Output;
 
+			#[inline]
 			fn checked_add(self, rhs: &$right) -> ::core::option::Option<Self::Output> {
 				<$left>::$func(*self, *rhs)
 			}
 		}
 
 		impl $crate::ops::CheckedAddAssign<$right> for $left {
+			#[inline]
 			fn checked_add_assign(&mut self, rhs: $right) {
 				if let ::core::option::Option::Some(value) = <$left>::$func(*self, rhs) {
 					*self = value;
@@ -57,6 +62,7 @@ macro_rules! impl_checked_add {
 		}
 
 		impl $crate::ops::CheckedAddAssign<&$right> for $left {
+			#[inline]
 			fn checked_add_assign(&mut self, rhs: &$right) {
 				if let ::core::option::Option::Some(value) = <$left>::$func(*self, *rhs) {
 					*self = value;

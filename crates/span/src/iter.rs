@@ -1,6 +1,6 @@
 use core::{cmp::Ordering, iter::FusedIterator, mem, net::Ipv4Addr};
 
-use vmm_num::{Checked, Unchecked};
+use vmm_num::{Checked, Unchecked, Wrapping};
 
 use super::{Excluded, Included, Span, SpanBound, SpanStartBound, Unbounded};
 
@@ -385,21 +385,21 @@ impl Walk for u16 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_add(n)
+		Checked::add(start, n)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_sub(n)
+		Checked::sub(start, n)
 	}
 
 	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_add(count as Self) }
+		unsafe { Unchecked::add(start, count as Self) }
 	}
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_sub(count as Self) }
+		unsafe { Unchecked::sub(start, count as Self) }
 	}
 }
 
@@ -416,21 +416,21 @@ impl Walk for u32 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_add(n)
+		Checked::add(start, n)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_sub(n)
+		Checked::sub(start, n)
 	}
 
 	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_add(count as Self) }
+		unsafe { Unchecked::add(start, count as Self) }
 	}
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_sub(count as Self) }
+		unsafe { Unchecked::sub(start, count as Self) }
 	}
 }
 
@@ -447,21 +447,21 @@ impl Walk for u64 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_add(n)
+		Checked::add(start, n)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = Self::try_from(count).ok()?;
 
-		start.checked_sub(n)
+		Checked::sub(start, n)
 	}
 
 	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_add(count as Self) }
+		unsafe { Unchecked::add(start, count as Self) }
 	}
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_sub(count as Self) }
+		unsafe { Unchecked::sub(start, count as Self) }
 	}
 }
 
@@ -476,26 +476,26 @@ impl Walk for usize {
 	}
 
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
-		start.checked_add(count)
+		Checked::add(start, count)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
-		start.checked_sub(count)
+		Checked::sub(start, count)
 	}
 
 	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_add(count) }
+		unsafe { Unchecked::add(start, count) }
 	}
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.unchecked_sub(count) }
+		unsafe { Unchecked::sub(start, count) }
 	}
 }
 
 impl Walk for i8 {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		if *start <= *end {
-			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			let steps = Wrapping::sub(*end as isize, *start as isize) as usize;
 			(steps, Some(steps))
 		} else {
 			(0, None)
@@ -505,30 +505,30 @@ impl Walk for i8 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u8::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_add(n as Self);
+		let wrapped = Wrapping::add(start, n as Self);
 		(wrapped >= start).then_some(wrapped)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u8::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_sub(n as Self);
+		let wrapped = Wrapping::sub(start, n as Self);
 		(wrapped <= start).then_some(wrapped)
 	}
 
 	unsafe fn forward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.checked_add_unsigned(count as u8).unwrap_unchecked() }
+		unsafe { Checked::add(start, count as u8).unwrap_unchecked() }
 	}
 
 	unsafe fn backward_unchecked(start: Self, count: usize) -> Self {
-		unsafe { start.checked_sub_unsigned(count as u8).unwrap_unchecked() }
+		unsafe { Checked::sub(start, count as u8).unwrap_unchecked() }
 	}
 }
 
 impl Walk for i16 {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		if *start <= *end {
-			let steps = (*end as isize).wrapping_sub(*start as isize) as usize;
+			let steps = Wrapping::sub(*end as isize, *start as isize) as usize;
 			(steps, Some(steps))
 		} else {
 			(0, None)
@@ -538,14 +538,14 @@ impl Walk for i16 {
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u16::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_add(n as Self);
+		let wrapped = Wrapping::add(start, n as Self);
 		(wrapped >= start).then_some(wrapped)
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
 		let n = u16::try_from(count).ok()?;
 
-		let wrapped = start.wrapping_sub(n as Self);
+		let wrapped = Wrapping::sub(start, n as Self);
 		(wrapped <= start).then_some(wrapped)
 	}
 }

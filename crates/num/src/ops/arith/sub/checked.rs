@@ -19,6 +19,7 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<$right> for $left {
             type Output = Self;
 
+            #[inline]
             fn checked_sub(self, rhs: $right) -> ::core::option::Option<Self> {
                 <$left>::$func(self, rhs)
             }
@@ -27,6 +28,7 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<&$right> for $left {
             type Output = Self;
 
+            #[inline]
             fn checked_sub(self, rhs: &$right) -> ::core::option::Option<Self> {
                 <$left>::$func(self, *rhs)
             }
@@ -35,6 +37,7 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<$right> for &$left {
             type Output = <$left as $crate::ops::CheckedSub<$right>>::Output;
 
+            #[inline]
             fn checked_sub(self, rhs: $right) -> ::core::option::Option<Self::Output> {
                 <$left>::$func(*self, rhs)
             }
@@ -43,12 +46,14 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<&$right> for &$left {
             type Output = <$left as $crate::ops::CheckedSub<$right>>::Output;
 
+            #[inline]
             fn checked_sub(self, rhs: &$right) -> ::core::option::Option<Self::Output> {
                 <$left>::$func(*self, *rhs)
             }
         }
 
         impl $crate::ops::CheckedSubAssign<$right> for $left {
+            #[inline]
             fn checked_sub_assign(&mut self, rhs: $right) {
                 if let ::core::option::Option::Some(value) = <$left>::$func(*self, rhs) {
                     *self = value;
@@ -57,6 +62,7 @@ macro_rules! impl_checked_sub {
         }
 
         impl $crate::ops::CheckedSubAssign<&$right> for $left {
+            #[inline]
             fn checked_sub_assign(&mut self, rhs: &$right) {
                 if let ::core::option::Option::Some(value) = <$left>::$func(*self, *rhs) {
                     *self = value;
@@ -69,6 +75,7 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<$right> for $left {
             type Output = Self;
 
+            #[inline]
             fn checked_sub(self, rhs: $right) -> ::core::option::Option<Self> {
                 <$left>::$func(self, rhs)
             }
@@ -78,6 +85,7 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<&$right> for $left {
             type Output = Self;
 
+            #[inline]
             fn checked_sub(self, rhs: &$right) -> ::core::option::Option<Self> {
                 <$left>::$func(self, *rhs)
             }
@@ -87,6 +95,7 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<$right> for &$left {
             type Output = <$left as $crate::ops::CheckedSub<$right>>::Output;
 
+            #[inline]
             fn checked_sub(self, rhs: $right) -> ::core::option::Option<Self::Output> {
                 <$left>::$func(*self, rhs)
             }
@@ -96,6 +105,7 @@ macro_rules! impl_checked_sub {
         impl $crate::ops::CheckedSub<&$right> for &$left {
             type Output = <$left as $crate::ops::CheckedSub<$right>>::Output;
 
+            #[inline]
             fn checked_sub(self, rhs: &$right) -> ::core::option::Option<Self::Output> {
                 <$left>::$func(*self, *rhs)
             }
@@ -103,6 +113,7 @@ macro_rules! impl_checked_sub {
 
         #[cfg(feature = "nightly")]
         impl $crate::ops::CheckedSubAssign<$right> for $left {
+            #[inline]
             fn checked_sub_assign(&mut self, rhs: $right) {
                 if let ::core::option::Option::Some(value) = <$left>::$func(*self, rhs) {
                     *self = value;
@@ -112,6 +123,7 @@ macro_rules! impl_checked_sub {
 
         #[cfg(feature = "nightly")]
         impl $crate::ops::CheckedSubAssign<&$right> for $left {
+            #[inline]
             fn checked_sub_assign(&mut self, rhs: &$right) {
                 if let ::core::option::Option::Some(value) = <$left>::$func(*self, *rhs) {
                     *self = value;
