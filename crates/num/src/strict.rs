@@ -1,12 +1,15 @@
 use core::{
 	cmp::Ordering,
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
-	ops::*,
+	ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use crate::ops::*;
+use crate::ops::{
+	StrictAdd, StrictAddAssign, StrictDiv, StrictDivAssign, StrictMul, StrictMulAssign, StrictNeg,
+	StrictRem, StrictRemAssign, StrictSub, StrictSubAssign,
+};
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
