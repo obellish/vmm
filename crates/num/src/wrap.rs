@@ -464,7 +464,7 @@ where
 
 #[cfg(test)]
 mod tests {
-	use crate::Wrapping;
+	use super::Wrapping;
 
 	#[test]
 	fn add() {

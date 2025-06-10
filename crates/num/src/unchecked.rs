@@ -259,3 +259,28 @@ impl<T: UpperHex> UpperHex for Unchecked<T> {
 		UpperHex::fmt(&self.0, f)
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use core::fmt::Debug;
+
+	use crate::{Unchecked, ops::UncheckedAdd};
+
+	fn check_add<T>(value: T, one: T, expected: T)
+	where
+		T: Debug + PartialEq + UncheckedAdd<T, Output = T>,
+	{
+		assert_eq!(unsafe { Unchecked::add(value, one) }, expected);
+	}
+
+	#[test]
+	fn add() {
+		// assert_eq!(unsafe { Unchecked::add(i8::MAX - 1, 1i8) }, i8::MAX);
+		check_add(i8::MAX - 1, 1, i8::MAX);
+		check_add(i16::MAX - 1, 1, i16::MAX);
+		check_add(i32::MAX - 1, 1, i32::MAX);
+		check_add(i64::MAX - 1, 1, i64::MAX);
+		check_add(i128::MAX - 1, 1, i128::MAX);
+		check_add(isize::MAX - 1, 1, isize::MAX);
+	}
+}
