@@ -10,9 +10,9 @@ use core::{
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 use crate::ops::{
-	CastTo, Primitive, WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul,
-	WrappingMulAssign, WrappingNeg, WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign,
-	WrappingShr, WrappingShrAssign, WrappingSub, WrappingSubAssign,
+	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingMulAssign,
+	WrappingNeg, WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingShr,
+	WrappingShrAssign, WrappingSub, WrappingSubAssign,
 };
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -120,15 +120,6 @@ impl<T: Binary> Binary for Wrapping<T> {
 	}
 }
 
-impl<T, To: Primitive> CastTo<Wrapping<To>> for Wrapping<T>
-where
-	T: CastTo<To>,
-{
-	fn cast_to(self) -> Wrapping<To> {
-		Wrapping(CastTo::cast_to(self.0))
-	}
-}
-
 impl<T: Debug> Debug for Wrapping<T> {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		Debug::fmt(&self.0, f)
@@ -230,8 +221,6 @@ impl<T: PartialOrd> PartialOrd<T> for Wrapping<T> {
 		PartialOrd::partial_cmp(&self.0, other)
 	}
 }
-
-unsafe impl<T: Primitive> Primitive for Wrapping<T> {}
 
 impl<T, Rhs> Rem<Rhs> for Wrapping<T>
 where

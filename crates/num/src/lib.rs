@@ -6,6 +6,7 @@
 #![no_std]
 
 mod checked;
+mod identity;
 pub mod ops;
 mod sat;
 #[cfg(feature = "nightly")]
@@ -15,4 +16,4 @@ mod wrap;
 
 #[cfg(feature = "nightly")]
 pub use self::strict::*;
-pub use self::{checked::*, sat::*, unchecked::*, wrap::*};
+pub use self::{checked::*, identity::*, sat::*, unchecked::*, wrap::*};
