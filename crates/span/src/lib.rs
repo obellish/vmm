@@ -1,12 +1,17 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![no_std]
 
+mod iter;
 mod sealed;
 
 use core::{
 	marker::PhantomData,
 	ops::{Bound, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive},
 };
+
+use rayon::prelude::*;
+
+pub use self::iter::*;
 
 #[repr(transparent)]
 pub struct Unbounded<T: ?Sized>(PhantomData<T>);
@@ -19,7 +24,7 @@ pub struct Excluded<T: ?Sized>(PhantomData<T>);
 
 pub struct Span<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
 	start: Option<T>,
@@ -30,7 +35,7 @@ where
 
 impl<T, From, To> Span<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
 	pub const fn new(start: T, end: T) -> Self {
@@ -71,11 +76,23 @@ where
 			Bound::Unbounded => true,
 		})
 	}
+
+	pub fn is_empty(&self) -> bool
+	where
+		T: PartialOrd,
+	{
+		!match (self.start_bound(), self.end_bound()) {
+			(Bound::Unbounded, _) | (_, Bound::Unbounded) => true,
+			(Bound::Included(start) | Bound::Excluded(start), Bound::Excluded(end))
+			| (Bound::Excluded(start), Bound::Included(end)) => start < end,
+			(Bound::Included(start), Bound::Included(end)) => start <= end,
+		}
+	}
 }
 
 impl<T: Clone, From, To> Clone for Span<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
 	fn clone(&self) -> Self {
@@ -90,7 +107,7 @@ where
 
 impl<T: Copy, From, To> Copy for Span<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
 }
@@ -157,76 +174,43 @@ impl<T> From<RangeToInclusive<T>> for SpannedToInclusive<T> {
 	}
 }
 
-impl<T> IntoIterator for Spanned<T>
-where
-	Range<T>: Iterator<Item = T>,
-{
-	type IntoIter = Range<T>;
+impl<T: Walk> IntoIterator for Spanned<T> {
+	type IntoIter = SpannedIter<T>;
 	type Item = T;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.start.unwrap()..self.end.unwrap()
+		SpanIter::new(self)
 	}
 }
 
-impl<T> IntoIterator for SpannedFrom<T>
-where
-	RangeFrom<T>: Iterator<Item = T>,
-{
-	type IntoIter = RangeFrom<T>;
+impl<T: Walk> IntoIterator for SpannedFrom<T> {
+	type IntoIter = SpannedFromIter<T>;
 	type Item = T;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.start.unwrap()..
+		SpanIter::new(self)
 	}
 }
 
-impl<T> IntoIterator for SpannedInclusive<T>
-where
-	RangeInclusive<T>: Iterator<Item = T>,
-{
-	type IntoIter = RangeInclusive<T>;
+impl<T: Walk> IntoIterator for SpannedInclusive<T> {
+	type IntoIter = SpannedInclusiveIter<T>;
 	type Item = T;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.start.unwrap()..=self.end.unwrap()
-	}
-}
-
-impl<T> IntoIterator for SpannedTo<T>
-where
-	RangeTo<T>: Iterator<Item = T>,
-{
-	type IntoIter = RangeTo<T>;
-	type Item = T;
-
-	fn into_iter(self) -> Self::IntoIter {
-		..self.end.unwrap()
-	}
-}
-
-impl<T> IntoIterator for SpannedToInclusive<T>
-where
-	RangeToInclusive<T>: Iterator<Item = T>,
-{
-	type IntoIter = RangeToInclusive<T>;
-	type Item = T;
-
-	fn into_iter(self) -> Self::IntoIter {
-		..=self.end.unwrap()
+		SpanIter::new(self)
 	}
 }
 
 unsafe impl<T: Send, From, To> Send for Span<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
 }
 
 unsafe impl<T: Sync, From, To> Sync for Span<T, From, To>
 where
-	From: ?Sized + SpanBound<T>,
+	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
 }
@@ -266,6 +250,12 @@ impl<T> SpanBound<T> for Excluded<T> {
 		Bound::Excluded(item)
 	}
 }
+
+pub trait SpanStartBound<T>: SpanBound<T> {}
+
+impl<T> SpanStartBound<T> for Unbounded<T> {}
+
+impl<T> SpanStartBound<T> for Included<T> {}
 
 pub type SpannedFull<T> = Span<T, Unbounded<T>, Unbounded<T>>;
 

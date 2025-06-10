@@ -1,21 +1,15 @@
-#![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
-#![cfg_attr(feature = "nightly", feature(mixed_integer_ops_unsigned_sub))]
-#![no_std]
-
-pub mod ops;
-
 use core::{
 	cmp::Ordering,
 	fmt::{Binary, Debug, Display, Formatter, LowerHex, Octal, Result as FmtResult, UpperHex},
 	ops::{
-		Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Shl, ShlAssign,
-		Shr, ShrAssign, Sub, SubAssign,
+		Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Shl, ShlAssign, Shr,
+		ShrAssign, Sub, SubAssign,
 	},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
-use self::ops::{
+use crate::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingMulAssign,
 	WrappingNeg, WrappingRem, WrappingRemAssign, WrappingShl, WrappingShlAssign, WrappingShr,
 	WrappingShrAssign, WrappingSub, WrappingSubAssign,
@@ -26,68 +20,53 @@ use self::ops::{
 pub struct Wrapping<T>(pub T);
 
 impl<T> Wrapping<T> {
-	#[inline]
 	pub fn add<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingAdd<Rhs>,
 	{
-		(Self(lhs) + rhs).0
+		Add::add(Self(lhs), rhs).0
 	}
 
-	#[inline]
 	pub fn sub<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingSub<Rhs>,
 	{
-		(Self(lhs) - rhs).0
+		Sub::sub(Self(lhs), rhs).0
 	}
 
-	#[inline]
 	pub fn mul<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingMul<Rhs>,
 	{
-		(Self(lhs) * rhs).0
+		Mul::mul(Self(lhs), rhs).0
 	}
 
-	#[inline]
 	pub fn div<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingDiv<Rhs>,
 	{
-		(Self(lhs) / rhs).0
+		Div::div(Self(lhs), rhs).0
 	}
 
-	#[inline]
-	pub fn rem<Rhs>(lhs: T, rhs: Rhs) -> T::Output
+	pub fn neg(lhs: T) -> T::Output
 	where
-		T: WrappingRem<Rhs>,
+		T: WrappingNeg,
 	{
-		(Self(lhs) % rhs).0
+		Neg::neg(Self(lhs)).0
 	}
 
-	#[inline]
-	pub fn shl<Rhs>(lhs: T, rhs: Rhs) -> T::Output
-	where
-		T: WrappingShl<Rhs>,
-	{
-		(Self(lhs) << rhs).0
-	}
-
-	#[inline]
 	pub fn shr<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
 		T: WrappingShr<Rhs>,
 	{
-		(Self(lhs) >> rhs).0
+		Shr::shr(Self(lhs), rhs).0
 	}
 
-	#[inline]
-	pub fn neg(value: T) -> T::Output
+	pub fn shl<Rhs>(lhs: T, rhs: Rhs) -> T::Output
 	where
-		T: WrappingNeg,
+		T: WrappingShl<Rhs>,
 	{
-		(-Self(value)).0
+		Shl::shl(Self(lhs), rhs).0
 	}
 }
 
@@ -98,7 +77,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn add(self, rhs: Rhs) -> Self::Output {
-		Wrapping(self.0.wrapping_add(rhs))
+		Wrapping(WrappingAdd::wrapping_add(self.0, rhs))
 	}
 }
 
@@ -107,7 +86,7 @@ where
 	T: WrappingAddAssign<Rhs>,
 {
 	fn add_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_add_assign(rhs);
+		WrappingAddAssign::wrapping_add_assign(&mut self.0, rhs);
 	}
 }
 
@@ -172,7 +151,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn div(self, rhs: Rhs) -> Self::Output {
-		Wrapping(self.0.wrapping_div(rhs))
+		Wrapping(WrappingDiv::wrapping_div(self.0, rhs))
 	}
 }
 
@@ -181,7 +160,7 @@ where
 	T: WrappingDivAssign<Rhs>,
 {
 	fn div_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_div_assign(rhs);
+		WrappingDivAssign::wrapping_div_assign(&mut self.0, rhs);
 	}
 }
 
@@ -204,7 +183,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn mul(self, rhs: Rhs) -> Self::Output {
-		Wrapping(self.0.wrapping_mul(rhs))
+		Wrapping(WrappingMul::wrapping_mul(self.0, rhs))
 	}
 }
 
@@ -213,7 +192,7 @@ where
 	T: WrappingMulAssign<Rhs>,
 {
 	fn mul_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_mul_assign(rhs);
+		WrappingMulAssign::wrapping_mul_assign(&mut self.0, rhs);
 	}
 }
 
@@ -221,15 +200,7 @@ impl<T: WrappingNeg> Neg for Wrapping<T> {
 	type Output = Wrapping<T::Output>;
 
 	fn neg(self) -> Self::Output {
-		Wrapping(self.0.wrapping_neg())
-	}
-}
-
-impl<T: Not> Not for Wrapping<T> {
-	type Output = Wrapping<T::Output>;
-
-	fn not(self) -> Self::Output {
-		Wrapping(self.0.not())
+		Wrapping(WrappingNeg::wrapping_neg(self.0))
 	}
 }
 
@@ -241,13 +212,13 @@ impl<T: Octal> Octal for Wrapping<T> {
 
 impl<T: PartialEq> PartialEq<T> for Wrapping<T> {
 	fn eq(&self, other: &T) -> bool {
-		self.0.eq(other)
+		PartialEq::eq(&self.0, other)
 	}
 }
 
 impl<T: PartialOrd> PartialOrd<T> for Wrapping<T> {
 	fn partial_cmp(&self, other: &T) -> Option<Ordering> {
-		self.0.partial_cmp(other)
+		PartialOrd::partial_cmp(&self.0, other)
 	}
 }
 
@@ -258,7 +229,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn rem(self, rhs: Rhs) -> Self::Output {
-		Wrapping(self.0.wrapping_rem(rhs))
+		Wrapping(WrappingRem::wrapping_rem(self.0, rhs))
 	}
 }
 
@@ -267,16 +238,13 @@ where
 	T: WrappingRemAssign<Rhs>,
 {
 	fn rem_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_rem_assign(rhs);
+		WrappingRemAssign::wrapping_rem_assign(&mut self.0, rhs);
 	}
 }
 
 impl<T: Serialize> Serialize for Wrapping<T> {
-	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-	where
-		S: Serializer,
-	{
-		self.0.serialize(serializer)
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		Serialize::serialize(&self.0, serializer)
 	}
 }
 
@@ -287,7 +255,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn shl(self, rhs: Rhs) -> Self::Output {
-		Wrapping(self.0.wrapping_shl(rhs))
+		Wrapping(WrappingShl::wrapping_shl(self.0, rhs))
 	}
 }
 
@@ -296,7 +264,7 @@ where
 	T: WrappingShlAssign<Rhs>,
 {
 	fn shl_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_shl_assign(rhs);
+		WrappingShlAssign::wrapping_shl_assign(&mut self.0, rhs);
 	}
 }
 
@@ -307,7 +275,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn shr(self, rhs: Rhs) -> Self::Output {
-		Wrapping(self.0.wrapping_shr(rhs))
+		Wrapping(WrappingShr::wrapping_shr(self.0, rhs))
 	}
 }
 
@@ -316,7 +284,7 @@ where
 	T: WrappingShrAssign<Rhs>,
 {
 	fn shr_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_shr_assign(rhs);
+		WrappingShrAssign::wrapping_shr_assign(&mut self.0, rhs);
 	}
 }
 
@@ -327,7 +295,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn sub(self, rhs: Rhs) -> Self::Output {
-		Wrapping(self.0.wrapping_sub(rhs))
+		Wrapping(WrappingSub::wrapping_sub(self.0, rhs))
 	}
 }
 
@@ -336,7 +304,7 @@ where
 	T: WrappingSubAssign<Rhs>,
 {
 	fn sub_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_sub_assign(rhs);
+		WrappingSubAssign::wrapping_sub_assign(&mut self.0, rhs);
 	}
 }
 
@@ -353,7 +321,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_add(self, rhs: Rhs) -> Self::Output {
-		self + rhs
+		Add::add(self, rhs)
 	}
 }
 
@@ -362,7 +330,7 @@ where
 	T: WrappingAddAssign<Rhs>,
 {
 	fn wrapping_add_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_add_assign(rhs);
+		AddAssign::add_assign(self, rhs);
 	}
 }
 
@@ -373,7 +341,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_div(self, rhs: Rhs) -> Self::Output {
-		self / rhs
+		Div::div(self, rhs)
 	}
 }
 
@@ -382,7 +350,7 @@ where
 	T: WrappingDivAssign<Rhs>,
 {
 	fn wrapping_div_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_div_assign(rhs);
+		DivAssign::div_assign(self, rhs);
 	}
 }
 
@@ -393,7 +361,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_mul(self, rhs: Rhs) -> Self::Output {
-		self * rhs
+		Mul::mul(self, rhs)
 	}
 }
 
@@ -402,7 +370,7 @@ where
 	T: WrappingMulAssign<Rhs>,
 {
 	fn wrapping_mul_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_mul_assign(rhs);
+		MulAssign::mul_assign(self, rhs);
 	}
 }
 
@@ -410,7 +378,7 @@ impl<T: WrappingNeg> WrappingNeg for Wrapping<T> {
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_neg(self) -> Self::Output {
-		Wrapping(self.0.wrapping_neg())
+		Neg::neg(self)
 	}
 }
 
@@ -421,7 +389,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_rem(self, rhs: Rhs) -> Self::Output {
-		self % rhs
+		Rem::rem(self, rhs)
 	}
 }
 
@@ -430,7 +398,7 @@ where
 	T: WrappingRemAssign<Rhs>,
 {
 	fn wrapping_rem_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_rem_assign(rhs);
+		RemAssign::rem_assign(self, rhs);
 	}
 }
 
@@ -441,7 +409,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_shl(self, rhs: Rhs) -> Self::Output {
-		self << rhs
+		Shl::shl(self, rhs)
 	}
 }
 
@@ -450,7 +418,7 @@ where
 	T: WrappingShlAssign<Rhs>,
 {
 	fn wrapping_shl_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_shl_assign(rhs);
+		ShlAssign::shl_assign(self, rhs);
 	}
 }
 
@@ -461,7 +429,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_shr(self, rhs: Rhs) -> Self::Output {
-		self >> rhs
+		Shr::shr(self, rhs)
 	}
 }
 
@@ -470,7 +438,7 @@ where
 	T: WrappingShrAssign<Rhs>,
 {
 	fn wrapping_shr_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_shr_assign(rhs);
+		ShrAssign::shr_assign(self, rhs);
 	}
 }
 
@@ -481,7 +449,7 @@ where
 	type Output = Wrapping<T::Output>;
 
 	fn wrapping_sub(self, rhs: Rhs) -> Self::Output {
-		self - rhs
+		Sub::sub(self, rhs)
 	}
 }
 
@@ -490,6 +458,150 @@ where
 	T: WrappingSubAssign<Rhs>,
 {
 	fn wrapping_sub_assign(&mut self, rhs: Rhs) {
-		self.0.wrapping_sub_assign(rhs);
+		SubAssign::sub_assign(self, rhs);
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use core::fmt::Debug;
+
+	use crate::{
+		Wrapping,
+		ops::{WrappingAdd, WrappingMul, WrappingSub},
+	};
+
+	fn check_add<T, Rhs>(value: T, one: Rhs, expected: T)
+	where
+		T: Debug + PartialEq + WrappingAdd<Rhs, Output = T>,
+	{
+		assert_eq!(Wrapping::add(value, one), expected);
+	}
+
+	fn check_sub<T, Rhs>(value: T, one: Rhs, expected: T)
+	where
+		T: Debug + PartialEq + WrappingSub<Rhs, Output = T>,
+	{
+		assert_eq!(Wrapping::sub(value, one), expected);
+	}
+
+	fn check_mul<T, Rhs>(value: T, multiplier: Rhs, expected: T)
+	where
+		T: Debug + PartialEq + WrappingMul<Rhs, Output = T>,
+	{
+		assert_eq!(Wrapping::mul(value, multiplier), expected);
+	}
+
+	#[test]
+	fn add_signed() {
+		check_add(i8::MAX, 1i8, i8::MIN);
+		check_add(i16::MAX, 1i16, i16::MIN);
+		check_add(i32::MAX, 1i32, i32::MIN);
+		check_add(i64::MAX, 1i64, i64::MIN);
+		check_add(i128::MAX, 1i128, i128::MIN);
+		check_add(isize::MAX, 1isize, isize::MIN);
+	}
+
+	#[test]
+	fn add_signed_unsigned() {
+		check_add(i8::MAX, u8::MAX, 126);
+		check_add(i16::MAX, u16::MAX, 32766);
+		check_add(i32::MAX, u32::MAX, 2_147_483_646);
+		check_add(i64::MAX, u64::MAX, 9_223_372_036_854_775_806);
+		check_add(
+			i128::MAX,
+			u128::MAX,
+			170_141_183_460_469_231_731_687_303_715_884_105_726,
+		);
+		check_add(isize::MAX, usize::MAX, 9_223_372_036_854_775_806);
+	}
+
+	#[test]
+	fn add_unsigned() {
+		check_add(u8::MAX, 1u8, u8::MIN);
+		check_add(u16::MAX, 1u16, u16::MIN);
+		check_add(u32::MAX, 1u32, u32::MIN);
+		check_add(u64::MAX, 1u64, u64::MIN);
+		check_add(u128::MAX, 1u128, u128::MIN);
+		check_add(usize::MAX, 1usize, usize::MIN);
+	}
+
+	#[test]
+	fn add_unsigned_signed() {
+		check_add(u8::MAX, i8::MAX, 126);
+		check_add(u16::MAX, i16::MAX, 32766);
+		check_add(u32::MAX, i32::MAX, 2_147_483_646);
+		check_add(u64::MAX, i64::MAX, 9_223_372_036_854_775_806);
+		check_add(
+			u128::MAX,
+			i128::MAX,
+			170_141_183_460_469_231_731_687_303_715_884_105_726,
+		);
+		check_add(usize::MAX, isize::MAX, 9_223_372_036_854_775_806);
+	}
+
+	#[test]
+	fn sub_signed() {
+		check_sub(i8::MIN, 1i8, i8::MAX);
+		check_sub(i16::MIN, 1i16, i16::MAX);
+		check_sub(i32::MIN, 1i32, i32::MAX);
+		check_sub(i64::MIN, 1i64, i64::MAX);
+		check_sub(i128::MIN, 1i128, i128::MAX);
+		check_sub(isize::MIN, 1isize, isize::MAX);
+	}
+
+	#[test]
+	fn sub_signed_unsigned() {
+		check_sub(i8::MAX, u8::MAX, i8::MIN);
+		check_sub(i16::MAX, u16::MAX, i16::MIN);
+		check_sub(i32::MAX, u32::MAX, i32::MIN);
+		check_sub(i64::MAX, u64::MAX, i64::MIN);
+		check_sub(i128::MAX, u128::MAX, i128::MIN);
+		check_sub(isize::MAX, usize::MAX, isize::MIN);
+	}
+
+	#[test]
+	fn sub_unsigned() {
+		check_sub(u8::MIN, 1u8, u8::MAX);
+		check_sub(u16::MIN, 1u16, u16::MAX);
+		check_sub(u32::MIN, 1u32, u32::MAX);
+		check_sub(u64::MIN, 1u64, u64::MAX);
+		check_sub(u128::MIN, 1u128, u128::MAX);
+		check_sub(usize::MIN, 1usize, usize::MAX);
+	}
+
+	#[test]
+	#[cfg(feature = "nightly")]
+	fn sub_unsigned_signed() {
+		check_sub(u8::MAX, i8::MAX, 128);
+		check_sub(u16::MAX, i16::MAX, 32768);
+		check_sub(u32::MAX, i32::MAX, 2_147_483_648);
+		check_sub(u64::MAX, i64::MAX, 9_223_372_036_854_775_808);
+		check_sub(
+			u128::MAX,
+			i128::MAX,
+			170_141_183_460_469_231_731_687_303_715_884_105_728,
+		);
+		check_sub(usize::MAX, isize::MAX, 9_223_372_036_854_775_808);
+	}
+
+	#[test]
+	fn mul_signed() {
+		check_mul(0xfeu8 as i8, 16, 0xe0u8 as i8);
+		check_mul(0xfedcu16 as i16, 16, 0xedc0u16 as i16);
+		check_mul(0xfedc_ba98u32 as i32, 16, 0xedcb_a980_u32 as i32);
+		check_mul(
+			0xfedc_ba98_7654_3217u64 as i64,
+			16,
+			0xedcb_a987_6543_2170u64 as i64,
+		);
+	}
+
+	#[test]
+	fn mul_unsigned() {
+		check_mul(0xfeu8, 16, 0xe0);
+		check_mul(0xfedcu16, 16, 0xedc0);
+		check_mul(0xfedc_ba98_u32, 16, 0xedcb_a980);
+		check_mul(0xfedc_ba98_7654_3217u64, 16, 0xedcb_a987_6543_2170);
 	}
 }

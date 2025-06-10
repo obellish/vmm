@@ -801,13 +801,14 @@ version = "0.1.0"
 name = "vmm_interpret"
 version = "0.1.0"
 dependencies = [
+ "rayon",
  "serde",
  "vmm_ir",
+ "vmm_num",
  "vmm_program",
  "vmm_span",
  "vmm_tape",
  "vmm_utils",
- "vmm_wrap",
 ]
 
 [[package]]
@@ -815,9 +816,17 @@ name = "vmm_ir"
 version = "0.1.0"
 dependencies = [
  "serde",
+ "vmm_num",
  "vmm_span",
  "vmm_utils",
- "vmm_wrap",
+]
+
+[[package]]
+name = "vmm_num"
+version = "0.1.0"
+dependencies = [
+ "arbitrary",
+ "serde",
 ]
 
 [[package]]
@@ -833,11 +842,11 @@ dependencies = [
  "tap",
  "tracing",
  "vmm_ir",
+ "vmm_num",
  "vmm_program",
  "vmm_tape",
  "vmm_type_name",
  "vmm_utils",
- "vmm_wrap",
 ]
 
 [[package]]
@@ -863,6 +872,10 @@ dependencies = [
 [[package]]
 name = "vmm_span"
 version = "0.1.0"
+dependencies = [
+ "rayon",
+ "vmm_num",
+]
 
 [[package]]
 name = "vmm_tape"
@@ -870,7 +883,7 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "serde_array",
- "vmm_wrap",
+ "vmm_num",
 ]
 
 [[package]]
@@ -880,14 +893,6 @@ version = "0.1.0"
 [[package]]
 name = "vmm_utils"
 version = "0.1.0"
-
-[[package]]
-name = "vmm_wrap"
-version = "0.1.0"
-dependencies = [
- "arbitrary",
- "serde",
-]
 
 [[package]]
 name = "winapi"

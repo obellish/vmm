@@ -28,17 +28,17 @@ macro_rules! impl_wrapping_shr {
             }
 
             impl $crate::ops::WrappingShr<u32> for &$ty {
-                type Output = $ty;
+                type Output = <$ty as $crate::ops::WrappingShr<u32>>::Output;
 
-                fn wrapping_shr(self, rhs: u32) -> $ty {
+                fn wrapping_shr(self, rhs: u32) -> Self::Output {
                     <$ty>::wrapping_shr(*self, rhs)
                 }
             }
 
             impl $crate::ops::WrappingShr<&u32> for &$ty {
-                type Output = $ty;
+                type Output = <$ty as $crate::ops::WrappingShr<u32>>::Output;
 
-                fn wrapping_shr(self, rhs: &u32) -> $ty {
+                fn wrapping_shr(self, rhs: &u32) -> Self::Output {
                     <$ty>::wrapping_shr(*self, *rhs)
                 }
             }

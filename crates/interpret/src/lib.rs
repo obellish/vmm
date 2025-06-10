@@ -15,11 +15,11 @@ use vmm_ir::{
 	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
 	SuperInstruction,
 };
+use vmm_num::Wrapping;
 use vmm_program::Program;
 use vmm_span::SpannedInclusive;
 use vmm_tape::{Tape, TapePointer};
 use vmm_utils::GetOrZero as _;
-use vmm_wrap::Wrapping;
 
 pub use self::profiler::*;
 
@@ -344,9 +344,8 @@ where
 	}
 
 	fn inc_span(&mut self, value: i8, span: SpannedInclusive<Offset>) -> Result<(), RuntimeError> {
-		for idx in span {
-			self.inc_val(value, idx)?;
-		}
+		span.into_iter()
+			.try_for_each(|idx| self.inc_val(value, idx))?;
 
 		Ok(())
 	}

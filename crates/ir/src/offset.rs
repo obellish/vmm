@@ -1,18 +1,18 @@
 use core::{
 	cmp::Ordering,
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
-	iter::Step,
 	ops::{
 		Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Not, Rem, RemAssign, Sub, SubAssign,
 	},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use vmm_utils::GetOrZero;
-use vmm_wrap::ops::{
+use vmm_num::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingNeg,
 	WrappingSub, WrappingSubAssign,
 };
+use vmm_span::Walk;
+use vmm_utils::GetOrZero;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
@@ -512,7 +512,7 @@ impl Serialize for Offset {
 	}
 }
 
-impl Step for Offset {
+impl Walk for Offset {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
 		isize::steps_between(&start.0, &end.0)
 	}

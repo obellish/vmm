@@ -1,5 +1,5 @@
 use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
-use vmm_wrap::ops::WrappingMul;
+use vmm_num::ops::WrappingMul;
 
 use crate::{Change, PeepholePass};
 

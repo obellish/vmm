@@ -11,7 +11,7 @@ use core::{
 	ops::{Index, IndexMut},
 };
 
-use vmm_wrap::Wrapping;
+use vmm_num::Wrapping;
 
 pub use self::ptr::*;
 
