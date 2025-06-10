@@ -36,8 +36,7 @@ members = [
     "crates/span",
     "crates/tape",
     "crates/type_name",
-    "crates/utils",
-    "crates/wrap"
+    "crates/utils"
 ]
 resolver = "3"
 
@@ -53,7 +52,6 @@ vmm_program = { path = "crates/program" }
 vmm_span = { path = "crates/span" }
 vmm_tape = { path = "crates/tape" }
 vmm_utils = { path = "crates/utils" }
-vmm_wrap = { path = "crates/wrap" }
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"

@@ -15,11 +15,11 @@ use vmm_ir::{
 	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
 	SuperInstruction,
 };
+use vmm_num::Wrapping;
 use vmm_program::Program;
 use vmm_span::SpannedInclusive;
 use vmm_tape::{Tape, TapePointer};
 use vmm_utils::GetOrZero as _;
-use vmm_wrap::Wrapping;
 
 pub use self::profiler::*;
 

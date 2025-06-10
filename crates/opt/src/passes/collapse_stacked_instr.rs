@@ -1,6 +1,6 @@
 use vmm_ir::{Instruction, Offset};
+use vmm_num::ops::WrappingAdd;
 use vmm_utils::GetOrZero as _;
-use vmm_wrap::ops::WrappingAdd;
 
 use crate::{Change, PeepholePass};
 

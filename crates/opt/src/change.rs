@@ -1,7 +1,7 @@
 use tracing::{Level, trace};
 use vmm_ir::Instruction;
+use vmm_num::Wrapping;
 use vmm_utils::InsertOrPush as _;
-use vmm_wrap::Wrapping;
 
 #[derive(Debug, Clone)]
 pub enum Change {

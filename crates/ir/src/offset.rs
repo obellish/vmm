@@ -7,12 +7,12 @@ use core::{
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use vmm_span::Walk;
-use vmm_utils::GetOrZero;
-use vmm_wrap::ops::{
+use vmm_num::ops::{
 	WrappingAdd, WrappingAddAssign, WrappingDiv, WrappingDivAssign, WrappingMul, WrappingNeg,
 	WrappingSub, WrappingSubAssign,
 };
+use vmm_span::Walk;
+use vmm_utils::GetOrZero;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[repr(transparent)]
