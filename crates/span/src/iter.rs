@@ -1,7 +1,6 @@
 use core::{cmp::Ordering, iter::FusedIterator, mem, net::Ipv4Addr};
 
-use super::{Excluded, Included, SpanBound, Unbounded};
-use crate::{Span, SpanStartBound};
+use super::{Excluded, Included, Span, SpanBound, SpanStartBound, Unbounded};
 
 pub struct SpanIter<T, From, To>
 where
