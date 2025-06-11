@@ -1,6 +1,7 @@
 mod blocks;
 mod chain;
 mod chunks;
+mod cloned;
 pub mod plumbing;
 
 use self::plumbing::{Consumer, ProducerCallback, UnindexedConsumer};
