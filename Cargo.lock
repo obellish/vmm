@@ -874,6 +874,7 @@ name = "vmm_span"
 version = "0.1.0"
 dependencies = [
  "rayon",
+ "serde",
  "vmm_num",
 ]
 

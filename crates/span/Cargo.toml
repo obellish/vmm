@@ -9,4 +9,5 @@ version.workspace = true
 
 [dependencies]
 rayon.workspace = true
+serde.workspace = true
 vmm_num.workspace = true

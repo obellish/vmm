@@ -89,6 +89,7 @@ impl Display for SuperInstruction {
 }
 
 impl IsZeroingCell for SuperInstruction {
+	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
 		matches!(
 			self,
@@ -101,6 +102,7 @@ impl IsZeroingCell for SuperInstruction {
 }
 
 impl PtrMovement for SuperInstruction {
+	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::ScaleAnd {

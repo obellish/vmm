@@ -70,12 +70,14 @@ impl SpanInstruction {
 }
 
 impl IsZeroingCell for SpanInstruction {
+	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
 		self.is_clear() && self.span().contains(&0)
 	}
 }
 
 impl PtrMovement for SpanInstruction {
+	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
 		Some(0)
 	}

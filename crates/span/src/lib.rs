@@ -3,6 +3,7 @@
 
 mod iter;
 mod sealed;
+mod serde;
 
 use core::{
 	fmt::{Debug, Formatter, Result as FmtResult},
