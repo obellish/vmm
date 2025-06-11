@@ -25,6 +25,7 @@ pub struct Tape {
 }
 
 impl Tape {
+	#[inline]
 	#[must_use]
 	pub fn new() -> Self {
 		Self {

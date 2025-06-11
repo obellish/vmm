@@ -59,6 +59,7 @@ impl SpanInstruction {
 		SpannedInclusive::new(self.start, self.end)
 	}
 
+	#[inline]
 	fn from_range(kind: SpanInstructionType, start: Offset, end: Offset) -> Self {
 		Self {
 			ty: kind,
