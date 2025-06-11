@@ -29,7 +29,7 @@ members = [
     "crates/interpret",
     "crates/ir",
     "crates/num",
-    "crates/opt",
+    "crates/opt", "crates/par_iter",
     "crates/parse",
     "crates/program",
     "crates/serde_array",
@@ -41,7 +41,6 @@ members = [
 resolver = "3"
 
 [workspace.dependencies]
-rayon = { version = "1.10", default-features = false }
 ron = "0.10"
 serde = { version = "1", default-features = false }
 serde_array = { path = "crates/serde_array" }

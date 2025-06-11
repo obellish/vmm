@@ -104,6 +104,8 @@ impl<T: Walk> DoubleEndedIterator for SpannedIter<T> {
 	}
 }
 
+impl<T: Walk> ExactSizeIterator for SpannedIter<T> {}
+
 impl<T: Walk> FusedIterator for SpannedIter<T> {}
 
 impl<T: Walk> Iterator for SpannedIter<T> {
@@ -192,6 +194,8 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	}
 }
 
+impl<T: Walk> ExactSizeIterator for SpannedFromIter<T> {}
+
 impl<T: Walk> FusedIterator for SpannedFromIter<T> {}
 
 impl<T: Walk> Iterator for SpannedFromIter<T> {
@@ -215,7 +219,7 @@ impl<T: Walk> Iterator for SpannedFromIter<T> {
 
 impl<T: Walk> DoubleEndedIterator for SpannedInclusiveIter<T> {
 	fn next_back(&mut self) -> Option<Self::Item> {
-		if self.is_empty() {
+		if Self::is_empty(self) {
 			return None;
 		}
 
@@ -232,7 +236,7 @@ impl<T: Walk> DoubleEndedIterator for SpannedInclusiveIter<T> {
 	}
 
 	fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-		if self.is_empty() {
+		if Self::is_empty(self) {
 			return None;
 		}
 
@@ -257,13 +261,15 @@ impl<T: Walk> DoubleEndedIterator for SpannedInclusiveIter<T> {
 	}
 }
 
+impl<T: Walk> ExactSizeIterator for SpannedInclusiveIter<T> {}
+
 impl<T: Walk> FusedIterator for SpannedInclusiveIter<T> {}
 
 impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		if self.is_empty() {
+		if Self::is_empty(self) {
 			return None;
 		}
 
@@ -315,7 +321,7 @@ impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
 	}
 
 	fn nth(&mut self, n: usize) -> Option<Self::Item> {
-		if self.is_empty() {
+		if Self::is_empty(self) {
 			return None;
 		}
 

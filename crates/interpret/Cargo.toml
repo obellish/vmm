@@ -8,7 +8,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-rayon.workspace = true
 serde = { workspace = true, features = ["derive", "std"] }
 vmm_ir.workspace = true
 vmm_num = { workspace = true, features = ["nightly"] }

@@ -801,7 +801,6 @@ version = "0.1.0"
 name = "vmm_interpret"
 version = "0.1.0"
 dependencies = [
- "rayon",
  "serde",
  "vmm_ir",
  "vmm_num",
@@ -834,7 +833,6 @@ name = "vmm_opt"
 version = "0.1.0"
 dependencies = [
  "itertools",
- "rayon",
  "ron",
  "serde",
  "serde-value",
@@ -848,6 +846,10 @@ dependencies = [
  "vmm_type_name",
  "vmm_utils",
 ]
+
+[[package]]
+name = "vmm_par_iter"
+version = "0.1.0"
 
 [[package]]
 name = "vmm_parse"
@@ -873,7 +875,6 @@ dependencies = [
 name = "vmm_span"
 version = "0.1.0"
 dependencies = [
- "rayon",
  "serde",
  "vmm_num",
 ]
