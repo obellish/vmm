@@ -5,6 +5,7 @@ mod iter;
 mod sealed;
 
 use core::{
+	fmt::{Debug, Formatter, Result as FmtResult},
 	marker::PhantomData,
 	ops::{Bound, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive},
 };
@@ -108,6 +109,19 @@ where
 	From: ?Sized + SpanStartBound<T>,
 	To: ?Sized + SpanBound<T>,
 {
+}
+
+impl<T: Debug, From, To> Debug for Span<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.debug_struct("Span")
+			.field("start", &self.start)
+			.field("end", &self.end)
+			.finish()
+	}
 }
 
 impl<T: Eq, From, To> Eq for Span<T, From, To>

@@ -1,4 +1,10 @@
-use core::{cmp::Ordering, iter::FusedIterator, mem, net::Ipv4Addr};
+use core::{
+	cmp::Ordering,
+	fmt::{Debug, Formatter, Result as FmtResult},
+	iter::FusedIterator,
+	mem,
+	net::Ipv4Addr,
+};
 
 use vmm_num::{Checked, Unchecked, Wrapping};
 
@@ -33,10 +39,23 @@ where
 	}
 }
 
+impl<T: Debug, From, To> Debug for SpanIter<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.debug_struct("SpanIter")
+			.field("span", &self.span)
+			.field("exhausted", &self.exhausted)
+			.finish()
+	}
+}
+
 impl<T: PartialEq, From, To> PartialEq for SpanIter<T, From, To>
 where
 	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
 {
 	fn eq(&self, other: &Self) -> bool {
 		PartialEq::eq(&self.span, &other.span)
@@ -777,6 +796,8 @@ mod tests {
 
 	use alloc::vec::Vec;
 
+	use vmm_num::Checked;
+
 	use crate::*;
 
 	#[test]
@@ -853,27 +874,27 @@ mod tests {
 		assert!(s.is_empty());
 		assert_eq!(s.next(), None);
 		assert_eq!(s.next_back(), None);
-		assert!(s == Span::from(10..10));
+		assert_eq!(s, Span::from(10..10));
 
 		let mut s = Span::from(10..12).into_iter();
 		assert_eq!(s.next(), Some(10));
 		assert_eq!(s.next(), Some(11));
 		assert!(s.is_empty());
-		assert!(s == Span::from(12..12));
+		assert_eq!(s, Span::from(12..12));
 		assert_eq!(s.next(), None);
 
 		let mut s = Span::from(10..12).into_iter();
 		assert_eq!(s.next_back(), Some(11));
 		assert_eq!(s.next_back(), Some(10));
 		assert!(s.is_empty());
-		assert!(s == Span::from(10..10));
+		assert_eq!(s, Span::from(10..10));
 		assert_eq!(s.next_back(), None);
 
 		let mut s = Span::from(100..10).into_iter();
 		assert!(s.is_empty());
 		assert_eq!(s.next(), None);
 		assert_eq!(s.next_back(), None);
-		assert!(s == Span::from(100..10));
+		assert_eq!(s, Span::from(100..10));
 	}
 
 	#[test]
@@ -918,14 +939,14 @@ mod tests {
 		assert!(s.is_empty());
 		assert_eq!(s.next(), None);
 		assert_eq!(s.next(), None);
-		assert!(s == Span::from(100..=10));
+		assert_eq!(s, Span::from(100..=10));
 
 		let mut s = Span::from(100..=10).into_iter();
 		assert_eq!(s.next_back(), None);
 		assert!(s.is_empty());
 		assert_eq!(s.next_back(), None);
 		assert_eq!(s.next_back(), None);
-		assert!(s == Span::from(100..=10));
+		assert_eq!(s, Span::from(100..=10));
 	}
 
 	#[test]
@@ -938,11 +959,11 @@ mod tests {
 
 		let mut s = Span::from(10..20).into_iter();
 		assert_eq!(s.nth(2), Some(12));
-		assert!(s == Span::from(13..20));
+		assert_eq!(s, Span::from(13..20));
 		assert_eq!(s.nth(2), Some(15));
-		assert!(s == Span::from(16..20));
+		assert_eq!(s, Span::from(16..20));
 		assert_eq!(s.nth(10), None);
-		assert!(s == Span::from(20..20));
+		assert_eq!(s, Span::from(20..20));
 	}
 
 	#[test]
@@ -955,11 +976,11 @@ mod tests {
 
 		let mut s = Span::from(10..20).into_iter();
 		assert_eq!(s.nth_back(2), Some(17));
-		assert!(s == Span::from(10..17));
+		assert_eq!(s, Span::from(10..17));
 		assert_eq!(s.nth_back(2), Some(14));
-		assert!(s == Span::from(10..14));
+		assert_eq!(s, Span::from(10..14));
 		assert_eq!(s.nth_back(10), None);
-		assert!(s == Span::from(10..10));
+		assert_eq!(s, Span::from(10..10));
 	}
 
 	#[test]
@@ -971,12 +992,379 @@ mod tests {
 
 		let mut s = Span::from(10..).into_iter();
 		assert_eq!(s.nth(2), Some(12));
-		assert!(s == Span::from(13..));
+		assert_eq!(s, Span::from(13..));
 		assert_eq!(s.nth(2), Some(15));
-		assert!(s == Span::from(16..));
+		assert_eq!(s, Span::from(16..));
 		assert_eq!(s.nth(10), Some(26));
-		assert!(s == Span::from(27..));
+		assert_eq!(s, Span::from(27..));
 
 		assert_eq!(Span::from(0..).into_iter().size_hint(), (usize::MAX, None));
+	}
+
+	#[test]
+	fn span_from_take() {
+		let mut s = Span::from(0..).into_iter().take(3);
+		assert_eq!(s.next(), Some(0));
+		assert_eq!(s.next(), Some(1));
+		assert_eq!(s.next(), Some(2));
+		assert_eq!(s.next(), None);
+		assert_eq!(
+			Span::from(0..).into_iter().take(3).size_hint(),
+			(3, Some(3))
+		);
+		assert_eq!(
+			Span::from(0..).into_iter().take(0).size_hint(),
+			(0, Some(0))
+		);
+		assert_eq!(
+			Span::from(0..).into_iter().take(usize::MAX).size_hint(),
+			(usize::MAX, Some(usize::MAX))
+		);
+	}
+
+	#[test]
+	fn span_from_take_collect() {
+		let v: Vec<_> = Span::from(0..).into_iter().take(3).collect();
+		assert_eq!(v, [0, 1, 2]);
+	}
+
+	#[test]
+	fn span_inclusive_nth() {
+		let s = Span::from(10..=15);
+		assert_eq!(s.into_iter().nth(0), Some(10));
+		assert_eq!(s.into_iter().nth(1), Some(11));
+		assert_eq!(s.into_iter().nth(5), Some(15));
+		assert_eq!(s.into_iter().nth(6), None);
+
+		let mut exhausted_via_next = Span::from(10u8..=20).into_iter();
+		while exhausted_via_next.next().is_some() {}
+
+		let mut s = Span::from(10u8..=20).into_iter();
+		assert_eq!(s.nth(2), Some(12));
+		assert_eq!(s, Span::from(13..=20));
+		assert_eq!(s.nth(2), Some(15));
+		assert_eq!(s, Span::from(16..=20));
+		assert!(!s.is_empty());
+		assert_eq!(s.nth(10), None);
+		assert!(s.is_empty());
+		assert_eq!(s, exhausted_via_next);
+	}
+
+	#[test]
+	fn span_inclusive_nth_back() {
+		let s = Span::from(10..=15);
+		assert_eq!(s.into_iter().nth_back(0), Some(15));
+		assert_eq!(s.into_iter().nth_back(1), Some(14));
+		assert_eq!(s.into_iter().nth_back(5), Some(10));
+		assert_eq!(s.into_iter().nth_back(6), None);
+		assert_eq!(
+			Span::from(-120..=80i8).into_iter().nth_back(200),
+			Some(-120)
+		);
+
+		let mut exhasted_via_next_back = Span::from(10u8..=20).into_iter();
+		while exhasted_via_next_back.next_back().is_some() {}
+
+		let mut s = Span::from(10u8..=20).into_iter();
+		assert_eq!(s.nth_back(2), Some(18));
+		assert_eq!(s, Span::from(10..=17));
+		assert_eq!(s.nth_back(2), Some(15));
+		assert_eq!(s, Span::from(10..=14));
+		assert!(!s.is_empty());
+		assert_eq!(s.nth_back(10), None);
+		assert!(s.is_empty());
+		assert_eq!(s, exhasted_via_next_back);
+	}
+
+	#[test]
+	fn span_step() {
+		assert_eq!(
+			Span::from(0..20)
+				.into_iter()
+				.step_by(5)
+				.collect::<Vec<isize>>(),
+			[0, 5, 10, 15]
+		);
+		assert_eq!(
+			Span::from(1..21)
+				.into_iter()
+				.rev()
+				.step_by(5)
+				.collect::<Vec<isize>>(),
+			[20, 15, 10, 5]
+		);
+		assert_eq!(
+			Span::from(1..21)
+				.into_iter()
+				.rev()
+				.step_by(6)
+				.collect::<Vec<isize>>(),
+			[20, 14, 8, 2]
+		);
+		assert_eq!(
+			Span::from(200..255)
+				.into_iter()
+				.step_by(50)
+				.collect::<Vec<u8>>(),
+			[200, 250]
+		);
+		assert_eq!(
+			Span::from(200..-5)
+				.into_iter()
+				.step_by(1)
+				.collect::<Vec<isize>>(),
+			[]
+		);
+		assert_eq!(
+			Span::from(200..200)
+				.into_iter()
+				.step_by(1)
+				.collect::<Vec<isize>>(),
+			[]
+		);
+
+		assert_eq!(
+			Span::from(0..20).into_iter().step_by(1).size_hint(),
+			(20, Some(20))
+		);
+		assert_eq!(
+			Span::from(0..20).into_iter().step_by(21).size_hint(),
+			(1, Some(1))
+		);
+		assert_eq!(
+			Span::from(0..20).into_iter().step_by(5).size_hint(),
+			(4, Some(4))
+		);
+		assert_eq!(
+			Span::from(1..21).into_iter().rev().step_by(5).size_hint(),
+			(4, Some(4))
+		);
+		assert_eq!(
+			Span::from(1..21).into_iter().rev().step_by(6).size_hint(),
+			(4, Some(4))
+		);
+		assert_eq!(
+			Span::from(20..-5).into_iter().step_by(1).size_hint(),
+			(0, Some(0))
+		);
+		assert_eq!(
+			Span::from(20..20).into_iter().step_by(1).size_hint(),
+			(0, Some(0))
+		);
+		assert_eq!(
+			Span::from(i8::MIN..i8::MAX)
+				.into_iter()
+				.step_by(-i32::from(i8::MIN) as usize)
+				.size_hint(),
+			(2, Some(2))
+		);
+		assert_eq!(
+			Span::from(i16::MIN..i16::MAX)
+				.into_iter()
+				.step_by(i16::MAX as usize)
+				.size_hint(),
+			(3, Some(3))
+		);
+		assert_eq!(
+			Span::from(isize::MIN..isize::MAX)
+				.into_iter()
+				.step_by(1)
+				.size_hint(),
+			(usize::MAX, Some(usize::MAX))
+		);
+	}
+
+	#[test]
+	fn span_inclusive_step() {
+		assert_eq!(
+			Span::from(0..=50)
+				.into_iter()
+				.step_by(10)
+				.collect::<Vec<_>>(),
+			[0, 10, 20, 30, 40, 50]
+		);
+		assert_eq!(
+			Span::from(0..=5).into_iter().step_by(1).collect::<Vec<_>>(),
+			[0, 1, 2, 3, 4, 5]
+		);
+		assert_eq!(
+			Span::from(200u8..=255)
+				.into_iter()
+				.step_by(10)
+				.collect::<Vec<_>>(),
+			[200, 210, 220, 230, 240, 250]
+		);
+		assert_eq!(
+			Span::from(250u8..=255)
+				.into_iter()
+				.step_by(1)
+				.collect::<Vec<_>>(),
+			[250, 251, 252, 253, 254, 255]
+		);
+	}
+
+	#[test]
+	fn span_last_max() {
+		assert_eq!(Span::from(0..20).into_iter().last(), Some(19));
+		assert_eq!(Span::from(-20..0).into_iter().last(), Some(-1));
+		assert_eq!(Span::from(5..5).into_iter().last(), None);
+
+		assert_eq!(Span::from(0..20).into_iter().max(), Some(19));
+		assert_eq!(Span::from(-20..0).into_iter().max(), Some(-1));
+		assert_eq!(Span::from(5..5).into_iter().max(), None);
+	}
+
+	#[test]
+	fn span_inclusive_last_max() {
+		assert_eq!(Span::from(0..=20).into_iter().last(), Some(20));
+		assert_eq!(Span::from(-20..=0).into_iter().last(), Some(0));
+		assert_eq!(Span::from(5..=5).into_iter().last(), Some(5));
+		let mut s = Span::from(10..=10).into_iter();
+		s.next();
+		assert_eq!(s.last(), None);
+
+		assert_eq!(Span::from(0..=20).into_iter().max(), Some(20));
+		assert_eq!(Span::from(-20..=0).into_iter().max(), Some(0));
+		assert_eq!(Span::from(5..=5).into_iter().max(), Some(5));
+		let mut s = Span::from(10..=10).into_iter();
+		s.next();
+		assert_eq!(s.max(), None);
+	}
+
+	#[test]
+	fn span_min() {
+		assert_eq!(Span::from(0..20).into_iter().min(), Some(0));
+		assert_eq!(Span::from(-20..0).into_iter().min(), Some(-20));
+		assert_eq!(Span::from(5..5).into_iter().min(), None);
+	}
+
+	#[test]
+	fn span_inclusive_min() {
+		assert_eq!(Span::from(0..=20).into_iter().min(), Some(0));
+		assert_eq!(Span::from(-20..=0).into_iter().min(), Some(-20));
+		assert_eq!(Span::from(5..=5).into_iter().min(), Some(5));
+		let mut s = Span::from(10..=10).into_iter();
+		s.next();
+		assert_eq!(s.min(), None);
+	}
+
+	#[test]
+	fn span_inclusive_folds() {
+		assert_eq!(Span::from(1..=10).into_iter().sum::<i32>(), 55);
+		assert_eq!(Span::from(1..=10).into_iter().rev().sum::<i32>(), 55);
+
+		let mut s = Span::from(44i8..=50).into_iter();
+		assert_eq!(s.try_fold(0i8, Checked::add), None);
+		assert_eq!(s, Span::from(47..=50));
+		assert_eq!(s.try_fold(0i8, Checked::add), None);
+		assert_eq!(s, Span::from(50..=50));
+		assert_eq!(s.try_fold(0i8, Checked::add), Some(50));
+		assert!(s.is_empty());
+		assert_eq!(s.try_fold(0i8, Checked::add), Some(0));
+		assert!(s.is_empty());
+
+		let mut s = Span::from(40i8..=47).into_iter();
+		assert_eq!(s.try_rfold(0i8, Checked::add), None);
+		assert_eq!(s, Span::from(40..=44));
+		assert_eq!(s.try_rfold(0i8, Checked::add), None);
+		assert_eq!(s, Span::from(40..=41));
+		assert_eq!(s.try_rfold(0i8, Checked::add), Some(81));
+		assert!(s.is_empty());
+		assert_eq!(s.try_rfold(0i8, Checked::add), Some(0));
+		assert!(s.is_empty());
+
+		let mut s = Span::from(10u8..=20).into_iter();
+		assert_eq!(s.try_fold(0, |a, b| Some(a + b)), Some(165));
+		assert!(s.is_empty());
+		assert_eq!(s.try_fold(0, |a, b| Some(a + b)), Some(0));
+		assert!(s.is_empty());
+
+		let mut s = Span::from(10u8..=20).into_iter();
+		assert_eq!(s.try_rfold(0, |a, b| Some(a + b)), Some(165));
+		assert!(s.is_empty());
+		assert_eq!(s.try_rfold(0, |a, b| Some(a + b)), Some(0));
+		assert!(s.is_empty());
+	}
+
+	#[test]
+	fn span_size_hint() {
+		assert_eq!(Span::from(0..0usize).into_iter().size_hint(), (0, Some(0)));
+		assert_eq!(
+			Span::from(0..100usize).into_iter().size_hint(),
+			(100, Some(100))
+		);
+		assert_eq!(
+			Span::from(0..usize::MAX).into_iter().size_hint(),
+			(usize::MAX, Some(usize::MAX))
+		);
+
+		assert_eq!(Span::from(0..0isize).into_iter().size_hint(), (0, Some(0)));
+		assert_eq!(
+			Span::from(-100..100isize).into_iter().size_hint(),
+			(200, Some(200))
+		);
+		assert_eq!(
+			Span::from(isize::MIN..isize::MAX).into_iter().size_hint(),
+			(usize::MAX, Some(usize::MAX))
+		);
+	}
+
+	#[test]
+	#[allow(clippy::range_minus_one)]
+	fn span_inclusive_size_hint() {
+		assert_eq!(Span::from(1..=0usize).into_iter().size_hint(), (0, Some(0)));
+		assert_eq!(Span::from(0..=0usize).into_iter().size_hint(), (1, Some(1)));
+		assert_eq!(
+			Span::from(0..=100usize).into_iter().size_hint(),
+			(101, Some(101))
+		);
+		assert_eq!(
+			Span::from(0..=usize::MAX - 1).into_iter().size_hint(),
+			(usize::MAX, Some(usize::MAX))
+		);
+		assert_eq!(
+			Span::from(0..=usize::MAX).into_iter().size_hint(),
+			(usize::MAX, None)
+		);
+
+		assert_eq!(
+			Span::from(0..=-1isize).into_iter().size_hint(),
+			(0, Some(0))
+		);
+		assert_eq!(Span::from(0..=0isize).into_iter().size_hint(), (1, Some(1)));
+		assert_eq!(
+			Span::from(-100..=100isize).into_iter().size_hint(),
+			(201, Some(201))
+		);
+		assert_eq!(
+			Span::from(isize::MIN..=isize::MAX - 1)
+				.into_iter()
+				.size_hint(),
+			(usize::MAX, Some(usize::MAX))
+		);
+		assert_eq!(
+			Span::from(isize::MIN..=isize::MAX).into_iter().size_hint(),
+			(usize::MAX, None)
+		);
+	}
+
+	#[test]
+	#[allow(clippy::never_loop)]
+	fn double_ended_span() {
+		assert_eq!(
+			Span::from(11..14).into_iter().rev().collect::<Vec<_>>(),
+			[13, 12, 11]
+		);
+		for _ in Span::from(10..0).into_iter().rev() {
+			unreachable!();
+		}
+
+		assert_eq!(
+			Span::from(11..14).into_iter().rev().collect::<Vec<_>>(),
+			[13, 12, 11]
+		);
+		for _ in Span::from(10..0).into_iter().rev() {
+			unreachable!();
+		}
 	}
 }
