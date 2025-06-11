@@ -9,6 +9,7 @@ pub struct OptimizeSetScaleValPass;
 impl PeepholePass for OptimizeSetScaleValPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -56,6 +57,7 @@ impl PeepholePass for OptimizeSetScaleValPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

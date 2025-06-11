@@ -6,6 +6,7 @@ use crate::{Change, LoopPass};
 pub struct RemoveEmptyLoopsPass;
 
 impl LoopPass for RemoveEmptyLoopsPass {
+	#[inline]
 	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
 		// Already verified by the should_run method, so just remove it
 		Some(Change::remove())
@@ -15,6 +16,7 @@ impl LoopPass for RemoveEmptyLoopsPass {
 		(0, Some(0))
 	}
 
+	#[inline]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		loop_values.is_empty()
 	}

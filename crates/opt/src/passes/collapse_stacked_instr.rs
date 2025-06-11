@@ -10,6 +10,7 @@ pub struct CollapseStackedInstrPass;
 impl PeepholePass for CollapseStackedInstrPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	#[allow(clippy::many_single_char_names)]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
@@ -134,6 +135,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

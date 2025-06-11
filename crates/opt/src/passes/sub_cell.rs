@@ -6,6 +6,7 @@ use crate::{Change, LoopPass};
 pub struct OptimizeSubCellPass;
 
 impl LoopPass for OptimizeSubCellPass {
+	#[inline]
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
@@ -30,6 +31,7 @@ impl LoopPass for OptimizeSubCellPass {
 		(2, Some(2))
 	}
 
+	#[inline]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

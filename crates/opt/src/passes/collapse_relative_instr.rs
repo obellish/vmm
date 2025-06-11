@@ -9,6 +9,7 @@ pub struct CollapseRelativeInstrPass;
 impl PeepholePass for CollapseRelativeInstrPass {
 	const SIZE: usize = 3;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -55,6 +56,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

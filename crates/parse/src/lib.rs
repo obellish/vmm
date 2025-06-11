@@ -23,6 +23,7 @@ pub struct Parser<'source> {
 }
 
 impl<'source> Parser<'source> {
+	#[inline]
 	#[must_use]
 	pub fn new(source: &'source <OpCode as Logos<'source>>::Source) -> Self {
 		debug!("got source with length {}", source.len());
@@ -31,6 +32,7 @@ impl<'source> Parser<'source> {
 		}
 	}
 
+	#[inline]
 	#[tracing::instrument(skip(self))]
 	pub fn scan(self) -> Result<Vec<Instruction>, ParseError> {
 		info!("scanning {} chars", self.inner.source().len());
@@ -62,6 +64,7 @@ impl Display for ParseError {
 
 impl StdError for ParseError {}
 
+#[inline]
 fn parse(
 	opcodes: impl Iterator<Item = OpCode>,
 	depth: usize,

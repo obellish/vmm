@@ -1,7 +1,7 @@
-use std::{cmp::Ordering, num::NonZeroU8};
+use std::num::NonZeroU8;
 
 use itertools::Itertools as _;
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Offset};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -12,24 +12,21 @@ pub struct SortSetInstrPass;
 impl PeepholePass for SortSetInstrPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		Some(Change::swap(window.iter().cloned().sorted_by(sorter)))
+		Some(Change::swap(
+			window.iter().cloned().sorted_by_key(sorter_key),
+		))
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		window.iter().all(Instruction::is_set_val) && {
-			let cloned = window.to_owned();
-
-			cloned.into_iter().sorted_by(sorter).collect_vec() != window
-		}
+		window.iter().all(Instruction::is_set_val) && window.iter().is_sorted_by_key(sorter_key)
 	}
 }
 
-fn sorter(a: &Instruction, b: &Instruction) -> Ordering {
-	a.offset()
-		.get_or_zero()
-		.cmp(&b.offset().get_or_zero())
-		.then(get_set_value(a).cmp(&get_set_value(b)))
+fn sorter_key(a: &Instruction) -> (Offset, Option<NonZeroU8>) {
+	(a.offset().get_or_zero(), get_set_value(a))
 }
 
 const fn get_set_value(i: &Instruction) -> Option<NonZeroU8> {

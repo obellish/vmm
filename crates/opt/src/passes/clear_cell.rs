@@ -6,6 +6,7 @@ use crate::{Change, LoopPass};
 pub struct OptimizeClearCellPass;
 
 impl LoopPass for OptimizeClearCellPass {
+	#[inline]
 	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
 		Some(Change::replace(Instruction::clear_val()))
 	}
@@ -14,6 +15,7 @@ impl LoopPass for OptimizeClearCellPass {
 		(1, Some(1))
 	}
 
+	#[inline]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

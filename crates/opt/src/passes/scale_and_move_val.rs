@@ -6,6 +6,7 @@ use crate::{Change, LoopPass};
 pub struct OptimizeScaleAndMoveValPass;
 
 impl LoopPass for OptimizeScaleAndMoveValPass {
+	#[inline]
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
@@ -69,6 +70,7 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 		(2, Some(4))
 	}
 
+	#[inline]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

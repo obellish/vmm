@@ -8,6 +8,7 @@ pub struct CombineMoveChangePass;
 impl PeepholePass for CombineMoveChangePass {
 	const SIZE: usize = 3;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -25,6 +26,7 @@ impl PeepholePass for CombineMoveChangePass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

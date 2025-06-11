@@ -8,6 +8,7 @@ pub struct OptimizeZeroedCellIncValPass;
 impl PeepholePass for OptimizeZeroedCellIncValPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -24,6 +25,7 @@ impl PeepholePass for OptimizeZeroedCellIncValPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(window, [i, Instruction::IncVal { offset: Offset(0), .. }] if i.is_zeroing_cell())
 	}

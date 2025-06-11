@@ -35,6 +35,7 @@ pub struct Interpreter<R = Stdin, W = Stdout> {
 }
 
 impl<R, W> Interpreter<R, W> {
+	#[inline]
 	pub fn new(program: Program, input: R, output: W) -> Self {
 		Self {
 			program,
@@ -45,48 +46,59 @@ impl<R, W> Interpreter<R, W> {
 		}
 	}
 
+	#[inline]
 	pub fn with_profiler(program: Program, input: R, output: W) -> Self {
 		Self::new(program, input, output).and_with_profiler()
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn and_with_profiler(mut self) -> Self {
 		self.profiler = Some(Profiler::new());
 		self
 	}
 
+	#[inline]
 	pub fn profiler(&self) -> Profiler {
 		self.profiler.unwrap_or_default()
 	}
 
+	#[inline]
 	pub const fn program(&self) -> &Program {
 		&self.program
 	}
 
+	#[inline]
 	pub const fn program_mut(&mut self) -> &mut Program {
 		&mut self.program
 	}
 
+	#[inline]
 	pub const fn tape(&self) -> &Tape {
 		&self.tape
 	}
 
+	#[inline]
 	pub const fn tape_mut(&mut self) -> &mut Tape {
 		&mut self.tape
 	}
 
+	#[inline]
 	pub fn cell(&self) -> &Wrapping<u8> {
 		self.tape().cell()
 	}
 
+	#[inline]
 	pub fn cell_mut(&mut self) -> &mut Wrapping<u8> {
 		self.tape_mut().cell_mut()
 	}
 
+	#[inline]
 	pub const fn ptr(&self) -> &TapePointer {
 		self.tape().ptr()
 	}
 
+	#[inline]
 	pub const fn ptr_mut(&mut self) -> &mut TapePointer {
 		self.tape_mut().ptr_mut()
 	}
@@ -98,22 +110,27 @@ where
 	R: Read + 'static,
 	W: Write + 'static,
 {
+	#[inline]
 	pub fn into_dyn(self) -> Interpreter<Box<dyn Read>, Box<dyn Write>> {
 		Interpreter::new(self.program, Box::new(self.input), Box::new(self.output))
 	}
 
+	#[inline]
 	pub fn with_input<RR: Read>(self, input: RR) -> Interpreter<RR, W> {
 		Interpreter::new(self.program, input, self.output)
 	}
 
+	#[inline]
 	pub fn with_output<WW: Write>(self, output: WW) -> Interpreter<R, WW> {
 		Interpreter::new(self.program, self.input, output)
 	}
 
+	#[inline]
 	pub fn with_io<RR: Read, WW: Write>(self, input: RR, output: WW) -> Interpreter<RR, WW> {
 		Interpreter::new(self.program, input, output)
 	}
 
+	#[inline]
 	pub fn run(&mut self) -> Result<(), RuntimeError> {
 		for instr in &std::mem::take(self.program_mut()) {
 			self.execute_instruction(instr)?;
@@ -122,6 +139,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn read_char(&mut self) -> Result<(), RuntimeError> {
 		loop {
 			let mut buf = [0];
@@ -144,6 +162,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn write_char(&mut self, count: usize, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
@@ -343,25 +362,23 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn inc_span(&mut self, value: i8, span: SpannedInclusive<Offset>) -> Result<(), RuntimeError> {
 		span.into_iter()
-			.try_for_each(|idx| self.inc_val(value, idx))?;
-
-		Ok(())
+			.try_for_each(|idx| self.inc_val(value, idx))
 	}
 
+	#[inline]
 	fn set_span(
 		&mut self,
 		value: Option<NonZeroU8>,
 		span: SpannedInclusive<Offset>,
 	) -> Result<(), RuntimeError> {
-		for idx in span {
-			self.set_val(value, idx)?;
-		}
-
-		Ok(())
+		span.into_iter()
+			.try_for_each(|idx| self.set_val(value, idx))
 	}
 
+	#[inline]
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -390,6 +407,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn execute_loop_instruction(&mut self, instr: &BlockInstruction) -> Result<(), RuntimeError> {
 		match instr {
 			BlockInstruction::DynamicLoop(instrs) => self.dyn_loop(instrs)?,
@@ -409,6 +427,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn execute_super_instruction(&mut self, instr: SuperInstruction) -> Result<(), RuntimeError> {
 		match instr {
 			SuperInstruction::ScaleAnd {
@@ -438,6 +457,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	fn execute_span_instruction(&mut self, instr: SpanInstruction) -> Result<(), RuntimeError> {
 		match instr.ty() {
 			SpanInstructionType::Set { value } => self.set_span(value, instr.span())?,
@@ -448,6 +468,7 @@ where
 		Ok(())
 	}
 
+	#[inline]
 	#[allow(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Offset) -> usize {
 		match offset.0 {
@@ -458,6 +479,7 @@ where
 }
 
 impl Interpreter<Stdin, Stdout> {
+	#[inline]
 	#[must_use]
 	pub fn stdio(program: Program) -> Self {
 		Self::new(program, stdin(), stdout())

@@ -6,6 +6,7 @@ use crate::{Change, LoopPass};
 pub struct RemoveInfiniteLoopsPass;
 
 impl LoopPass for RemoveInfiniteLoopsPass {
+	#[inline]
 	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
 		Some(Change::remove())
 	}
@@ -14,6 +15,7 @@ impl LoopPass for RemoveInfiniteLoopsPass {
 		(1, None)
 	}
 
+	#[inline]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

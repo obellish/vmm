@@ -9,6 +9,7 @@ pub struct RemoveRedundantChangeValSpanPass;
 impl PeepholePass for RemoveRedundantChangeValSpanPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::Span(a), Instruction::Span(b)] if *a == *b => {
@@ -42,6 +43,7 @@ impl PeepholePass for RemoveRedundantChangeValSpanPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		match window {
 			[Instruction::Span(a), Instruction::Span(b)] if *a == *b => true,

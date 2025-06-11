@@ -8,6 +8,7 @@ pub struct UnrollScaleAndPass;
 impl PeepholePass for UnrollScaleAndPass {
 	const SIZE: usize = 1;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -25,6 +26,7 @@ impl PeepholePass for UnrollScaleAndPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

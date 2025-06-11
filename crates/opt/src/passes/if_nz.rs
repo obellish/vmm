@@ -6,6 +6,7 @@ use crate::{Change, LoopPass};
 pub struct OptimizeIfNzPass;
 
 impl LoopPass for OptimizeIfNzPass {
+	#[inline]
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[
@@ -23,6 +24,7 @@ impl LoopPass for OptimizeIfNzPass {
 		(1, None)
 	}
 
+	#[inline]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,

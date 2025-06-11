@@ -9,6 +9,7 @@ pub struct OptimizeIncSpanPass;
 impl PeepholePass for OptimizeIncSpanPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -44,6 +45,7 @@ impl PeepholePass for OptimizeIncSpanPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		match window {
 			[

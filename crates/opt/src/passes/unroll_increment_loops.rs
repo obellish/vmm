@@ -10,6 +10,7 @@ pub struct UnrollIncrementLoopsPass;
 impl PeepholePass for UnrollIncrementLoopsPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -57,6 +58,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		let [
 			Instruction::IncVal {

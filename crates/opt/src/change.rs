@@ -12,16 +12,19 @@ pub enum Change {
 }
 
 impl Change {
+	#[inline]
 	#[must_use]
 	pub const fn remove() -> Self {
 		Self::Remove
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn remove_offset(offset: isize) -> Self {
 		Self::RemoveOffset(offset)
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn swap<I>(instrs: I) -> Self
 	where
@@ -30,11 +33,13 @@ impl Change {
 		Self::Swap(instrs.into_iter().collect())
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn replace(i: Instruction) -> Self {
 		Self::Replace(i)
 	}
 
+	#[inline]
 	#[tracing::instrument(skip(self, ops, size), level = Level::TRACE)]
 	pub fn apply(self, ops: &mut Vec<Instruction>, i: usize, size: usize) -> (bool, usize) {
 		match self {

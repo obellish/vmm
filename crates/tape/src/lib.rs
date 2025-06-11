@@ -100,12 +100,14 @@ impl Default for Tape {
 impl Index<usize> for Tape {
 	type Output = Wrapping<u8>;
 
+	#[inline]
 	fn index(&self, index: usize) -> &Self::Output {
 		&self.cells[index % TAPE_SIZE]
 	}
 }
 
 impl IndexMut<usize> for Tape {
+	#[inline]
 	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
 		&mut self.cells[index % TAPE_SIZE]
 	}

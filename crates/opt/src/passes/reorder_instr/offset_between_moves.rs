@@ -9,6 +9,7 @@ pub struct ReorderOffsetBetweenMovesPass;
 impl PeepholePass for ReorderOffsetBetweenMovesPass {
 	const SIZE: usize = 3;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -48,6 +49,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

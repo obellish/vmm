@@ -6,6 +6,7 @@ use crate::{Change, LoopPass};
 pub struct OptimizeFindZeroPass;
 
 impl LoopPass for OptimizeFindZeroPass {
+	#[inline]
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[Instruction::MovePtr(Offset(x))] => Some(Change::replace(Instruction::find_zero(*x))),
@@ -17,6 +18,7 @@ impl LoopPass for OptimizeFindZeroPass {
 		(1, Some(1))
 	}
 
+	#[inline]
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(loop_values, [Instruction::MovePtr(Offset(_))])
 	}

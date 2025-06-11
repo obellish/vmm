@@ -8,10 +8,12 @@ pub struct RemovePointlessInstrPass;
 impl PeepholePass for RemovePointlessInstrPass {
 	const SIZE: usize = 1;
 
+	#[inline]
 	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
 		Some(Change::remove())
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

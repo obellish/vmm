@@ -27,6 +27,7 @@ impl Program {
 		matches!(self, Self::Finalized(_))
 	}
 
+	#[inline]
 	pub fn as_raw(&mut self) -> &mut Vec<Instruction> {
 		match self {
 			Self::Raw(ops) => ops,
@@ -41,14 +42,17 @@ impl Program {
 		}
 	}
 
+	#[inline]
 	pub fn rough_estimate(&self) -> usize {
 		self.iter().map(Instruction::rough_estimate).sum()
 	}
 
+	#[inline]
 	pub fn raw_rough_estimate(&self) -> usize {
 		self.iter().map(Instruction::raw_rough_estimate).sum()
 	}
 
+	#[inline]
 	pub fn needs_input(&self) -> bool {
 		self.iter().any(Instruction::needs_input)
 	}

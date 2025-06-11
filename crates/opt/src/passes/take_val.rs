@@ -8,6 +8,7 @@ pub struct OptimizeTakeValPass;
 impl PeepholePass for OptimizeTakeValPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[Instruction::MoveVal(x), Instruction::MovePtr(y)] if *x == *y => {
@@ -17,6 +18,7 @@ impl PeepholePass for OptimizeTakeValPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(window, [Instruction::MoveVal(x), Instruction::MovePtr(y)] if *x == *y)
 	}

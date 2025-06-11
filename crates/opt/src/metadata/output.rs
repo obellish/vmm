@@ -14,6 +14,7 @@ pub struct OutputMetadataStore<T> {
 }
 
 impl<T> OutputMetadataStore<T> {
+	#[inline]
 	pub fn new(inner: T, folder_path: PathBuf) -> Result<Self, MetadataStoreError> {
 		let this = Self { inner, folder_path };
 
@@ -22,6 +23,7 @@ impl<T> OutputMetadataStore<T> {
 		Ok(this)
 	}
 
+	#[inline]
 	fn ensure_folder(&self) -> Result<(), MetadataStoreError> {
 		assert!(self.folder_path.is_dir());
 
@@ -32,6 +34,7 @@ impl<T> OutputMetadataStore<T> {
 }
 
 impl<T: MetadataStore> MetadataStore for OutputMetadataStore<T> {
+	#[inline]
 	fn get<S>(&self, iteration: usize) -> Result<Option<S>, MetadataStoreError>
 	where
 		S: for<'de> Deserialize<'de> + 'static,
@@ -39,6 +42,7 @@ impl<T: MetadataStore> MetadataStore for OutputMetadataStore<T> {
 		self.inner.get(iteration)
 	}
 
+	#[inline]
 	fn insert<S>(&mut self, iteration: usize, value: &S) -> Result<(), MetadataStoreError>
 	where
 		S: Serialize + 'static,

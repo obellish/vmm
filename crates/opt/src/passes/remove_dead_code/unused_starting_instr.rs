@@ -8,6 +8,7 @@ pub struct RemoveUnusedStartingInstrPass;
 impl PeepholePass for RemoveUnusedStartingInstrPass {
 	const SIZE: usize = 2;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -29,6 +30,7 @@ impl PeepholePass for RemoveUnusedStartingInstrPass {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

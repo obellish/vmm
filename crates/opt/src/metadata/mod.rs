@@ -24,6 +24,7 @@ pub struct HashMetadataStore {
 }
 
 impl HashMetadataStore {
+	#[inline]
 	#[must_use]
 	pub fn new() -> Self {
 		Self {
@@ -33,6 +34,7 @@ impl HashMetadataStore {
 }
 
 impl MetadataStore for HashMetadataStore {
+	#[inline]
 	fn insert<S>(&mut self, iteration: usize, value: &S) -> Result<(), MetadataStoreError>
 	where
 		S: Serialize + 'static,
@@ -46,6 +48,7 @@ impl MetadataStore for HashMetadataStore {
 		Ok(())
 	}
 
+	#[inline]
 	fn get<S>(&self, iteration: usize) -> Result<Option<S>, MetadataStoreError>
 	where
 		S: for<'de> Deserialize<'de> + 'static,
@@ -137,6 +140,7 @@ pub trait MetadataStore {
 	where
 		S: Serialize + 'static;
 
+	#[inline]
 	fn insert_program_snapshot(
 		&mut self,
 		iteration: usize,
@@ -149,6 +153,7 @@ pub trait MetadataStore {
 		Ok(())
 	}
 
+	#[inline]
 	fn get_program_snapshot(
 		&self,
 		iteration: usize,
