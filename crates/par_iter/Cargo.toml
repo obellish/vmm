@@ -1,11 +1,13 @@
+lints.workspace = true
+
 [package]
-name = "vmm_par_iter"
 edition.workspace = true
 license.workspace = true
+name = "vmm_par_iter"
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-
-[lints]
-workspace = true
+rayon-core = { version = "1.12" }
+vmm_num.workspace = true
+vmm_span.workspace = true

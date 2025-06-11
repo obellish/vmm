@@ -8,7 +8,9 @@ mod serde;
 use core::{
 	fmt::{Debug, Formatter, Result as FmtResult},
 	marker::PhantomData,
-	ops::{Bound, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive},
+	ops::{
+		Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
+	},
 };
 
 pub use self::iter::*;
@@ -238,6 +240,20 @@ where
 {
 	fn eq(&self, other: &SpanIter<T, From, To>) -> bool {
 		PartialEq::eq(self, &other.span)
+	}
+}
+
+impl<T, From, To> RangeBounds<T> for Span<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn start_bound(&self) -> Bound<&T> {
+		Self::start_bound(self)
+	}
+
+	fn end_bound(&self) -> Bound<&T> {
+		Self::end_bound(self)
 	}
 }
 
