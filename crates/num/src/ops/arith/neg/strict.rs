@@ -10,6 +10,7 @@ macro_rules! impl_strict_neg {
             impl $crate::ops::StrictNeg for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn strict_neg(self) -> Self {
                     <$ty>::strict_neg(self)
                 }
@@ -18,6 +19,7 @@ macro_rules! impl_strict_neg {
             impl $crate::ops::StrictNeg for &$ty {
                 type Output = <$ty as $crate::ops::StrictNeg>::Output;
 
+                #[inline]
                 fn strict_neg(self) -> Self::Output {
                     <$ty>::strict_neg(*self)
                 }

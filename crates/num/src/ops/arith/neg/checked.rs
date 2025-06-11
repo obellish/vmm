@@ -10,6 +10,7 @@ macro_rules! impl_checked_neg {
             impl $crate::ops::CheckedNeg for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn checked_neg(self) -> ::core::option::Option<Self> {
                     <$ty>::checked_neg(self)
                 }
@@ -18,6 +19,7 @@ macro_rules! impl_checked_neg {
             impl $crate::ops::CheckedNeg for &$ty {
                 type Output = <$ty as $crate::ops::CheckedNeg>::Output;
 
+                #[inline]
                 fn checked_neg(self) -> ::core::option::Option<Self::Output> {
                     <$ty>::checked_neg(*self)
                 }

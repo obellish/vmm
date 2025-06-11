@@ -14,6 +14,7 @@ macro_rules! impl_strict_sub {
             impl $crate::ops::StrictSub for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn strict_sub(self, rhs: Self) -> Self::Output {
                     <$ty>::strict_sub(self, rhs)
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_strict_sub {
             impl $crate::ops::StrictSub<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn strict_sub(self, rhs: &Self) -> Self {
                     <$ty>::strict_sub(self, *rhs)
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_strict_sub {
             impl $crate::ops::StrictSub<$ty> for &$ty {
                 type Output = $ty;
 
+                #[inline]
                 fn strict_sub(self, rhs: $ty) -> Self::Output {
                     <$ty>::strict_sub(*self, rhs)
                 }
@@ -38,18 +41,21 @@ macro_rules! impl_strict_sub {
             impl $crate::ops::StrictSub for &$ty {
                 type Output = $ty;
 
+                #[inline]
                 fn strict_sub(self, rhs: Self) -> Self::Output {
                     <$ty>::strict_sub(*self, *rhs)
                 }
             }
 
             impl $crate::ops::StrictSubAssign for $ty {
+                #[inline]
                 fn strict_sub_assign(&mut self, rhs: Self) {
                     *self = <$ty>::strict_sub(*self, rhs);
                 }
             }
 
             impl $crate::ops::StrictSubAssign<&Self> for $ty {
+                #[inline]
                 fn strict_sub_assign(&mut self, rhs: &Self) {
                     *self = <$ty>::strict_sub(*self, *rhs);
                 }

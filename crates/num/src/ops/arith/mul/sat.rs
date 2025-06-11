@@ -14,6 +14,7 @@ macro_rules! impl_saturating_mul {
             impl $crate::ops::SaturatingMul for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn saturating_mul(self, rhs: Self) -> Self {
                     <$ty>::saturating_mul(self, rhs)
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_saturating_mul {
             impl $crate::ops::SaturatingMul<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn saturating_mul(self, rhs: &Self) -> Self {
                     <$ty>::saturating_mul(self, *rhs)
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_saturating_mul {
             impl $crate::ops::SaturatingMul<$ty> for &$ty {
                 type Output = <$ty as $crate::ops::SaturatingMul>::Output;
 
+                #[inline]
                 fn saturating_mul(self, rhs: $ty) -> Self::Output {
                     <$ty>::saturating_mul(*self, rhs)
                 }
@@ -38,18 +41,21 @@ macro_rules! impl_saturating_mul {
             impl $crate::ops::SaturatingMul for &$ty {
                 type Output = <$ty as $crate::ops::SaturatingMul>::Output;
 
+                #[inline]
                 fn saturating_mul(self, rhs: Self) -> Self::Output {
                     <$ty>::saturating_mul(*self, *rhs)
                 }
             }
 
             impl $crate::ops::SaturatingMulAssign for $ty {
+                #[inline]
                 fn saturating_mul_assign(&mut self, rhs: Self) {
                     *self = <$ty>::saturating_mul(*self, rhs);
                 }
             }
 
             impl $crate::ops::SaturatingMulAssign<&Self> for $ty {
+                #[inline]
                 fn saturating_mul_assign(&mut self, rhs: &Self) {
                     *self = <$ty>::saturating_mul(*self, *rhs);
                 }

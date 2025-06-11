@@ -14,6 +14,7 @@ macro_rules! impl_strict_rem {
             impl $crate::ops::StrictRem for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn strict_rem(self, rhs: Self) -> Self {
                     <$ty>::strict_rem(self, rhs)
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_strict_rem {
             impl $crate::ops::StrictRem<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn strict_rem(self, rhs: &Self) -> Self {
                     <$ty>::strict_rem(self, *rhs)
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_strict_rem {
             impl $crate::ops::StrictRem<$ty> for &$ty {
                 type Output = $ty;
 
+                #[inline]
                 fn strict_rem(self, rhs: $ty) -> $ty {
                     <$ty>::strict_rem(*self, rhs)
                 }
@@ -38,18 +41,21 @@ macro_rules! impl_strict_rem {
             impl $crate::ops::StrictRem for &$ty {
                 type Output = $ty;
 
+                #[inline]
                 fn strict_rem(self, rhs: Self) -> $ty {
                     <$ty>::strict_rem(*self, *rhs)
                 }
             }
 
             impl $crate::ops::StrictRemAssign for $ty {
+                #[inline]
                 fn strict_rem_assign(&mut self, rhs: Self) {
                     *self = <$ty>::strict_rem(*self, rhs);
                 }
             }
 
             impl $crate::ops::StrictRemAssign<&Self> for $ty {
+                #[inline]
                 fn strict_rem_assign(&mut self, rhs: &Self) {
                     *self = <$ty>::strict_rem(*self, *rhs);
                 }

@@ -14,6 +14,7 @@ macro_rules! impl_wrapping_rem {
             impl $crate::ops::WrappingRem for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn wrapping_rem(self, rhs: Self) -> Self {
                     <$ty>::wrapping_rem(self, rhs)
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_wrapping_rem {
             impl $crate::ops::WrappingRem<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn wrapping_rem(self, rhs: &Self) -> Self {
                     <$ty>::wrapping_rem(self, *rhs)
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_wrapping_rem {
             impl $crate::ops::WrappingRem<$ty> for &$ty {
                 type Output = <$ty as $crate::ops::WrappingRem>::Output;
 
+                #[inline]
                 fn wrapping_rem(self, rhs: $ty) -> Self::Output {
                     <$ty>::wrapping_rem(*self, rhs)
                 }
@@ -38,18 +41,21 @@ macro_rules! impl_wrapping_rem {
             impl $crate::ops::WrappingRem for &$ty {
                 type Output = <$ty as $crate::ops::WrappingRem>::Output;
 
+                #[inline]
                 fn wrapping_rem(self, rhs: Self) -> Self::Output {
                     <$ty>::wrapping_rem(*self, *rhs)
                 }
             }
 
             impl $crate::ops::WrappingRemAssign for $ty {
+                #[inline]
                 fn wrapping_rem_assign(&mut self, rhs: Self) {
                     *self = <$ty>::wrapping_rem(*self, rhs);
                 }
             }
 
             impl $crate::ops::WrappingRemAssign<&Self> for $ty {
+                #[inline]
                 fn wrapping_rem_assign(&mut self, rhs: &Self) {
                     *self = <$ty>::wrapping_rem(*self, *rhs);
                 }

@@ -10,6 +10,7 @@ macro_rules! impl_wrapping_neg {
             impl $crate::ops::WrappingNeg for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn wrapping_neg(self) -> Self {
                     <$ty>::wrapping_neg(self)
                 }
@@ -18,6 +19,7 @@ macro_rules! impl_wrapping_neg {
             impl $crate::ops::WrappingNeg for &$ty {
                 type Output = <$ty as $crate::ops::WrappingNeg>::Output;
 
+                #[inline]
                 fn wrapping_neg(self) -> Self::Output {
                     <$ty>::wrapping_neg(*self)
                 }

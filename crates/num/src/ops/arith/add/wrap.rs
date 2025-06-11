@@ -19,6 +19,7 @@ macro_rules! impl_wrapping_add {
 		impl $crate::ops::WrappingAdd<$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn wrapping_add(self, rhs: $right) -> Self {
 				<$left>::$func(self, rhs)
 			}
@@ -27,6 +28,7 @@ macro_rules! impl_wrapping_add {
 		impl $crate::ops::WrappingAdd<&$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn wrapping_add(self, rhs: &$right) -> Self {
 				<$left>::$func(self, *rhs)
 			}
@@ -35,6 +37,7 @@ macro_rules! impl_wrapping_add {
 		impl $crate::ops::WrappingAdd<$right> for &$left {
 			type Output = <$left as $crate::ops::WrappingAdd<$right>>::Output;
 
+			#[inline]
 			fn wrapping_add(self, rhs: $right) -> Self::Output {
 				<$left>::$func(*self, rhs)
 			}
@@ -43,18 +46,21 @@ macro_rules! impl_wrapping_add {
 		impl $crate::ops::WrappingAdd<&$right> for &$left {
 			type Output = <$left as $crate::ops::WrappingAdd<$right>>::Output;
 
+			#[inline]
 			fn wrapping_add(self, rhs: &$right) -> Self::Output {
 				<$left>::$func(*self, *rhs)
 			}
 		}
 
 		impl $crate::ops::WrappingAddAssign<$right> for $left {
+			#[inline]
 			fn wrapping_add_assign(&mut self, rhs: $right) {
 				*self = <$left>::$func(*self, rhs);
 			}
 		}
 
 		impl $crate::ops::WrappingAddAssign<&$right> for $left {
+			#[inline]
 			fn wrapping_add_assign(&mut self, rhs: &$right) {
 				*self = <$left>::$func(*self, *rhs);
 			}

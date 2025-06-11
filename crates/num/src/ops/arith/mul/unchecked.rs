@@ -14,6 +14,7 @@ macro_rules! impl_unchecked_mul {
             unsafe impl $crate::ops::UncheckedMul for $ty {
                 type Output = Self;
 
+                #[inline]
                 unsafe fn unchecked_mul(self, rhs: Self) -> Self {
                     unsafe { <$ty>::unchecked_mul(self, rhs) }
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_unchecked_mul {
             unsafe impl $crate::ops::UncheckedMul<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 unsafe fn unchecked_mul(self, rhs: &Self) -> Self {
                     unsafe { <$ty>::unchecked_mul(self, *rhs) }
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_unchecked_mul {
             unsafe impl $crate::ops::UncheckedMul<$ty> for &$ty {
                 type Output = <$ty as $crate::ops::UncheckedMul>::Output;
 
+                #[inline]
                 unsafe fn unchecked_mul(self, rhs: $ty) -> Self::Output {
                     unsafe { <$ty>::unchecked_mul(*self, rhs) }
                 }
@@ -38,18 +41,21 @@ macro_rules! impl_unchecked_mul {
             unsafe impl $crate::ops::UncheckedMul for &$ty {
                 type Output = <$ty as $crate::ops::UncheckedMul>::Output;
 
+                #[inline]
                 unsafe fn unchecked_mul(self, rhs: Self) -> Self::Output {
                     unsafe { <$ty>::unchecked_mul(*self, *rhs) }
                 }
             }
 
             unsafe impl $crate::ops::UncheckedMulAssign for $ty {
+                #[inline]
                 unsafe fn unchecked_mul_assign(&mut self, rhs: Self) {
                     unsafe { *self = <$ty>::unchecked_mul(*self, rhs); }
                 }
             }
 
             unsafe impl $crate::ops::UncheckedMulAssign<&Self> for $ty {
+                #[inline]
                 unsafe fn unchecked_mul_assign(&mut self, rhs: &Self) {
                     unsafe { *self = <$ty>::unchecked_mul(*self, *rhs); }
                 }

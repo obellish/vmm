@@ -14,6 +14,7 @@ macro_rules! impl_saturating_div {
             impl $crate::ops::SaturatingDiv for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn saturating_div(self, rhs: Self) -> Self {
                     <$ty>::saturating_div(self, rhs)
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_saturating_div {
             impl $crate::ops::SaturatingDiv<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn saturating_div(self, rhs: &Self) -> Self {
                     <$ty>::saturating_div(self, *rhs)
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_saturating_div {
             impl $crate::ops::SaturatingDiv<$ty> for &$ty {
                 type Output = <$ty as $crate::ops::SaturatingDiv>::Output;
 
+                #[inline]
                 fn saturating_div(self, rhs: $ty) -> Self::Output {
                     <$ty>::saturating_div(*self, rhs)
                 }
@@ -38,18 +41,21 @@ macro_rules! impl_saturating_div {
             impl $crate::ops::SaturatingDiv for &$ty {
                 type Output = <$ty as $crate::ops::SaturatingDiv>::Output;
 
+                #[inline]
                 fn saturating_div(self, rhs: Self) -> Self::Output {
                     <$ty>::saturating_div(*self, *rhs)
                 }
             }
 
             impl $crate::ops::SaturatingDivAssign for $ty {
+                #[inline]
                 fn saturating_div_assign(&mut self, rhs: Self) {
                     *self = <$ty>::saturating_div(*self, rhs);
                 }
             }
 
             impl $crate::ops::SaturatingDivAssign<&Self> for $ty {
+                #[inline]
                 fn saturating_div_assign(&mut self, rhs: &Self) {
                     *self = <$ty>::saturating_div(*self, *rhs);
                 }

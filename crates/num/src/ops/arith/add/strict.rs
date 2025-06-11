@@ -19,6 +19,7 @@ macro_rules! impl_strict_add {
 		impl $crate::ops::StrictAdd<$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn strict_add(self, rhs: $right) -> Self {
 				<$left>::$func(self, rhs)
 			}
@@ -27,6 +28,7 @@ macro_rules! impl_strict_add {
 		impl $crate::ops::StrictAdd<&$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn strict_add(self, rhs: &$right) -> Self {
 				<$left>::$func(self, *rhs)
 			}
@@ -35,6 +37,7 @@ macro_rules! impl_strict_add {
 		impl $crate::ops::StrictAdd<$right> for &$left {
 			type Output = <$left as $crate::ops::StrictAdd<$right>>::Output;
 
+			#[inline]
 			fn strict_add(self, rhs: $right) -> Self::Output {
 				<$left>::$func(*self, rhs)
 			}
@@ -43,18 +46,21 @@ macro_rules! impl_strict_add {
 		impl $crate::ops::StrictAdd<&$right> for &$left {
 			type Output = <$left as $crate::ops::StrictAdd<$right>>::Output;
 
+			#[inline]
 			fn strict_add(self, rhs: &$right) -> Self::Output {
 				<$left>::$func(*self, *rhs)
 			}
 		}
 
 		impl $crate::ops::StrictAddAssign<$right> for $left {
+			#[inline]
 			fn strict_add_assign(&mut self, rhs: $right) {
 				*self = <$left>::$func(*self, rhs);
 			}
 		}
 
 		impl $crate::ops::StrictAddAssign<&$right> for $left {
+			#[inline]
 			fn strict_add_assign(&mut self, rhs: &$right) {
 				*self = <$left>::$func(*self, *rhs);
 			}

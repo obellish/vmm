@@ -19,6 +19,7 @@ macro_rules! impl_saturating_add {
 		impl $crate::ops::SaturatingAdd<$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn saturating_add(self, rhs: $right) -> Self {
 				<$left>::$func(self, rhs)
 			}
@@ -27,6 +28,7 @@ macro_rules! impl_saturating_add {
 		impl $crate::ops::SaturatingAdd<&$right> for $left {
 			type Output = Self;
 
+			#[inline]
 			fn saturating_add(self, rhs: &$right) -> Self {
 				<$left>::$func(self, *rhs)
 			}
@@ -35,6 +37,7 @@ macro_rules! impl_saturating_add {
 		impl $crate::ops::SaturatingAdd<$right> for &$left {
 			type Output = <$left as $crate::ops::SaturatingAdd<$right>>::Output;
 
+			#[inline]
 			fn saturating_add(self, rhs: $right) -> Self::Output {
 				<$left>::$func(*self, rhs)
 			}
@@ -43,18 +46,21 @@ macro_rules! impl_saturating_add {
 		impl $crate::ops::SaturatingAdd<&$right> for &$left {
 			type Output = <$left as $crate::ops::SaturatingAdd<$right>>::Output;
 
+			#[inline]
 			fn saturating_add(self, rhs: &$right) -> Self::Output {
 				<$left>::$func(*self, *rhs)
 			}
 		}
 
 		impl $crate::ops::SaturatingAddAssign<$right> for $left {
+			#[inline]
 			fn saturating_add_assign(&mut self, rhs: $right) {
 				*self = <$left>::$func(*self, rhs);
 			}
 		}
 
 		impl $crate::ops::SaturatingAddAssign<&$right> for $left {
+			#[inline]
 			fn saturating_add_assign(&mut self, rhs: &$right) {
 				*self = <$left>::$func(*self, *rhs);
 			}

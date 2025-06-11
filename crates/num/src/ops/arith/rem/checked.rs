@@ -14,6 +14,7 @@ macro_rules! impl_checked_rem {
             impl $crate::ops::CheckedRem for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn checked_rem(self, rhs: Self) -> ::core::option::Option<Self> {
                     <$ty>::checked_rem(self, rhs)
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_checked_rem {
             impl $crate::ops::CheckedRem<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 fn checked_rem(self, rhs: &Self) -> ::core::option::Option<Self> {
                     <$ty>::checked_rem(self, *rhs)
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_checked_rem {
             impl $crate::ops::CheckedRem<$ty> for &$ty {
                 type Output = <$ty as $crate::ops::CheckedRem>::Output;
 
+                #[inline]
                 fn checked_rem(self, rhs: $ty) -> ::core::option::Option<Self::Output> {
                     <$ty>::checked_rem(*self, rhs)
                 }
@@ -38,12 +41,14 @@ macro_rules! impl_checked_rem {
             impl $crate::ops::CheckedRem for &$ty {
                 type Output = <$ty as $crate::ops::CheckedRem>::Output;
 
+                #[inline]
                 fn checked_rem(self, rhs: Self) -> ::core::option::Option<Self::Output> {
                     <$ty>::checked_rem(*self, *rhs)
                 }
             }
 
             impl $crate::ops::CheckedRemAssign for $ty {
+                #[inline]
                 fn checked_rem_assign(&mut self, rhs: Self) {
                     if let ::core::option::Option::Some(value) = <$ty>::checked_rem(*self, rhs) {
                         *self = value;
@@ -52,6 +57,7 @@ macro_rules! impl_checked_rem {
             }
 
             impl $crate::ops::CheckedRemAssign<&Self> for $ty {
+                #[inline]
                 fn checked_rem_assign(&mut self, rhs: &Self) {
                     if let ::core::option::Option::Some(value) = <$ty>::checked_rem(*self, *rhs) {
                         *self = value;

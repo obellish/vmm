@@ -14,6 +14,7 @@ macro_rules! impl_unchecked_add {
             unsafe impl $crate::ops::UncheckedAdd for $ty {
                 type Output = Self;
 
+                #[inline]
                 unsafe fn unchecked_add(self, rhs: Self) -> Self {
                     unsafe { <$ty>::unchecked_add(self, rhs) }
                 }
@@ -22,6 +23,7 @@ macro_rules! impl_unchecked_add {
             unsafe impl $crate::ops::UncheckedAdd<&Self> for $ty {
                 type Output = Self;
 
+                #[inline]
                 unsafe fn unchecked_add(self, rhs: &Self) -> Self {
                     unsafe { <$ty>::unchecked_add(self, *rhs) }
                 }
@@ -30,6 +32,7 @@ macro_rules! impl_unchecked_add {
             unsafe impl $crate::ops::UncheckedAdd<$ty> for &$ty {
                 type Output = <$ty as $crate::ops::UncheckedAdd>::Output;
 
+                #[inline]
                 unsafe fn unchecked_add(self, rhs: $ty) -> Self::Output {
                     unsafe { <$ty>::unchecked_add(*self, rhs) }
                 }
@@ -38,18 +41,21 @@ macro_rules! impl_unchecked_add {
             unsafe impl $crate::ops::UncheckedAdd for &$ty {
                 type Output = <$ty as $crate::ops::UncheckedAdd>::Output;
 
+                #[inline]
                 unsafe fn unchecked_add(self, rhs: Self) -> Self::Output {
                     unsafe { <$ty>::unchecked_add(*self, *rhs) }
                 }
             }
 
             unsafe impl $crate::ops::UncheckedAddAssign for $ty {
+                #[inline]
                 unsafe fn unchecked_add_assign(&mut self, rhs: Self) {
                     unsafe { *self = <$ty>::unchecked_add(*self, rhs); }
                 }
             }
 
             unsafe impl $crate::ops::UncheckedAddAssign<&Self> for $ty {
+                #[inline]
                 unsafe fn unchecked_add_assign(&mut self, rhs: &Self) {
                     unsafe { *self = <$ty>::unchecked_add(*self, *rhs); }
                 }
