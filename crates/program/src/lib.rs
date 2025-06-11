@@ -10,7 +10,6 @@ use core::{
 	slice,
 };
 
-use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use vmm_ir::Instruction;
 use vmm_utils::HeapSize;
@@ -99,15 +98,6 @@ impl FromIterator<Instruction> for Program {
 	}
 }
 
-impl FromParallelIterator<Instruction> for Program {
-	fn from_par_iter<I>(par_iter: I) -> Self
-	where
-		I: IntoParallelIterator<Item = Instruction>,
-	{
-		Self::Raw(par_iter.into_par_iter().collect())
-	}
-}
-
 impl HeapSize for Program {
 	fn heap_size(&self) -> usize {
 		match self {
@@ -132,23 +122,5 @@ impl<'a> IntoIterator for &'a mut Program {
 
 	fn into_iter(self) -> Self::IntoIter {
 		(**self).iter_mut()
-	}
-}
-
-impl<'a> IntoParallelRefIterator<'a> for Program {
-	type Item = &'a Instruction;
-	type Iter = rayon::slice::Iter<'a, Instruction>;
-
-	fn par_iter(&'a self) -> Self::Iter {
-		(**self).par_iter()
-	}
-}
-
-impl<'a> IntoParallelRefMutIterator<'a> for Program {
-	type Item = &'a mut Instruction;
-	type Iter = rayon::slice::IterMut<'a, Instruction>;
-
-	fn par_iter_mut(&'a mut self) -> Self::Iter {
-		(**self).par_iter_mut()
 	}
 }
