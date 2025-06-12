@@ -2,7 +2,6 @@ use rayon::{
 	iter::plumbing::{Consumer, Producer, ProducerCallback, UnindexedConsumer, bridge},
 	prelude::*,
 };
-use vmm_num::Wrapping;
 
 use super::{Excluded, Included, Span, SpanBound, SpanBoundValue, SpanIter, SpanStartBound, Walk};
 
@@ -26,7 +25,7 @@ where
 
 impl<T, From, To> ParallelIterator for SpanParIter<T, From, To>
 where
-	T: ParWalk + Send,
+	T: Walk + Send,
 	From: Send + SpanBoundValue<T> + SpanStartBound<T>,
 	To: Send + SpanBoundValue<T>,
 	SpanIter<T, From, To>: DoubleEndedIterator<Item = T> + ExactSizeIterator,
@@ -40,11 +39,15 @@ where
 	{
 		bridge(self, consumer)
 	}
+
+	fn opt_len(&self) -> Option<usize> {
+		Some(self.len())
+	}
 }
 
 impl<T, From, To> IndexedParallelIterator for SpanParIter<T, From, To>
 where
-	T: ParWalk + Send,
+	T: Walk + Send,
 	From: Send + SpanBoundValue<T> + SpanStartBound<T>,
 	To: Send + SpanBoundValue<T>,
 	SpanIter<T, From, To>: DoubleEndedIterator<Item = T> + ExactSizeIterator,
@@ -65,9 +68,7 @@ where
 	where
 		CB: ProducerCallback<Self::Item>,
 	{
-		callback.callback(SpanProducer {
-			span: self.span.into(),
-		})
+		callback.callback(SpanProducer { span: self.span })
 	}
 }
 
@@ -77,7 +78,7 @@ where
 	From: SpanStartBound<T>,
 	To: SpanBound<T>,
 {
-	span: Span<T, From, To>,
+	span: SpanIter<T, From, To>,
 }
 
 impl<T, From, To> IntoIterator for SpanProducer<T, From, To>
@@ -91,13 +92,13 @@ where
 	type Item = <SpanIter<T, From, To> as Iterator>::Item;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.span.into_iter()
+		self.span
 	}
 }
 
 impl<T, From, To> Producer for SpanProducer<T, From, To>
 where
-	T: ParWalk + Send,
+	T: Walk + Send,
 	From: Send + SpanBoundValue<T> + SpanStartBound<T>,
 	To: Send + SpanBoundValue<T> + SpanBound<T>,
 	SpanIter<T, From, To>: DoubleEndedIterator<Item = T> + ExactSizeIterator,
@@ -107,90 +108,24 @@ where
 	type Item = T;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.span.into_iter()
+		self.span
 	}
 
 	fn split_at(self, index: usize) -> (Self, Self) {
-		let iter = Producer::into_iter(self);
-		assert!(index <= iter.len());
+		assert!(index <= self.span.len());
 
-		let start = iter.span.start.value().clone();
-		let end = iter.span.end.value().clone();
+		let start = self.span.span.start.value().clone();
+		let end = self.span.span.end.value().clone();
 
-		let mid = start.split_at(index);
-		let left = Span::from((From::from(start), To::from(mid.clone())));
-		let right = Span::from((From::from(mid), To::from(end)));
+		let mid = Walk::forward(start.clone(), index);
+		let left = Span::from((From::from(start), To::from(mid.clone()))).into_iter();
+		let right = Span::from((From::from(mid), To::from(end))).into_iter();
 
 		(Self { span: left }, Self { span: right })
 	}
 }
 
 pub type SpannedParIter<T> = SpanParIter<T, Included<T>, Excluded<T>>;
-
-#[allow(clippy::return_self_not_must_use)]
-pub trait ParWalk: Walk {
-	fn split_at(&self, index: usize) -> Self;
-}
-
-impl ParWalk for i8 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for i16 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for i32 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for i64 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for isize {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for u8 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for u16 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for u32 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for u64 {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
-
-impl ParWalk for usize {
-	fn split_at(&self, index: usize) -> Self {
-		Wrapping::add(self, index as Self)
-	}
-}
 
 #[cfg(test)]
 mod tests {
@@ -206,7 +141,7 @@ mod tests {
 	#[test]
 	fn span_split_at_overflow() {
 		let producer = SpanProducer {
-			span: Span::from(-100i8..100),
+			span: Span::from(-100i8..100).into_iter(),
 		};
 		let (left, right) = producer.split_at(150);
 		let r1: i32 = left.span.into_iter().map(i32::from).sum();

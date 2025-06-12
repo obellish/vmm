@@ -296,7 +296,7 @@ impl<T: Walk> IntoIterator for SpannedInclusive<T> {
 
 impl<T> IntoParallelIterator for Spanned<T>
 where
-	T: ParWalk + Send,
+	T: Walk + Send,
 {
 	type Item = T;
 	type Iter = SpannedParIter<T>;
