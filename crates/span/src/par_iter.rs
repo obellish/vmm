@@ -4,22 +4,33 @@ use rayon::{
 };
 use vmm_num::Wrapping;
 
-use super::{Span, SpanBoundValue, SpannedIter, Walk};
+use super::{Excluded, Included, Span, SpanBound, SpanBoundValue, SpanIter, SpanStartBound, Walk};
 
-#[repr(transparent)]
-pub struct SpanParIter<T> {
-	span: SpannedIter<T>,
+pub struct SpanParIter<T, From, To>
+where
+	From: SpanStartBound<T>,
+	To: SpanBound<T>,
+{
+	span: SpanIter<T, From, To>,
 }
 
-impl<T> SpanParIter<T> {
-	pub(super) const fn new(span: SpannedIter<T>) -> Self {
+impl<T, From, To> SpanParIter<T, From, To>
+where
+	From: SpanStartBound<T>,
+	To: SpanBound<T>,
+{
+	pub(super) const fn new(span: SpanIter<T, From, To>) -> Self {
 		Self { span }
 	}
 }
 
-impl<T> ParallelIterator for SpanParIter<T>
+impl<T, From, To> ParallelIterator for SpanParIter<T, From, To>
 where
 	T: ParWalk + Send,
+	From: Send + SpanBoundValue<T> + SpanStartBound<T>,
+	To: Send + SpanBoundValue<T>,
+	SpanIter<T, From, To>: DoubleEndedIterator<Item = T> + ExactSizeIterator,
+	Span<T, From, To>: IntoIterator<IntoIter = SpanIter<T, From, To>>,
 {
 	type Item = T;
 
@@ -29,15 +40,15 @@ where
 	{
 		bridge(self, consumer)
 	}
-
-	fn opt_len(&self) -> Option<usize> {
-		Some(self.span.len())
-	}
 }
 
-impl<T> IndexedParallelIterator for SpanParIter<T>
+impl<T, From, To> IndexedParallelIterator for SpanParIter<T, From, To>
 where
 	T: ParWalk + Send,
+	From: Send + SpanBoundValue<T> + SpanStartBound<T>,
+	To: Send + SpanBoundValue<T>,
+	SpanIter<T, From, To>: DoubleEndedIterator<Item = T> + ExactSizeIterator,
+	Span<T, From, To>: IntoIterator<IntoIter = SpanIter<T, From, To>>,
 {
 	fn len(&self) -> usize {
 		self.span.len()
@@ -54,48 +65,67 @@ where
 	where
 		CB: ProducerCallback<Self::Item>,
 	{
-		callback.callback(SpannedProducer { span: self.span })
+		callback.callback(SpanProducer {
+			span: self.span.into(),
+		})
 	}
 }
 
 #[repr(transparent)]
-struct SpannedProducer<T> {
-	span: SpannedIter<T>,
+struct SpanProducer<T, From, To>
+where
+	From: SpanStartBound<T>,
+	To: SpanBound<T>,
+{
+	span: Span<T, From, To>,
 }
 
-impl<T: Walk> IntoIterator for SpannedProducer<T> {
-	type IntoIter = SpannedIter<T>;
-	type Item = <SpannedIter<T> as Iterator>::Item;
+impl<T, From, To> IntoIterator for SpanProducer<T, From, To>
+where
+	From: SpanStartBound<T>,
+	To: SpanBound<T>,
+	SpanIter<T, From, To>: Iterator,
+	Span<T, From, To>: IntoIterator<IntoIter = SpanIter<T, From, To>>,
+{
+	type IntoIter = SpanIter<T, From, To>;
+	type Item = <SpanIter<T, From, To> as Iterator>::Item;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.span
+		self.span.into_iter()
 	}
 }
 
-impl<T> Producer for SpannedProducer<T>
+impl<T, From, To> Producer for SpanProducer<T, From, To>
 where
 	T: ParWalk + Send,
-	SpannedIter<T>: DoubleEndedIterator + ExactSizeIterator,
+	From: Send + SpanBoundValue<T> + SpanStartBound<T>,
+	To: Send + SpanBoundValue<T> + SpanBound<T>,
+	SpanIter<T, From, To>: DoubleEndedIterator<Item = T> + ExactSizeIterator,
+	Span<T, From, To>: IntoIterator<IntoIter = SpanIter<T, From, To>>,
 {
-	type IntoIter = SpannedIter<T>;
-	type Item = <SpannedIter<T> as Iterator>::Item;
+	type IntoIter = SpanIter<T, From, To>;
+	type Item = T;
 
 	fn into_iter(self) -> Self::IntoIter {
-		self.span
+		self.span.into_iter()
 	}
 
 	fn split_at(self, index: usize) -> (Self, Self) {
-		assert!(index <= self.span.len());
+		let iter = Producer::into_iter(self);
+		assert!(index <= iter.len());
 
-		let start = self.span.span.start.value();
-		let end = self.span.span.end.value();
+		let start = iter.span.start.value().clone();
+		let end = iter.span.end.value().clone();
 
 		let mid = start.split_at(index);
-		let left = Span::from(start.clone()..mid.clone()).into_iter();
-		let right = Span::from(mid..end.clone()).into_iter();
+		let left = Span::from((From::from(start), To::from(mid.clone())));
+		let right = Span::from((From::from(mid), To::from(end)));
+
 		(Self { span: left }, Self { span: right })
 	}
 }
+
+pub type SpannedParIter<T> = SpanParIter<T, Included<T>, Excluded<T>>;
 
 #[allow(clippy::return_self_not_must_use)]
 pub trait ParWalk: Walk {
@@ -170,17 +200,17 @@ mod tests {
 
 	use rayon::{iter::plumbing::Producer, prelude::*};
 
-	use super::SpannedProducer;
+	use super::SpanProducer;
 	use crate::Span;
 
 	#[test]
 	fn span_split_at_overflow() {
-		let producer = SpannedProducer {
-			span: Span::from(-100i8..100).into_iter(),
+		let producer = SpanProducer {
+			span: Span::from(-100i8..100),
 		};
 		let (left, right) = producer.split_at(150);
-		let r1: i32 = left.span.map(i32::from).sum();
-		let r2: i32 = right.span.map(i32::from).sum();
+		let r1: i32 = left.span.into_iter().map(i32::from).sum();
+		let r2: i32 = right.span.into_iter().map(i32::from).sum();
 		assert_eq!(r1 + r2, -100);
 	}
 

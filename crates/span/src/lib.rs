@@ -38,6 +38,12 @@ impl<T: ?Sized> Copy for Unbounded<T> {}
 
 impl<T: ?Sized> Eq for Unbounded<T> {}
 
+impl<T> From<T> for Unbounded<T> {
+	fn from(_: T) -> Self {
+		Self(PhantomData)
+	}
+}
+
 impl<T: ?Sized> PartialEq for Unbounded<T> {
 	fn eq(&self, _: &Self) -> bool {
 		true
@@ -51,9 +57,21 @@ unsafe impl<T: ?Sized> Sync for Unbounded<T> {}
 #[repr(transparent)]
 pub struct Included<T>(T);
 
+impl<T> From<T> for Included<T> {
+	fn from(value: T) -> Self {
+		Self(value)
+	}
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Excluded<T>(T);
+
+impl<T> From<T> for Excluded<T> {
+	fn from(value: T) -> Self {
+		Self(value)
+	}
+}
 
 #[derive(Clone, Copy)]
 pub struct Span<T, From, To>
@@ -126,6 +144,30 @@ where
 	From: Eq + SpanStartBound<T>,
 	To: Eq + SpanBound<T>,
 {
+}
+
+impl<T, TFrom, To> From<SpanIter<T, TFrom, To>> for Span<T, TFrom, To>
+where
+	TFrom: SpanStartBound<T>,
+	To: SpanBound<T>,
+{
+	fn from(value: SpanIter<T, TFrom, To>) -> Self {
+		value.span
+	}
+}
+
+impl<T, TFrom, To> From<(TFrom, To)> for Span<T, TFrom, To>
+where
+	TFrom: SpanStartBound<T>,
+	To: SpanBound<T>,
+{
+	fn from((start, end): (TFrom, To)) -> Self {
+		Self {
+			start,
+			end,
+			marker: PhantomData,
+		}
+	}
 }
 
 impl<T> From<Range<T>> for Spanned<T> {
@@ -257,10 +299,10 @@ where
 	T: ParWalk + Send,
 {
 	type Item = T;
-	type Iter = SpanParIter<T>;
+	type Iter = SpannedParIter<T>;
 
 	fn into_par_iter(self) -> Self::Iter {
-		SpanParIter::new(self.into_iter())
+		SpannedParIter::new(self.into_iter())
 	}
 }
 
@@ -310,7 +352,7 @@ where
 	}
 }
 
-pub trait SpanBound<T>: self::sealed::Sealed {
+pub trait SpanBound<T>: From<T> + self::sealed::Sealed {
 	fn as_bound(&self) -> Bound<&T>;
 }
 
