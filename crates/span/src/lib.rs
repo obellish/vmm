@@ -3,6 +3,7 @@
 #![no_std]
 
 mod iter;
+mod par_iter;
 mod sealed;
 mod serde;
 
@@ -16,7 +17,7 @@ use core::{
 
 use rayon::prelude::*;
 
-pub use self::iter::*;
+pub use self::{iter::*, par_iter::*};
 
 #[repr(transparent)]
 pub struct Unbounded<T: ?Sized>(PhantomData<T>);
@@ -253,13 +254,13 @@ impl<T: Walk> IntoIterator for SpannedInclusive<T> {
 
 impl<T> IntoParallelIterator for Spanned<T>
 where
-	Range<T>: IntoParallelIterator,
+	T: ParWalk + Send,
 {
-	type Item = <Range<T> as IntoParallelIterator>::Item;
-	type Iter = <Range<T> as IntoParallelIterator>::Iter;
+	type Item = T;
+	type Iter = SpanParIter<T>;
 
 	fn into_par_iter(self) -> Self::Iter {
-		Range::from(self).into_par_iter()
+		SpanParIter::new(self.into_iter())
 	}
 }
 
@@ -336,6 +337,42 @@ pub trait SpanStartBound<T>: SpanBound<T> {}
 impl<T> SpanStartBound<T> for Unbounded<T> {}
 
 impl<T> SpanStartBound<T> for Included<T> {}
+
+pub trait SpanBoundValue<T>: SpanBound<T> {
+	fn value(&self) -> &T;
+
+	fn value_mut(&mut self) -> &mut T;
+
+	fn into_value(self) -> T;
+}
+
+impl<T> SpanBoundValue<T> for Included<T> {
+	fn value(&self) -> &T {
+		&self.0
+	}
+
+	fn value_mut(&mut self) -> &mut T {
+		&mut self.0
+	}
+
+	fn into_value(self) -> T {
+		self.0
+	}
+}
+
+impl<T> SpanBoundValue<T> for Excluded<T> {
+	fn value(&self) -> &T {
+		&self.0
+	}
+
+	fn value_mut(&mut self) -> &mut T {
+		&mut self.0
+	}
+
+	fn into_value(self) -> T {
+		self.0
+	}
+}
 
 pub type SpannedFull<T> = Span<T, Unbounded<T>, Unbounded<T>>;
 
