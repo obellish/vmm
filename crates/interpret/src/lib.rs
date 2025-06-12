@@ -290,7 +290,6 @@ where
 		offset: isize,
 	) -> Result<(), RuntimeError> {
 		while !matches!(self.cell().0, 0) {
-			// mem::take(self.cell_mut());
 			_ = mem::replace(&mut self.cell_mut().0, value.get_or_zero());
 			*self.ptr_mut() += offset;
 		}

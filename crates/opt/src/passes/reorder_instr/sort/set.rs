@@ -21,7 +21,7 @@ impl PeepholePass for SortSetInstrPass {
 
 	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		window.iter().all(Instruction::is_set_val) && window.iter().is_sorted_by_key(sorter_key)
+		window.iter().all(Instruction::is_set_val) && !window.iter().is_sorted_by_key(sorter_key)
 	}
 }
 

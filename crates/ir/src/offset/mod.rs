@@ -122,14 +122,14 @@ impl Serialize for Offset {
 
 impl Walk for Offset {
 	fn steps_between(start: &Self, end: &Self) -> (usize, Option<usize>) {
-		isize::steps_between(&start.0, &end.0)
+		Walk::steps_between(&start.0, &end.0)
 	}
 
 	fn forward_checked(start: Self, count: usize) -> Option<Self> {
-		Some(Self(isize::forward_checked(start.0, count)?))
+		Some(Self(Walk::forward_checked(start.0, count)?))
 	}
 
 	fn backward_checked(start: Self, count: usize) -> Option<Self> {
-		Some(Self(isize::backward_checked(start.0, count)?))
+		Some(Self(Walk::backward_checked(start.0, count)?))
 	}
 }

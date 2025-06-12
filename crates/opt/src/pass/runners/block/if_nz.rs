@@ -23,6 +23,7 @@ impl<P: Default> Default for IfNzRunner<P> {
 impl<P: LoopPass> PeepholePass for IfNzRunner<P> {
 	const SIZE: usize = 1;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		if let [Instruction::Block(BlockInstruction::IfNz(instructions))] = window {
 			self.0.run_pass(instructions)
@@ -31,6 +32,7 @@ impl<P: LoopPass> PeepholePass for IfNzRunner<P> {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		let [Instruction::Block(BlockInstruction::IfNz(instrs))] = window else {
 			return false;

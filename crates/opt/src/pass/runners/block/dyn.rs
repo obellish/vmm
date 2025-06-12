@@ -23,6 +23,7 @@ impl<P: Default> Default for DynamicLoopRunner<P> {
 impl<P: LoopPass> PeepholePass for DynamicLoopRunner<P> {
 	const SIZE: usize = 1;
 
+	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		if let [Instruction::Block(BlockInstruction::DynamicLoop(instructions))] = window {
 			self.0.run_pass(instructions)
@@ -31,6 +32,7 @@ impl<P: LoopPass> PeepholePass for DynamicLoopRunner<P> {
 		}
 	}
 
+	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		let [Instruction::Block(BlockInstruction::DynamicLoop(instrs))] = window else {
 			return false;

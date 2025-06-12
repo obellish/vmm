@@ -24,6 +24,7 @@ impl<P> Pass for PeepholeRunner<P>
 where
 	P: Debug + PeepholePass,
 {
+	#[inline]
 	fn run_pass(&mut self, program: &mut Vec<Instruction>) -> bool {
 		let mut i = 0;
 		let mut progress = false;

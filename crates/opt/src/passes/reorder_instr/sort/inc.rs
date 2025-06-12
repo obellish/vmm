@@ -19,7 +19,7 @@ impl PeepholePass for SortIncInstrPass {
 
 	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		window.iter().all(Instruction::is_change_val) && window.iter().is_sorted_by_key(sorter_key)
+		window.iter().all(Instruction::is_change_val) && !window.iter().is_sorted_by_key(sorter_key)
 	}
 }
 

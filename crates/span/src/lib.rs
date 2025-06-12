@@ -1,3 +1,4 @@
+#![allow(clippy::fallible_impl_from)]
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
 #![no_std]
 
@@ -8,8 +9,12 @@ mod serde;
 use core::{
 	fmt::{Debug, Formatter, Result as FmtResult},
 	marker::PhantomData,
-	ops::{Bound, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive},
+	ops::{
+		Bound, Range, RangeBounds, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
+	},
 };
+
+use rayon::prelude::*;
 
 pub use self::iter::*;
 
@@ -194,6 +199,54 @@ impl<T> From<RangeToInclusive<T>> for SpannedToInclusive<T> {
 	}
 }
 
+impl<T> From<Spanned<T>> for Range<T> {
+	fn from(value: Spanned<T>) -> Self {
+		assert!(value.start.is_some());
+		assert!(value.end.is_some());
+
+		value.start.unwrap()..value.end.unwrap()
+	}
+}
+
+impl<T> From<SpannedFull<T>> for RangeFull {
+	fn from(_: SpannedFull<T>) -> Self {
+		..
+	}
+}
+
+impl<T> From<SpannedFrom<T>> for RangeFrom<T> {
+	fn from(value: SpannedFrom<T>) -> Self {
+		assert!(value.start.is_some());
+
+		value.start.unwrap()..
+	}
+}
+
+impl<T> From<SpannedTo<T>> for RangeTo<T> {
+	fn from(value: SpannedTo<T>) -> Self {
+		assert!(value.end.is_some());
+
+		..value.end.unwrap()
+	}
+}
+
+impl<T> From<SpannedInclusive<T>> for RangeInclusive<T> {
+	fn from(value: SpannedInclusive<T>) -> Self {
+		assert!(value.start.is_some());
+		assert!(value.end.is_some());
+
+		value.start.unwrap()..=value.end.unwrap()
+	}
+}
+
+impl<T> From<SpannedToInclusive<T>> for RangeToInclusive<T> {
+	fn from(value: SpannedToInclusive<T>) -> Self {
+		assert!(value.end.is_some());
+
+		..=value.end.unwrap()
+	}
+}
+
 impl<T: Walk> IntoIterator for Spanned<T> {
 	type IntoIter = SpannedIter<T>;
 	type Item = T;
@@ -221,6 +274,30 @@ impl<T: Walk> IntoIterator for SpannedInclusive<T> {
 	}
 }
 
+impl<T> IntoParallelIterator for Spanned<T>
+where
+	Range<T>: IntoParallelIterator,
+{
+	type Item = <Range<T> as IntoParallelIterator>::Item;
+	type Iter = <Range<T> as IntoParallelIterator>::Iter;
+
+	fn into_par_iter(self) -> Self::Iter {
+		Range::from(self).into_par_iter()
+	}
+}
+
+impl<T> IntoParallelIterator for SpannedInclusive<T>
+where
+	RangeInclusive<T>: IntoParallelIterator,
+{
+	type Item = <RangeInclusive<T> as IntoParallelIterator>::Item;
+	type Iter = <RangeInclusive<T> as IntoParallelIterator>::Iter;
+
+	fn into_par_iter(self) -> Self::Iter {
+		RangeInclusive::from(self).into_par_iter()
+	}
+}
+
 impl<T: PartialEq, From, To> PartialEq for Span<T, From, To>
 where
 	From: ?Sized + SpanStartBound<T>,
@@ -238,6 +315,20 @@ where
 {
 	fn eq(&self, other: &SpanIter<T, From, To>) -> bool {
 		PartialEq::eq(self, &other.span)
+	}
+}
+
+impl<T, From, To> RangeBounds<T> for Span<T, From, To>
+where
+	From: ?Sized + SpanStartBound<T>,
+	To: ?Sized + SpanBound<T>,
+{
+	fn start_bound(&self) -> Bound<&T> {
+		Self::start_bound(self)
+	}
+
+	fn end_bound(&self) -> Bound<&T> {
+		Self::end_bound(self)
 	}
 }
 
