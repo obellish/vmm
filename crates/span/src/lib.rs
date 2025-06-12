@@ -124,6 +124,20 @@ where
 			(Bound::Included(start), Bound::Included(end)) => start <= end,
 		}
 	}
+
+	pub fn start(&self) -> &T
+	where
+		From: SpanBoundValue<T>,
+	{
+		self.start.value()
+	}
+
+	pub fn end(&self) -> &T
+	where
+		To: SpanBoundValue<T>,
+	{
+		self.end.value()
+	}
 }
 
 impl<T: Debug, From, To> Debug for Span<T, From, To>
