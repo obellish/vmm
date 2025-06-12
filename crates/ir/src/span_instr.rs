@@ -13,11 +13,13 @@ pub struct SpanInstruction {
 }
 
 impl SpanInstruction {
+	#[inline]
 	#[must_use]
 	pub fn inc_span(value: i8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
 		Self::from_range(SpanInstructionType::Inc { value }, start.into(), end.into())
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn set_span(value: u8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
 		Self::from_range(
@@ -29,31 +31,37 @@ impl SpanInstruction {
 		)
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn clear_range(start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
 		Self::set_span(0, start, end)
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn is_set(self) -> bool {
 		self.ty().is_set()
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn is_inc(self) -> bool {
 		self.ty().is_inc()
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn is_clear(self) -> bool {
 		self.ty().is_clear()
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn ty(self) -> SpanInstructionType {
 		self.ty
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn span(self) -> SpannedInclusive<Offset> {
 		SpannedInclusive::from(self.start..=self.end)
