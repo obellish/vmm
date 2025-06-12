@@ -779,6 +779,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "color-eyre",
+ "rayon",
  "ron",
  "tracing",
  "tracing-error",
@@ -843,6 +844,7 @@ dependencies = [
  "vmm_ir",
  "vmm_num",
  "vmm_program",
+ "vmm_span",
  "vmm_tape",
  "vmm_type_name",
  "vmm_utils",

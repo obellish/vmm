@@ -217,22 +217,34 @@ impl From<MetadataStoreError> for OptimizerError {
 	}
 }
 
-fn run_pass<P: Pass>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool) {
+#[allow(clippy::needless_for_each)]
+fn run_pass<P>(pass: &mut P, v: &mut Vec<Instruction>, progress: &mut bool)
+where
+	P: Pass,
+{
 	*progress |= pass.run_pass(v);
 
 	if pass.should_run_on_dyn_loop() {
-		for instr in v.iter_mut() {
-			if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = instr {
-				run_pass(pass, i, progress);
-			}
-		}
+		v.iter_mut()
+			.filter_map(|i| {
+				if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = i {
+					Some(i)
+				} else {
+					None
+				}
+			})
+			.for_each(|i| run_pass(pass, i, progress));
 	}
 
 	if pass.should_run_on_if() {
-		for instr in v {
-			if let Instruction::Block(BlockInstruction::IfNz(i)) = instr {
-				run_pass(pass, i, progress);
-			}
-		}
+		v.iter_mut()
+			.filter_map(|i| {
+				if let Instruction::Block(BlockInstruction::IfNz(i)) = i {
+					Some(i)
+				} else {
+					None
+				}
+			})
+			.for_each(|i| run_pass(pass, i, progress));
 	}
 }

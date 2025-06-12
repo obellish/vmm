@@ -19,6 +19,7 @@ tracing = "0.1"
 vmm_ir.workspace = true
 vmm_num.workspace = true
 vmm_program.workspace = true
+vmm_span.workspace = true
 vmm_tape.workspace = true
 vmm_type_name = { path = "../type_name" }
 vmm_utils = { workspace = true, features = ["get_or_zero", "insert_or_push"] }

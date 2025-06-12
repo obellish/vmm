@@ -1,5 +1,8 @@
 use alloc::vec::Vec;
-use core::fmt::{Display, Formatter, Result as FmtResult, Write as _};
+use core::{
+	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	ops::Deref,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -21,6 +24,16 @@ impl BlockInstruction {
 
 	pub fn if_nz(i: impl IntoIterator<Item = Instruction>) -> Self {
 		Self::IfNz(i.into_iter().collect())
+	}
+}
+
+impl Deref for BlockInstruction {
+	type Target = Vec<Instruction>;
+
+	fn deref(&self) -> &Self::Target {
+		match self {
+			Self::DynamicLoop(block) | Self::IfNz(block) => block,
+		}
 	}
 }
 
@@ -59,8 +72,6 @@ impl IsZeroingCell for BlockInstruction {
 impl PtrMovement for BlockInstruction {
 	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
-		match self {
-			Self::DynamicLoop(instrs) | Self::IfNz(instrs) => instrs.ptr_movement(),
-		}
+		self.deref().ptr_movement()
 	}
 }

@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use tracing::{Level, trace};
 use vmm_ir::Instruction;
 use vmm_num::Wrapping;
@@ -44,7 +45,7 @@ impl Change {
 	pub fn apply(self, ops: &mut Vec<Instruction>, i: usize, size: usize) -> (bool, usize) {
 		match self {
 			Self::Remove => {
-				let removed = ops.drain(i..(i + size)).collect::<Vec<_>>();
+				let removed = ops.par_drain(i..(i + size)).collect::<Vec<_>>();
 
 				trace!("removing instructions {removed:?}");
 

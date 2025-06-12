@@ -15,11 +15,11 @@ impl<T: Default, const N: usize> Default for Array<T, N> {
 			unsafe {
 				{
 					let p = arr.0.as_mut().unwrap();
-					for i in 0..N {
+					(0..N).for_each(|i| {
 						let p = p.as_mut_ptr().cast::<T>().wrapping_add(i);
 						core::ptr::write(p, Default::default());
 						arr.1 += 1;
-					}
+					});
 				}
 
 				arr.0.take().unwrap().assume_init()

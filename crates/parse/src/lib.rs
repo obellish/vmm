@@ -78,41 +78,47 @@ fn parse(
 	let mut loop_stack = 0;
 	let mut loop_start = 0;
 
-	for (i, op) in opcodes.iter().copied().enumerate() {
-		if matches!(loop_stack, 0) {
-			if let Some(instr) = match op {
-				OpCode::Increment => Some(Instruction::inc_val(1)),
-				OpCode::Decrement => Some(Instruction::inc_val(-1)),
-				OpCode::Output => Some(Instruction::write_once()),
-				OpCode::MoveRight => Some(Instruction::move_ptr_by(1)),
-				OpCode::MoveLeft => Some(Instruction::move_ptr_by(-1)),
-				OpCode::Input => Some(Instruction::read()),
-				OpCode::JumpRight => {
-					loop_start = i;
-					loop_stack += 1;
-					None
-				}
-				OpCode::JumpLeft => return Err(ParseError::UnmatchedBracket(i)),
-			} {
-				trace!(parent: &span, "got instruction {instr}");
-				program.push(instr);
-			}
-		} else {
-			match op {
-				OpCode::JumpRight => loop_stack += 1,
-				OpCode::JumpLeft => {
-					loop_stack -= 1;
-					if matches!(loop_stack, 0) {
-						program.push(Instruction::dynamic_loop(parse(
-							opcodes[loop_start + 1..i].iter().copied(),
-							depth + 1,
-						)?));
+	opcodes
+		.iter()
+		.copied()
+		.enumerate()
+		.try_for_each(|(i, op)| {
+			if matches!(loop_stack, 0) {
+				if let Some(instr) = match op {
+					OpCode::Increment => Some(Instruction::inc_val(1)),
+					OpCode::Decrement => Some(Instruction::inc_val(-1)),
+					OpCode::Output => Some(Instruction::write_once()),
+					OpCode::MoveRight => Some(Instruction::move_ptr(1)),
+					OpCode::MoveLeft => Some(Instruction::move_ptr(-1)),
+					OpCode::Input => Some(Instruction::read()),
+					OpCode::JumpRight => {
+						loop_start = i;
+						loop_stack += 1;
+						None
 					}
+					OpCode::JumpLeft => return Err(ParseError::UnmatchedBracket(i)),
+				} {
+					trace!(parent: &span, "got instruction {instr}");
+					program.push(instr);
 				}
-				_ => {}
+			} else {
+				match op {
+					OpCode::JumpRight => loop_stack += 1,
+					OpCode::JumpLeft => {
+						loop_stack -= 1;
+						if matches!(loop_stack, 0) {
+							program.push(Instruction::dynamic_loop(parse(
+								opcodes[loop_start + 1..i].iter().copied(),
+								depth + 1,
+							)?));
+						}
+					}
+					_ => {}
+				}
 			}
-		}
-	}
+
+			Ok(())
+		})?;
 
 	drop(guard);
 

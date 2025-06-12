@@ -1,4 +1,5 @@
 use vmm_ir::{BlockInstruction, Instruction, Offset, PtrMovement};
+use vmm_span::Span;
 
 use crate::{Change, PeepholePass};
 
@@ -41,9 +42,9 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 						let mut output =
 							Vec::with_capacity((*i as u8 as usize) * rest.len() + inner.len());
 
-						for _ in 0..(*i as u8) {
-							output.extend_from_slice(rest);
-						}
+						Span::from(0..(*i as u8))
+							.into_iter()
+							.for_each(|_| output.extend_from_slice(rest));
 
 						output.push(Instruction::Block(BlockInstruction::DynamicLoop(
 							inner.clone(),

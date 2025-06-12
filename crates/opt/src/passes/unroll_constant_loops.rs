@@ -1,4 +1,6 @@
+use rayon::prelude::*;
 use vmm_ir::{BlockInstruction, Instruction, Offset, PtrMovement};
+use vmm_span::Span;
 
 use crate::{Change, PeepholePass};
 
@@ -43,9 +45,9 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					] => {
 						let mut output = Vec::with_capacity((i.get() as usize) * rest.len());
 
-						for _ in 0..i.get() {
-							output.extend_from_slice(rest);
-						}
+						Span::from(0..i.get())
+							.into_iter()
+							.for_each(|_| output.extend_from_slice(rest));
 
 						Some(Change::swap(output))
 					}
@@ -68,7 +70,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			return false;
 		};
 
-		if inner.iter().any(Instruction::has_io) {
+		if inner.par_iter().any(Instruction::has_io) {
 			return false;
 		}
 

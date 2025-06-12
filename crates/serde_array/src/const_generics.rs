@@ -60,7 +60,7 @@ where
 
 			{
 				let p = arr.0.as_mut().unwrap();
-				for i in 0..N {
+				(0..N).try_for_each(|i| {
 					let p = p.as_mut_ptr().cast::<T>().wrapping_add(i);
 					let val = seq
 						.next_element()?
@@ -68,7 +68,9 @@ where
 
 					core::ptr::write(p, val);
 					arr.1 += 1;
-				}
+
+					Ok(())
+				})?;
 			}
 
 			let initialized = arr.0.take().unwrap().assume_init();

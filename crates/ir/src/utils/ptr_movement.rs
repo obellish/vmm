@@ -9,12 +9,50 @@ pub trait PtrMovement {
 impl<T: PtrMovement> PtrMovement for [T] {
 	#[inline]
 	fn ptr_movement(&self) -> Option<isize> {
-		let mut sum = 0;
+		self.iter().try_fold(0isize, |a, b| {
+			let ptr_movement = b.ptr_movement()?;
 
-		for i in self {
-			sum += i.ptr_movement()?;
-		}
+			Some(a + ptr_movement)
+		})
+	}
+}
 
-		Some(sum)
+#[cfg(test)]
+mod tests {
+	use crate::{Instruction, PtrMovement};
+
+	#[test]
+	fn no_movement() {
+		assert_eq!(
+			[Instruction::inc_val(2), Instruction::set_val(4)].ptr_movement(),
+			Some(0)
+		);
+	}
+
+	#[test]
+	fn basic_movement() {
+		assert_eq!([Instruction::move_ptr(7)].ptr_movement(), Some(7));
+		assert_eq!(
+			[
+				Instruction::move_ptr(7),
+				Instruction::inc_val(21),
+				Instruction::move_ptr(-7)
+			]
+			.ptr_movement(),
+			Some(0)
+		);
+	}
+
+	#[test]
+	fn bad_movement() {
+		assert_eq!(
+			[
+				Instruction::find_zero(3),
+				Instruction::move_ptr(-3),
+				Instruction::set_val(2)
+			]
+			.ptr_movement(),
+			None
+		);
 	}
 }
