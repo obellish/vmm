@@ -288,21 +288,6 @@ where
 	}
 }
 
-enum SpanField {
-	Start,
-	End,
-	Ignore,
-}
-
-impl<'de> Deserialize<'de> for SpanField {
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where
-		D: Deserializer<'de>,
-	{
-		deserializer.deserialize_identifier(SpanFieldVisitor)
-	}
-}
-
 struct SpanFieldVisitor;
 
 impl Visitor<'_> for SpanFieldVisitor {
@@ -334,5 +319,20 @@ impl Visitor<'_> for SpanFieldVisitor {
 			b"end" => SpanField::End,
 			_ => SpanField::Ignore,
 		})
+	}
+}
+
+enum SpanField {
+	Start,
+	End,
+	Ignore,
+}
+
+impl<'de> Deserialize<'de> for SpanField {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		deserializer.deserialize_identifier(SpanFieldVisitor)
 	}
 }
