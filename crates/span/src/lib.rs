@@ -4,6 +4,7 @@
 
 mod iter;
 mod sealed;
+mod serde;
 
 use core::{
 	fmt::{Debug, Formatter, Result as FmtResult},
@@ -41,6 +42,9 @@ impl<T: ?Sized> PartialEq for Unbounded<T> {
 		true
 	}
 }
+
+unsafe impl<T: ?Sized> Send for Unbounded<T> {}
+unsafe impl<T: ?Sized> Sync for Unbounded<T> {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
