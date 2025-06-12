@@ -132,11 +132,11 @@ where
 
 	#[inline]
 	pub fn run(&mut self) -> Result<(), RuntimeError> {
-		for instr in &std::mem::take(self.program_mut()) {
-			self.execute_instruction(instr)?;
-		}
+		let program = mem::take(self.program_mut());
 
-		Ok(())
+		program
+			.into_iter()
+			.try_for_each(|instr| self.execute_instruction(instr))
 	}
 
 	#[inline]
@@ -228,9 +228,9 @@ where
 				return Err(RuntimeError::TooManyIterations(self.ptr().value()));
 			}
 
-			for instr in instructions {
-				self.execute_instruction(instr)?;
-			}
+			instructions
+				.iter()
+				.try_for_each(|instr| self.execute_instruction(instr))?;
 		}
 
 		Ok(())
@@ -267,7 +267,7 @@ where
 
 		let src_val = mem::take(&mut tape[src_offset]);
 
-		tape[dst_offset] += (src_val * factor).0;
+		tape[dst_offset] += Wrapping::mul(src_val, factor).0;
 
 		Ok(())
 	}
@@ -278,7 +278,7 @@ where
 
 		let value = mem::take(&mut self.tape_mut()[src_offset]);
 
-		*self.cell_mut() += (value * factor).0;
+		*self.cell_mut() += Wrapping::mul(value, factor).0;
 
 		Ok(())
 	}
@@ -332,7 +332,7 @@ where
 
 		self.move_ptr(offset)?;
 
-		*self.cell_mut() += Wrapping::mul(current_value.0, factor);
+		*self.cell_mut() += Wrapping::mul(current_value, factor).0;
 
 		Ok(())
 	}
@@ -415,9 +415,10 @@ where
 					return Ok(());
 				}
 
-				for i in instrs {
-					self.execute_instruction(i)?;
-				}
+				instrs
+					.iter()
+					.try_for_each(|i| self.execute_instruction(i))?;
+
 				mem::take(self.cell_mut());
 			}
 			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
