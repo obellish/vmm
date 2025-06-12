@@ -12,8 +12,8 @@ use super::{Excluded, Included, Span, SpanBound, SpanStartBound, Unbounded};
 
 pub struct SpanIter<T, From, To>
 where
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: SpanStartBound<T>,
+	To: SpanBound<T>,
 {
 	pub(super) span: Span<T, From, To>,
 	exhausted: bool,
@@ -21,8 +21,8 @@ where
 
 impl<T, From, To> SpanIter<T, From, To>
 where
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: SpanStartBound<T>,
+	To: SpanBound<T>,
 {
 	pub(super) const fn new(span: Span<T, From, To>) -> Self {
 		Self {
@@ -41,8 +41,8 @@ where
 
 impl<T: Debug, From, To> Debug for SpanIter<T, From, To>
 where
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: Debug + SpanStartBound<T>,
+	To: Debug + SpanBound<T>,
 {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		f.debug_struct("SpanIter")
@@ -52,10 +52,17 @@ where
 	}
 }
 
+impl<T: Eq, From, To> Eq for SpanIter<T, From, To>
+where
+	From: Eq + SpanStartBound<T>,
+	To: Eq + SpanBound<T>,
+{
+}
+
 impl<T: PartialEq, From, To> PartialEq for SpanIter<T, From, To>
 where
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: PartialEq + SpanStartBound<T>,
+	To: PartialEq + SpanBound<T>,
 {
 	fn eq(&self, other: &Self) -> bool {
 		PartialEq::eq(&self.span, &other.span)
@@ -64,8 +71,8 @@ where
 
 impl<T: PartialEq, From, To> PartialEq<Span<T, From, To>> for SpanIter<T, From, To>
 where
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: PartialEq + SpanStartBound<T>,
+	To: PartialEq + SpanBound<T>,
 {
 	fn eq(&self, other: &Span<T, From, To>) -> bool {
 		PartialEq::eq(&self.span, other)
@@ -74,32 +81,29 @@ where
 
 impl<T: Walk> DoubleEndedIterator for SpannedIter<T> {
 	fn next_back(&mut self) -> Option<Self::Item> {
-		debug_assert!(self.span.start.is_some());
-		debug_assert!(self.span.end.is_some());
-
-		let start = self.span.start.as_ref()?;
-		let end = self.span.end.as_ref()?;
+		let start = &self.span.start.0;
+		let end = &self.span.end.0;
 
 		if start < end {
-			self.span.end = Walk::backward_checked(end.clone(), 1);
-			self.span.end.clone()
+			self.span.end.0 = Walk::backward_checked(end.clone(), 1)?;
+			Some(self.span.end.0.clone())
 		} else {
 			None
 		}
 	}
 
 	fn nth_back(&mut self, n: usize) -> Option<Self::Item> {
-		let end = self.span.end.as_ref()?;
-		let start = self.span.start.as_ref()?;
+		let end = &self.span.end.0;
+		let start = &self.span.start.0;
 
 		if let Some(minus_n) = Walk::backward_checked(end.clone(), n) {
 			if minus_n > *start {
-				self.span.end = Walk::backward_checked(minus_n, 1);
-				return self.span.end.clone();
+				self.span.end.0 = Walk::backward_checked(minus_n, 1)?;
+				return Some(self.span.end.0.clone());
 			}
 		}
 
-		self.span.end = self.span.start.clone();
+		self.span.end.0 = self.span.start.0.clone();
 		None
 	}
 }
@@ -110,11 +114,8 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		debug_assert!(self.span.start.is_some());
-		debug_assert!(self.span.end.is_some());
-
-		let start = self.span.start.as_mut()?;
-		let end = self.span.end.as_mut()?;
+		let start = &mut self.span.start.0;
+		let end = &mut self.span.end.0;
 
 		if start < end {
 			let n = Walk::forward_checked(start.clone(), 1)?;
@@ -125,16 +126,8 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
-		debug_assert!(self.span.start.is_some());
-		debug_assert!(self.span.end.is_some());
-
-		let Some(start) = self.span.start.as_ref() else {
-			return (0, None);
-		};
-
-		let Some(end) = self.span.end.as_ref() else {
-			return (0, None);
-		};
+		let start = &self.span.start.0;
+		let end = &self.span.end.0;
 
 		if start < end {
 			Walk::steps_between(start, end)
@@ -144,11 +137,8 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	}
 
 	fn count(self) -> usize {
-		debug_assert!(self.span.start.is_some());
-		debug_assert!(self.span.end.is_some());
-
-		let start = self.span.start.as_ref().unwrap();
-		let end = self.span.end.as_ref().unwrap();
+		let start = &self.span.start.0;
+		let end = &self.span.end.0;
 
 		if start < end {
 			Walk::steps_between(start, end)
@@ -160,18 +150,18 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 	}
 
 	fn nth(&mut self, n: usize) -> Option<Self::Item> {
-		let start = self.span.start.as_mut()?;
-		let end = self.span.end.as_ref()?;
+		let start = &mut self.span.start.0;
+		let end = &self.span.end.0;
 
 		if let Some(plus_n) = Walk::forward_checked(start.clone(), n) {
 			if plus_n < *end {
-				self.span.start = Some(Walk::forward_checked(plus_n.clone(), 1)?);
+				self.span.start.0 = Walk::forward_checked(plus_n.clone(), 1)?;
 
 				return Some(plus_n);
 			}
 		}
 
-		self.span.start = self.span.end.clone();
+		self.span.start.0 = self.span.end.0.clone();
 		None
 	}
 
@@ -198,8 +188,8 @@ impl<T: Walk> Iterator for SpannedFromIter<T> {
 	type Item = T;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		let n = Walk::forward_checked(self.span.start.clone()?, 1);
-		mem::replace(&mut self.span.start, n)
+		let n = Walk::forward_checked(self.span.start.0.clone(), 1)?;
+		Some(mem::replace(&mut self.span.start.0, n))
 	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
@@ -207,8 +197,8 @@ impl<T: Walk> Iterator for SpannedFromIter<T> {
 	}
 
 	fn nth(&mut self, n: usize) -> Option<Self::Item> {
-		let plus_n = Walk::forward_checked(self.span.start.clone()?, n)?;
-		self.span.start = Walk::forward_checked(plus_n.clone(), 1);
+		let plus_n = Walk::forward_checked(self.span.start.0.clone(), n)?;
+		self.span.start.0 = Walk::forward_checked(plus_n.clone(), 1)?;
 		Some(plus_n)
 	}
 }
@@ -219,12 +209,12 @@ impl<T: Walk> DoubleEndedIterator for SpannedInclusiveIter<T> {
 			return None;
 		}
 
-		let start = self.span.start.as_ref()?;
-		let end = self.span.end.as_ref()?;
+		let start = &self.span.start.0;
+		let end = &self.span.end.0;
 		let is_iterating = start < end;
 		Some(if is_iterating {
-			let n = Walk::backward_checked(end.clone(), 1);
-			mem::replace(&mut self.span.end, n)?
+			let n = Walk::backward_checked(end.clone(), 1)?;
+			mem::replace(&mut self.span.end.0, n)
 		} else {
 			self.exhausted = true;
 			end.clone()
@@ -236,14 +226,14 @@ impl<T: Walk> DoubleEndedIterator for SpannedInclusiveIter<T> {
 			return None;
 		}
 
-		if let Some(minus_n) = Walk::backward_checked(self.span.end.clone()?, n) {
-			match minus_n.partial_cmp(self.span.start.as_ref()?) {
+		if let Some(minus_n) = Walk::backward_checked(self.span.end.0.clone(), n) {
+			match minus_n.partial_cmp(&self.span.start.0) {
 				Some(Ordering::Greater) => {
-					self.span.end = Walk::backward_checked(minus_n.clone(), 1);
+					self.span.end.0 = Walk::backward_checked(minus_n.clone(), 1)?;
 					return Some(minus_n);
 				}
 				Some(Ordering::Equal) => {
-					self.span.end = Some(minus_n.clone());
+					self.span.end.0 = minus_n.clone();
 					self.exhausted = true;
 					return Some(minus_n);
 				}
@@ -251,7 +241,7 @@ impl<T: Walk> DoubleEndedIterator for SpannedInclusiveIter<T> {
 			}
 		}
 
-		self.span.end = self.span.start.clone();
+		self.span.end.0 = self.span.start.0.clone();
 		self.exhausted = true;
 		None
 	}
@@ -267,12 +257,14 @@ impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
 			return None;
 		}
 
-		let start = self.span.start.as_ref()?;
-		let end = self.span.end.as_ref()?;
+		let start = &self.span.start.0;
+		let end = &self.span.end.0;
+
 		let is_iterating = start < end;
+
 		Some(if is_iterating {
-			let n = Walk::forward_checked(start.clone(), 1);
-			mem::replace(&mut self.span.start, n)?
+			let n = Walk::forward_checked(start.clone(), 1)?;
+			mem::replace(&mut self.span.start.0, n)
 		} else {
 			self.exhausted = true;
 			start.clone()
@@ -284,13 +276,8 @@ impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
 			return (0, Some(0));
 		}
 
-		let Some(start) = self.span.start.as_ref() else {
-			return (0, Some(0));
-		};
-
-		let Some(end) = self.span.end.as_ref() else {
-			return (0, Some(0));
-		};
+		let start = &self.span.start.0;
+		let end = &self.span.end.0;
 
 		let hint = Walk::steps_between(start, end);
 		(
@@ -304,9 +291,8 @@ impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
 			return 0;
 		}
 
-		let Some((start, end)) = self.span.start.as_ref().zip(self.span.end.as_ref()) else {
-			return 0;
-		};
+		let start = &self.span.start.0;
+		let end = &self.span.end.0;
 
 		Walk::steps_between(start, end)
 			.1
@@ -319,14 +305,14 @@ impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
 			return None;
 		}
 
-		if let Some(plus_n) = Walk::forward_checked(self.span.start.clone()?, n) {
-			match plus_n.partial_cmp(self.span.end.as_ref()?) {
+		if let Some(plus_n) = Walk::forward_checked(self.span.start.0.clone(), n) {
+			match plus_n.partial_cmp(&self.span.end.0) {
 				Some(Ordering::Less) => {
-					self.span.start = Walk::forward_checked(plus_n.clone(), 1);
+					self.span.start.0 = Walk::forward_checked(plus_n.clone(), 1)?;
 					return Some(plus_n);
 				}
 				Some(Ordering::Equal) => {
-					self.span.start = Some(plus_n.clone());
+					self.span.start.0 = plus_n.clone();
 					self.exhausted = true;
 					return Some(plus_n);
 				}
@@ -334,7 +320,7 @@ impl<T: Walk> Iterator for SpannedInclusiveIter<T> {
 			}
 		}
 
-		self.span.start = self.span.end.clone();
+		self.span.start.0 = self.span.end.0.clone();
 		self.exhausted = true;
 		None
 	}
@@ -874,7 +860,7 @@ mod tests {
 		assert!(s.is_empty());
 		assert_eq!(s.next(), None);
 		assert_eq!(s.next_back(), None);
-		assert_eq!(s, Span::from(10..10));
+		assert_eq!(s, Span::from(10..10).into_iter());
 
 		let mut s = Span::from(10..12).into_iter();
 		assert_eq!(s.next(), Some(10));

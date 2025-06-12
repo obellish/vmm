@@ -9,15 +9,14 @@ use serde::{
 	ser::SerializeStruct,
 };
 
-use super::{Span, SpanBound, SpanStartBound};
+use super::{Excluded, Included, Span, SpanBound, SpanStartBound, Unbounded};
 
 const FIELDS: &[&str] = &["start", "end"];
 
 impl<'de, T, From, To> Deserialize<'de> for Span<T, From, To>
 where
-	T: Deserialize<'de>,
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: Deserialize<'de> + SpanStartBound<T>,
+	To: Deserialize<'de> + SpanBound<T>,
 {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
@@ -35,26 +34,180 @@ where
 	}
 }
 
-impl<T: Serialize, From, To> Serialize for Span<T, From, To>
+impl<T, From, To> Serialize for Span<T, From, To>
 where
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: Serialize + SpanStartBound<T>,
+	To: Serialize + SpanBound<T>,
 {
-	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
 		let mut state = serializer.serialize_struct("Span", 2)?;
-
 		state.serialize_field("start", &self.start)?;
 		state.serialize_field("end", &self.end)?;
 		state.end()
 	}
 }
 
-#[repr(transparent)]
-struct SpanVisitor<T, From, To>
+impl<'de, T: ?Sized> Deserialize<'de> for Unbounded<T> {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		deserializer.deserialize_newtype_struct("Unbounded", UnboundedVisitor(PhantomData))
+	}
+}
+
+impl<T: ?Sized> Serialize for Unbounded<T> {
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		serializer.serialize_newtype_struct("Unbounded", &self.0)
+	}
+}
+
+impl<'de, T> Deserialize<'de> for Included<T>
 where
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	T: Deserialize<'de>,
 {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		deserializer.deserialize_newtype_struct("Included", IncludedVisitor(PhantomData))
+	}
+}
+
+impl<T: Serialize> Serialize for Included<T> {
+	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+		serializer.serialize_newtype_struct("Included", &self.0)
+	}
+}
+
+impl<'de, T> Deserialize<'de> for Excluded<T>
+where
+	T: Deserialize<'de>,
+{
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		deserializer.deserialize_newtype_struct("Excluded", ExcludedVisitor(PhantomData))
+	}
+}
+
+impl<T: Serialize> Serialize for Excluded<T> {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: Serializer,
+	{
+		serializer.serialize_newtype_struct("Excluded", &self.0)
+	}
+}
+
+struct UnboundedVisitor<T: ?Sized>(PhantomData<T>);
+
+impl<'de, T: ?Sized> Visitor<'de> for UnboundedVisitor<T> {
+	type Value = Unbounded<T>;
+
+	fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+		formatter.write_str("tuple struct Unbounded")
+	}
+
+	fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let field = Deserialize::deserialize(deserializer)?;
+
+		Ok(Unbounded(field))
+	}
+
+	fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+	where
+		A: SeqAccess<'de>,
+	{
+		let Some(field) = seq.next_element()? else {
+			return Err(DeError::invalid_length(
+				0,
+				&"tuple struct Unbounded with 1 element",
+			));
+		};
+
+		Ok(Unbounded(field))
+	}
+}
+
+struct IncludedVisitor<T>(PhantomData<T>);
+
+impl<'de, T> Visitor<'de> for IncludedVisitor<T>
+where
+	T: Deserialize<'de>,
+{
+	type Value = Included<T>;
+
+	fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+		formatter.write_str("tuple struct Included")
+	}
+
+	fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let field = Deserialize::deserialize(deserializer)?;
+		Ok(Included(field))
+	}
+
+	fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+	where
+		A: SeqAccess<'de>,
+	{
+		let Some(field) = seq.next_element()? else {
+			return Err(DeError::invalid_length(
+				0,
+				&"tuple struct Included with 1 element",
+			));
+		};
+
+		Ok(Included(field))
+	}
+}
+
+struct ExcludedVisitor<T>(PhantomData<T>);
+
+impl<'de, T> Visitor<'de> for ExcludedVisitor<T>
+where
+	T: Deserialize<'de>,
+{
+	type Value = Excluded<T>;
+
+	fn expecting(&self, formatter: &mut Formatter<'_>) -> FmtResult {
+		formatter.write_str("tuple struct Excluded")
+	}
+
+	fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+	where
+		D: Deserializer<'de>,
+	{
+		let field = Deserialize::deserialize(deserializer)?;
+		Ok(Excluded(field))
+	}
+
+	fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+	where
+		A: SeqAccess<'de>,
+	{
+		let Some(field) = seq.next_element()? else {
+			return Err(DeError::invalid_length(
+				0,
+				&"tuple struct Excluded with 1 field",
+			));
+		};
+
+		Ok(Excluded(field))
+	}
+}
+
+struct SpanVisitor<T, From, To> {
 	value: PhantomData<T>,
 	from: PhantomData<From>,
 	to: PhantomData<To>,
@@ -62,9 +215,8 @@ where
 
 impl<'de, T, From, To> Visitor<'de> for SpanVisitor<T, From, To>
 where
-	T: Deserialize<'de>,
-	From: ?Sized + SpanStartBound<T>,
-	To: ?Sized + SpanBound<T>,
+	From: Deserialize<'de> + SpanStartBound<T>,
+	To: Deserialize<'de> + SpanBound<T>,
 {
 	type Value = Span<T, From, To>;
 
@@ -76,19 +228,18 @@ where
 	where
 		A: SeqAccess<'de>,
 	{
-		let Some(start) = seq.next_element::<Option<T>>()? else {
+		let Some(start) = seq.next_element()? else {
 			return Err(DeError::invalid_length(0, &"struct Span with 2 elements"));
 		};
 
-		let Some(end) = seq.next_element::<Option<T>>()? else {
+		let Some(end) = seq.next_element()? else {
 			return Err(DeError::invalid_length(1, &"struct Span with 2 elements"));
 		};
 
 		Ok(Span {
 			start,
 			end,
-			marker_from: PhantomData,
-			marker_to: PhantomData,
+			marker: PhantomData,
 		})
 	}
 
@@ -132,8 +283,7 @@ where
 		Ok(Span {
 			start,
 			end,
-			marker_from: PhantomData,
-			marker_to: PhantomData,
+			marker: PhantomData,
 		})
 	}
 }

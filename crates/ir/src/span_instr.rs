@@ -55,8 +55,8 @@ impl SpanInstruction {
 	}
 
 	#[must_use]
-	pub const fn span(self) -> SpannedInclusive<Offset> {
-		SpannedInclusive::new(self.start, self.end)
+	pub fn span(self) -> SpannedInclusive<Offset> {
+		SpannedInclusive::from(self.start..=self.end)
 	}
 
 	#[inline]
