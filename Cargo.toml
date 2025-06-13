@@ -37,7 +37,8 @@ members = [
     "crates/span",
     "crates/tape",
     "crates/type_name",
-    "crates/utils"
+    "crates/utils",
+    "crates/vec"
 ]
 resolver = "3"
 

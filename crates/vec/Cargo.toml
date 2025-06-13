@@ -1,0 +1,18 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_vec"
+rust-version.workspace = true
+version.workspace = true
+
+[features]
+nightly = []
+std = []
+
+[dependencies]
+serde = { workspace = true, default-features = false }
+
+[dev-dependencies]
+vmm_alloc = { path = "../alloc" }

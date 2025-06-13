@@ -1,4 +1,5 @@
 use alloc::vec::Vec;
+use smallvec::SmallVec;
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	ops::Deref,
