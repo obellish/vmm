@@ -48,6 +48,13 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 					offset: y,
 				},
 			] if *x == *y => Some(Change::remove_offset(1)),
+			[
+				Instruction::ReplaceVal(x),
+				Instruction::SetVal {
+					value: None,
+					offset: y,
+				},
+			] if *x == *y => Some(Change::remove_offset(1)),
 			_ => None,
 		}
 	}

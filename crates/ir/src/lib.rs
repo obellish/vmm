@@ -302,7 +302,7 @@ impl Instruction {
 			Self::Super(SuperInstruction::ScaleAnd {
 				action: ScaleAnd::Move,
 				..
-			})
+			}) | Self::MoveVal(..)
 		)
 	}
 
@@ -471,7 +471,8 @@ impl PtrMovement for Instruction {
 			| Self::SubCell { .. }
 			| Self::FetchVal(..)
 			| Self::MoveVal(..)
-			| Self::DuplicateVal { .. } => Some(0),
+			| Self::DuplicateVal { .. }
+			| Self::ReplaceVal(..) => Some(0),
 			Self::MovePtr(offset) | Self::TakeVal(offset) => Some(offset.value()),
 			_ => None,
 		}
