@@ -11,13 +11,9 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{
-	BlockInstruction, Instruction, Offset, ScaleAnd, SpanInstruction, SpanInstructionType,
-	SuperInstruction,
-};
+use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
 use vmm_num::Wrapping;
 use vmm_program::Program;
-use vmm_span::SpannedInclusive;
 use vmm_tape::{Tape, TapePointer};
 use vmm_utils::GetOrZero as _;
 
@@ -362,19 +358,14 @@ where
 	}
 
 	#[inline]
-	fn inc_span(&mut self, value: i8, span: SpannedInclusive<Offset>) -> Result<(), RuntimeError> {
-		span.into_iter()
-			.try_for_each(|idx| self.inc_val(value, idx))
-	}
+	fn replace_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		let src_offset = self.calculate_index(offset);
 
-	#[inline]
-	fn set_span(
-		&mut self,
-		value: Option<NonZeroU8>,
-		span: SpannedInclusive<Offset>,
-	) -> Result<(), RuntimeError> {
-		span.into_iter()
-			.try_for_each(|idx| self.set_val(value, idx))
+		let value = mem::take(&mut self.tape_mut()[src_offset]);
+
+		_ = mem::replace(self.cell_mut(), value);
+
+		Ok(())
 	}
 
 	#[inline]
@@ -399,7 +390,7 @@ where
 			Instruction::MoveVal(offset) => self.move_val(*offset)?,
 			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
-			Instruction::Span(i) => self.execute_span_instruction(*i)?,
+			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -452,17 +443,6 @@ where
 				self.set_until_zero(value, offset)?;
 			}
 			i => return Err(RuntimeError::Unimplemented((i).into())),
-		}
-
-		Ok(())
-	}
-
-	#[inline]
-	fn execute_span_instruction(&mut self, instr: SpanInstruction) -> Result<(), RuntimeError> {
-		match instr.ty() {
-			SpanInstructionType::Set { value } => self.set_span(value, instr.span())?,
-			SpanInstructionType::Inc { value } => self.inc_span(value, instr.span())?,
-			_ => return Err(RuntimeError::Unimplemented(instr.into())),
 		}
 
 		Ok(())

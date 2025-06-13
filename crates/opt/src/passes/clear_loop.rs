@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, SpanInstruction, SpanInstructionType};
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, LoopPass};
 
@@ -64,16 +64,6 @@ impl LoopPass for OptimizeClearLoopPass {
 				Instruction::clear_val(),
 				Instruction::clear_val_at(*offset),
 			])),
-			[
-				span @ Instruction::Span(SpanInstruction {
-					ty: SpanInstructionType::Set { value: None },
-					..
-				}),
-				Instruction::IncVal {
-					value: -1,
-					offset: Offset(0),
-				},
-			] => Some(Change::swap([span.clone(), Instruction::clear_val()])),
 			_ => None,
 		}
 	}
@@ -115,11 +105,7 @@ impl LoopPass for OptimizeClearLoopPass {
 				},
 				Instruction::SetVal { value: None, .. }
 			] | [
-				Instruction::SetVal { value: None, .. }
-					| Instruction::Span(SpanInstruction {
-						ty: SpanInstructionType::Set { value: None },
-						..
-					}),
+				Instruction::SetVal { value: None, .. },
 				Instruction::IncVal {
 					value: -1,
 					offset: Offset(0)

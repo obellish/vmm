@@ -5,7 +5,6 @@ extern crate alloc;
 
 mod block_instr;
 mod offset;
-mod span_instr;
 mod super_instr;
 mod utils;
 
@@ -18,7 +17,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-pub use self::{block_instr::*, offset::*, span_instr::*, super_instr::*, utils::*};
+pub use self::{block_instr::*, offset::*, super_instr::*, utils::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -46,6 +45,7 @@ pub enum Instruction {
 	MoveVal(Offset),
 	FetchVal(Offset),
 	TakeVal(Offset),
+	ReplaceVal(Offset),
 	DuplicateVal {
 		offsets: Vec<Offset>,
 	},
@@ -64,7 +64,6 @@ pub enum Instruction {
 	Block(BlockInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
-	Span(SpanInstruction),
 }
 
 impl Instruction {
@@ -159,6 +158,11 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub fn replace_val(offset: impl Into<Offset>) -> Self {
+		Self::ReplaceVal(offset.into())
+	}
+
+	#[must_use]
 	pub fn scale_and_move_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		SuperInstruction::scale_and_move_val(factor, offset).into()
 	}
@@ -230,27 +234,12 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn inc_span(value: i8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
-		Self::Span(SpanInstruction::inc_span(value, start, end))
-	}
-
-	#[must_use]
-	pub fn set_span(value: u8, start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
-		Self::Span(SpanInstruction::set_span(value, start, end))
-	}
-
-	#[must_use]
-	pub fn clear_range(start: impl Into<Offset>, end: impl Into<Offset>) -> Self {
-		Self::Span(SpanInstruction::clear_range(start, end))
-	}
-
-	#[must_use]
 	pub const fn set_until_zero(value: u8, offset: isize) -> Self {
 		Self::Super(SuperInstruction::set_until_zero(value, offset))
 	}
 
 	#[must_use]
-	pub fn is_overwriting_current_cell(&self) -> bool {
+	pub const fn is_overwriting_current_cell(&self) -> bool {
 		matches!(
 			self,
 			Self::SetVal {
@@ -262,7 +251,7 @@ impl Instruction {
 					..
 				}) | Self::Block(BlockInstruction::IfNz(..))
 				| Self::MoveVal(..)
-		) || matches!(self, Self::Span(s) if s.is_clear() && s.span().contains(&0))
+		)
 	}
 
 	pub fn needs_input(&self) -> bool {
@@ -288,14 +277,7 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_change_val(&self) -> bool {
-		matches!(
-			self,
-			Self::IncVal { .. }
-				| Self::Span(SpanInstruction {
-					ty: SpanInstructionType::Inc { .. },
-					..
-				})
-		)
+		matches!(self, Self::IncVal { .. })
 	}
 
 	#[must_use]
@@ -305,26 +287,12 @@ impl Instruction {
 
 	#[must_use]
 	pub const fn is_set_val(&self) -> bool {
-		matches!(
-			self,
-			Self::SetVal { .. }
-				| Self::Span(SpanInstruction {
-					ty: SpanInstructionType::Set { .. },
-					..
-				})
-		)
+		matches!(self, Self::SetVal { .. })
 	}
 
 	#[must_use]
 	pub const fn is_clear_val(&self) -> bool {
-		matches!(
-			self,
-			Self::SetVal { value: None, .. }
-				| Self::Span(SpanInstruction {
-					ty: SpanInstructionType::Set { value: None },
-					..
-				})
-		)
+		matches!(self, Self::SetVal { value: None, .. })
 	}
 
 	#[must_use]
@@ -463,12 +431,6 @@ impl From<BlockInstruction> for Instruction {
 	}
 }
 
-impl From<SpanInstruction> for Instruction {
-	fn from(value: SpanInstruction) -> Self {
-		Self::Span(value)
-	}
-}
-
 impl From<SuperInstruction> for Instruction {
 	fn from(value: SuperInstruction) -> Self {
 		Self::Super(value)
@@ -481,7 +443,6 @@ impl IsZeroingCell for Instruction {
 		match self {
 			Self::Block(l) => l.is_zeroing_cell(),
 			Self::Super(s) => s.is_zeroing_cell(),
-			Self::Span(s) => s.is_zeroing_cell(),
 			Self::SetVal {
 				value: None,
 				offset: Offset(0),
@@ -501,7 +462,6 @@ impl PtrMovement for Instruction {
 		match self {
 			Self::Super(s) => s.ptr_movement(),
 			Self::Block(l) => l.ptr_movement(),
-			Self::Span(s) => s.ptr_movement(),
 			Self::ScaleVal { .. }
 			| Self::SetVal { .. }
 			| Self::IncVal { .. }
