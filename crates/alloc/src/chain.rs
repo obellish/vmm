@@ -18,6 +18,14 @@ impl<'a, A, B: ?Sized> AllocChain<'a, A, B> {
 	{
 		AllocChain::new(self, next)
 	}
+
+	pub const fn first(&self) -> &A {
+		&self.0
+	}
+
+	pub const fn second(&self) -> &B {
+		self.1
+	}
 }
 
 #[cfg(feature = "nightly")]
