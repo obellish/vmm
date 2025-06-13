@@ -540,11 +540,6 @@ where
 				if length > 1 {
 					f.write_char('s')?;
 				}
-				// if matches!(length, 1) {
-				// 	f.write_str(" free block")?;
-				// } else {
-				// 	f.write_str(" free blocks")?;
-				// }
 
 				if matches!((*ptr).next, 0) {
 					return Ok(());
