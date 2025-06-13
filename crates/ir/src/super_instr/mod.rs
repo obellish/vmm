@@ -1,7 +1,7 @@
 mod scale;
 
 use core::{
-	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	fmt::{Debug, Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
 };
 
@@ -81,7 +81,7 @@ impl Display for SuperInstruction {
 				Display::fmt(&offset, f)?;
 				f.write_char(']')?;
 			}
-			_ => f.write_char('*')?,
+			i => Debug::fmt(&i, f)?,
 		}
 
 		Ok(())

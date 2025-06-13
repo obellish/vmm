@@ -11,7 +11,7 @@ mod utils;
 
 use alloc::{string::ToString, vec::Vec};
 use core::{
-	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	fmt::{Debug, Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
 };
 
@@ -449,7 +449,8 @@ impl Display for Instruction {
 			Self::Start => f.write_str("start")?,
 			Self::Super(s) => Display::fmt(&s, f)?,
 			Self::Block(l) => Display::fmt(&l, f)?,
-			_ => f.write_char('*')?,
+			// _ => f.write_char('*')?,
+			i => Debug::fmt(&i, f)?,
 		}
 
 		Ok(())
