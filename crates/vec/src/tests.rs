@@ -922,6 +922,21 @@ fn spare_capacity_mut() {
 	}));
 }
 
+#[test]
+fn raw_ptr() {
+	// SAFETY: if this is allocated on the heap, then this exhibits undefined behavior for stacked borrows.
+	let mut v: SmallVec<u8, 2> = super::smallvec![0u8; 10];
+
+	unsafe {
+		let r1: *mut u8 = v.as_mut_ptr().add(1);
+		let r2: *mut u8 = v.as_mut_ptr().add(2);
+		*r1 = 10;
+		*r2 = 10;
+
+		assert_eq!(v, [0, 10, 10, 0, 0, 0, 0, 0, 0, 0]);
+	}
+}
+
 #[cfg(feature = "bytes")]
 mod bytes {
 	use bytes::BufMut as _;
