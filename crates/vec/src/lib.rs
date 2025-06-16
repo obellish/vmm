@@ -264,9 +264,8 @@ impl<T, const N: usize> SmallVec<T, N> {
 
 					ptr::copy_nonoverlapping(ptr.as_ptr(), self.raw.as_mut_inline_ptr(), len);
 					drop(DropDealloc {
-						ptr: ptr.cast(),
-						size_bytes: old_cap * mem::size_of::<T>(),
-						align: mem::align_of::<T>(),
+						ptr,
+						capacity: old_cap,
 					});
 					self.set_inline();
 				}
@@ -984,9 +983,8 @@ unsafe impl<#[may_dangle] T, const N: usize> Drop for SmallVec<T, N> {
 			let _drop_dealloc = if on_heap {
 				let capacity = self.capacity();
 				Some(DropDealloc {
-					ptr: NonNull::new_unchecked(ptr.cast::<u8>()),
-					size_bytes: capacity * mem::size_of::<T>(),
-					align: mem::align_of::<T>(),
+					ptr: NonNull::new_unchecked(ptr),
+					capacity,
 				})
 			} else {
 				None
@@ -1007,9 +1005,8 @@ impl<T, const N: usize> Drop for SmallVec<T, N> {
 			let _drop_dealloc = if on_heap {
 				let capacity = self.capacity();
 				Some(DropDealloc {
-					ptr: NonNull::new_unchecked(ptr.cast::<u8>()),
-					size_bytes: capacity * mem::size_of::<T>(),
-					align: mem::align_of::<T>(),
+					ptr: NonNull::new_unchecked(ptr),
+					capacity,
 				})
 			} else {
 				None
@@ -1252,20 +1249,20 @@ impl<T> Drop for DropGuard<T> {
 	}
 }
 
-struct DropDealloc {
-	ptr: NonNull<u8>,
-	size_bytes: usize,
-	align: usize,
+struct DropDealloc<T> {
+	ptr: NonNull<T>,
+	capacity: usize,
 }
 
-impl Drop for DropDealloc {
+impl<T> Drop for DropDealloc<T> {
 	fn drop(&mut self) {
 		unsafe {
-			if self.size_bytes > 0 {
-				alloc::alloc::dealloc(
-					self.ptr.as_ptr(),
-					Layout::from_size_align_unchecked(self.size_bytes, self.align),
+			if mem::size_of::<T>() > 0 {
+				let layout = Layout::from_size_align_unchecked(
+					mem::size_of::<T>() * self.capacity,
+					mem::align_of::<T>(),
 				);
+				alloc::alloc::dealloc(self.ptr.cast().as_ptr(), layout);
 			}
 		}
 	}

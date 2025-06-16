@@ -106,9 +106,8 @@ impl<T, const N: usize> Drop for IntoIter<T, N> {
 			let _drop_dealloc = if on_heap {
 				let capacity = self.raw.heap.1;
 				Some(DropDealloc {
-					ptr: NonNull::new_unchecked(ptr.cast::<u8>()),
-					size_bytes: capacity * mem::size_of::<T>(),
-					align: mem::align_of::<T>(),
+					ptr: NonNull::new_unchecked(ptr),
+					capacity
 				})
 			} else {
 				None
