@@ -16,7 +16,7 @@ use core::{
 	ptr,
 };
 
-use super::SmallVec;
+use super::{SmallVec, smallvec};
 
 #[test]
 fn zero() {
@@ -935,6 +935,22 @@ fn raw_ptr() {
 
 		assert_eq!(v, [0, 10, 10, 0, 0, 0, 0, 0, 0, 0]);
 	}
+}
+
+#[test]
+fn grow_down_after_spill() {
+	let mut v = SmallVec::<u8, 4>::new();
+
+	v.push(1);
+	v.push(2);
+	v.push(3);
+	v.push(4);
+	v.push(5);
+	assert!(v.spilled());
+
+	v.clear();
+
+	v.grow(2);
 }
 
 #[cfg(feature = "bytes")]
