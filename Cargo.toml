@@ -35,7 +35,7 @@ members = [
     "crates/program",
     "crates/serde_array",
     "crates/span",
-    "crates/tape",
+    "crates/tape", "crates/testing",
     "crates/type_name",
     "crates/utils",
     "crates/vec"
@@ -44,6 +44,7 @@ resolver = "3"
 
 [workspace.dependencies]
 arbitrary = "1"
+quickcheck = "1"
 rayon = { version = "1.10", default-features = false }
 ron = "0.10"
 serde = { version = "1", default-features = false }

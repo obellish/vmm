@@ -95,6 +95,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dde20b3d026af13f561bdd0f15edf01fc734f0dafcedbaf42bba506a9517f223"
 
 [[package]]
+name = "arbtest"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a3be567977128c0f71ad1462d9624ccda712193d124e944252f0c5789a06d46"
+dependencies = [
+ "arbitrary",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -642,17 +651,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quickcheck_macros"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f71ee38b42f8459a88d3362be6f9b841ad2d5421844f61eb1c59c11bff3ac14a"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "quote"
 version = "1.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1132,9 +1130,17 @@ dependencies = [
 name = "vmm_tape"
 version = "0.1.0"
 dependencies = [
+ "arbtest",
  "serde",
  "serde_array",
  "vmm_num",
+]
+
+[[package]]
+name = "vmm_testing"
+version = "0.1.0"
+dependencies = [
+ "arbitrary",
 ]
 
 [[package]]
@@ -1146,7 +1152,6 @@ name = "vmm_utils"
 version = "0.1.0"
 dependencies = [
  "quickcheck",
- "quickcheck_macros",
 ]
 
 [[package]]

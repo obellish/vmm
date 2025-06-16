@@ -14,5 +14,4 @@ heap_size = ["alloc"]
 insert_or_push = ["alloc"]
 
 [dev-dependencies]
-quickcheck = "1"
-quickcheck_macros = "1"
+quickcheck.workspace = true
