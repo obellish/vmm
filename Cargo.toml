@@ -43,6 +43,7 @@ members = [
 resolver = "3"
 
 [workspace.dependencies]
+arbitrary = "1"
 rayon = { version = "1.10", default-features = false }
 ron = "0.10"
 serde = { version = "1", default-features = false }
