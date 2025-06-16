@@ -16,10 +16,12 @@ pub struct IntoIter<T, const N: usize> {
 }
 
 impl<T, const N: usize> IntoIter<T, N> {
+	#[inline]
 	const fn is_zst() -> bool {
 		matches!(mem::size_of::<T>(), 0)
 	}
 
+	#[inline]
 	const fn as_ptr(&self) -> *const T {
 		let on_heap = self.end.on_heap(Self::is_zst());
 		if on_heap {
@@ -29,6 +31,7 @@ impl<T, const N: usize> IntoIter<T, N> {
 		}
 	}
 
+	#[inline]
 	const fn as_mut_ptr(&mut self) -> *mut T {
 		let on_heap = self.end.on_heap(Self::is_zst());
 		if on_heap {
@@ -38,6 +41,7 @@ impl<T, const N: usize> IntoIter<T, N> {
 		}
 	}
 
+	#[inline]
 	pub const fn as_slice(&self) -> &[T] {
 		unsafe {
 			let ptr = self.as_ptr();
@@ -48,6 +52,7 @@ impl<T, const N: usize> IntoIter<T, N> {
 		}
 	}
 
+	#[inline]
 	pub const fn as_mut_slice(&mut self) -> &mut [T] {
 		unsafe {
 			let ptr = self.as_mut_ptr();
@@ -72,6 +77,7 @@ impl<T: Debug, const N: usize> Debug for IntoIter<T, N> {
 }
 
 impl<T, const N: usize> DoubleEndedIterator for IntoIter<T, N> {
+	#[inline]
 	fn next_back(&mut self) -> Option<Self::Item> {
 		let mut end = self.end.value(Self::is_zst());
 		if self.begin == end {
@@ -120,6 +126,7 @@ impl<T, const N: usize> FusedIterator for IntoIter<T, N> {}
 impl<T, const N: usize> Iterator for IntoIter<T, N> {
 	type Item = T;
 
+	#[inline]
 	fn next(&mut self) -> Option<Self::Item> {
 		if self.begin == self.end.value(Self::is_zst()) {
 			None
@@ -133,11 +140,13 @@ impl<T, const N: usize> Iterator for IntoIter<T, N> {
 		}
 	}
 
+	#[inline]
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		let size = self.end.value(Self::is_zst()) - self.begin;
 		(size, Some(size))
 	}
 
+	#[inline]
 	fn last(mut self) -> Option<Self::Item> {
 		self.next_back()
 	}

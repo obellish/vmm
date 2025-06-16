@@ -5,7 +5,6 @@ use core::{
 };
 
 use serde::{Deserialize, Serialize};
-use smallvec::SmallVec;
 
 use super::{Instruction, IsZeroingCell, PtrMovement};
 

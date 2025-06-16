@@ -75,6 +75,7 @@ impl<T: Debug, const N: usize> Debug for Drain<'_, T, N> {
 }
 
 impl<'a, T: 'a, const N: usize> DoubleEndedIterator for Drain<'a, T, N> {
+	#[inline]
 	fn next_back(&mut self) -> Option<Self::Item> {
 		self.iter
 			.next_back()
@@ -138,6 +139,7 @@ impl<'a, T: 'a, const N: usize> Drop for Drain<'a, T, N> {
 }
 
 impl<'a, T: 'a, const N: usize> ExactSizeIterator for Drain<'a, T, N> {
+	#[inline]
 	fn len(&self) -> usize {
 		self.iter.len()
 	}
@@ -148,16 +150,19 @@ impl<'a, T: 'a, const N: usize> FusedIterator for Drain<'a, T, N> {}
 impl<'a, T: 'a, const N: usize> Iterator for Drain<'a, T, N> {
 	type Item = T;
 
+	#[inline]
 	fn next(&mut self) -> Option<Self::Item> {
 		self.iter
 			.next()
 			.map(|reference| unsafe { ptr::read(reference) })
 	}
 
+	#[inline]
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		self.iter.size_hint()
 	}
 
+	#[inline]
 	fn last(mut self) -> Option<Self::Item> {
 		self.next_back()
 	}
