@@ -13,3 +13,10 @@ std = []
 
 [dependencies]
 serde = { workspace = true, default-features = false }
+
+[dev-dependencies]
+criterion = "0.6"
+
+[[bench]]
+harness = false
+name = "bench"

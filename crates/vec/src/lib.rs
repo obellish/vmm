@@ -30,6 +30,25 @@ use core::{
 
 pub use self::{drain::*, extract_if::*, into_iter::*, splice::*};
 
+#[macro_export]
+macro_rules! smallvec {
+	(@one $x:expr) => (1usize);
+	() => ($crate::SmallVec::new());
+	($elem:expr; $n:expr) => ({
+		$crate::SmallVec::from_elem($elem, $n)
+	});
+	($($x:expr),+$(,)?) => ({
+		let count = 0usize $(+ $crate::smallvec!(@one $x))+;
+		let mut vec = $crate::SmallVec::new();
+		if count <= vec.capacity() {
+			$(vec.push($x);)*
+			vec
+		} else {
+			$crate::SmallVec::from_vec($crate::alloc::vec![$($x,)+])
+		}
+	})
+}
+
 #[repr(C)]
 pub struct SmallVec<T, const N: usize> {
 	len: TaggedLen,
