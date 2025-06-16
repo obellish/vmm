@@ -125,8 +125,7 @@ where
 
 		unsafe {
 			self.allocate_blocks(size, align)
-				.map(|p| p.as_ptr().cast())
-				.unwrap_or(ptr::null_mut())
+				.map_or_else(|_| ptr::null_mut(), |p| p.as_ptr().cast())
 		}
 	}
 

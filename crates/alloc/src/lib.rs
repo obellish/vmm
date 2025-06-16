@@ -68,11 +68,11 @@ where
 		}
 	}
 
-	pub fn is_oom(&self) -> bool {
+	pub const fn is_oom(&self) -> bool {
 		matches!(unsafe { *self.base.get() }.length, OOM_MARKER)
 	}
 
-	pub fn is_empty(&self) -> bool {
+	pub const fn is_empty(&self) -> bool {
 		!self.is_oom() && matches!(unsafe { *self.base.get() }.next, 0)
 	}
 

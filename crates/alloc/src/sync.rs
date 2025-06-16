@@ -7,7 +7,7 @@ use core::{
 	ops::Deref,
 	ptr::NonNull,
 };
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Mutex, MutexGuard, PoisonError};
 
 use super::{Align, Alignment, AllocChain, AllocError, ChainableAlloc, UnsafeStalloc};
 
@@ -73,9 +73,12 @@ where
 
 	pub fn acquire_locked(&self) -> StallocGuard<'_, L, B> {
 		StallocGuard {
-			_guard: unsafe { self.0.lock().unwrap_unchecked() },
+			_guard: match self.0.lock() {
+				Ok(l) => l,
+				Err(e) => PoisonError::into_inner(e),
+			},
 			inner: &self.1,
-			phantom: PhantomData,
+			marker: PhantomData,
 		}
 	}
 
@@ -192,7 +195,7 @@ where
 {
 	_guard: MutexGuard<'a, ()>,
 	inner: &'a UnsafeStalloc<L, B>,
-	phantom: PhantomData<*const ()>,
+	marker: PhantomData<*const ()>,
 }
 
 impl<const L: usize, const B: usize> Deref for StallocGuard<'_, L, B>

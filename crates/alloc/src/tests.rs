@@ -1,6 +1,7 @@
 #![expect(clippy::collection_is_never_read)]
 
 extern crate alloc;
+
 use alloc::{boxed::Box, vec::Vec};
 use core::mem::{self, MaybeUninit};
 
