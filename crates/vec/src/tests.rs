@@ -15,15 +15,8 @@ use core::{
 	iter::FromIterator,
 	ptr,
 };
-use std::alloc::System;
-
-use vmm_alloc::*;
 
 use super::SmallVec;
-
-#[global_allocator]
-static GLOBAL: AllocChain<'static, SyncStalloc<1024, 4>, System> =
-	SyncStalloc::new().chain(&System);
 
 #[test]
 fn zero() {
@@ -852,4 +845,79 @@ fn max_dont_panic() {
 fn max_remove() {
 	let mut sv = SmallVec::<i32, 2>::from([0]);
 	sv.remove(usize::MAX);
+}
+
+#[test]
+#[should_panic(expected = "swap_remove index (is 18446744073709551615) should be < len (is 1)")]
+fn max_swap_remove() {
+	let mut sv = SmallVec::<i32, 2>::from([0]);
+	sv.swap_remove(usize::MAX);
+}
+
+#[test]
+#[should_panic(expected = "insertion index (is 18446744073709551615) should be <= len (is 1)")]
+fn max_insert() {
+	let mut sv = SmallVec::<i32, 2>::from([0]);
+	sv.insert(usize::MAX, 0);
+}
+
+#[test]
+fn collect_from_iter() {
+	#[repr(transparent)]
+	struct IterNoHint<I: Iterator>(I);
+
+	impl<I: Iterator> Iterator for IterNoHint<I> {
+		type Item = I::Item;
+
+		fn next(&mut self) -> Option<Self::Item> {
+			self.0.next()
+		}
+	}
+
+	let iter = IterNoHint(core::iter::repeat_n(
+		1u8,
+		if cfg!(miri) { 3 } else { 1_000_000 },
+	));
+
+	let _y = SmallVec::<_, 1>::from_iter(iter);
+}
+
+#[test]
+fn collect_with_spill() {
+	let input = "0123456";
+	let collected: SmallVec<char, 4> = input.chars().collect();
+	assert_eq!(collected, ['0', '1', '2', '3', '4', '5', '6']);
+}
+
+#[test]
+fn spare_capacity_mut() {
+	let mut v = SmallVec::<u8, 2>::new();
+	assert!(!v.spilled());
+	let spare = v.spare_capacity_mut();
+	assert_eq!(spare.len(), 2);
+	assert!(ptr::eq(spare.as_ptr().cast::<u8>(), v.as_ptr()));
+
+	v.push(1);
+	assert!(!v.spilled());
+	let spare = v.spare_capacity_mut();
+	assert_eq!(spare.len(), 1);
+	assert!(ptr::eq(spare.as_ptr().cast::<u8>(), unsafe {
+		v.as_ptr().add(1)
+	}));
+
+	v.push(2);
+	assert!(!v.spilled());
+	let spare = v.spare_capacity_mut();
+	assert_eq!(spare.len(), 0);
+	assert!(ptr::eq(spare.as_ptr().cast::<u8>(), unsafe {
+		v.as_ptr().add(2)
+	}));
+
+	v.push(3);
+	assert!(v.spilled());
+	let spare = v.spare_capacity_mut();
+	assert!(!spare.is_empty());
+	assert!(ptr::eq(spare.as_ptr().cast::<u8>(), unsafe {
+		v.as_ptr().add(3)
+	}));
 }

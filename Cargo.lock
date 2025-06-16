@@ -908,7 +908,6 @@ name = "vmm_vec"
 version = "0.1.0"
 dependencies = [
  "serde",
- "vmm_alloc",
 ]
 
 [[package]]

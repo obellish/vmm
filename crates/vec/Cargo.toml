@@ -13,6 +13,3 @@ std = []
 
 [dependencies]
 serde = { workspace = true, default-features = false }
-
-[dev-dependencies]
-vmm_alloc = { path = "../alloc" }

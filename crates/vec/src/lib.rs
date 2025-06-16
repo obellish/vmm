@@ -391,7 +391,9 @@ impl<T, const N: usize> SmallVec<T, N> {
 				tail_len: len - end,
 				tail_start: end,
 				iter: range_slice.iter(),
-				vec: NonNull::new_unchecked(ptr::from_mut(self)),
+				// Since self is &mut, passing it to a function would invalidate the slice iterator.
+				#[allow(clippy::ref_as_ptr)]
+				vec: NonNull::new_unchecked(self as *mut _),
 			}
 		}
 	}
@@ -477,6 +479,20 @@ impl<T, const N: usize> SmallVec<T, N> {
 			ptr.write(value);
 			self.set_len(len + 1);
 		}
+	}
+
+	#[inline]
+	unsafe fn push_heap(&mut self, value: T) {
+		debug_assert!(self.spilled());
+		let len = self.len();
+		let cap = unsafe { self.raw.heap.1 };
+		if len == cap {
+			self.reserve(1);
+		}
+
+		let ptr = unsafe { self.raw.heap.0 };
+		unsafe { ptr.as_ptr().add(len).write(value) };
+		unsafe { self.set_len(len + 1) };
 	}
 
 	pub fn pop(&mut self) -> Option<T> {
@@ -721,35 +737,63 @@ impl<T, const N: usize> SmallVec<T, N> {
 
 	fn extend_impl(&mut self, iter: impl Iterator<Item = T>) {
 		let mut iter = iter.fuse();
+		let len = self.len();
 		let (lower_bound, _) = iter.size_hint();
 		self.reserve(lower_bound);
-		let mut capacity = self.capacity();
-		let mut ptr = self.as_mut_ptr();
+		let capacity = self.capacity();
+		unsafe {
+			let ptr = self.as_mut_ptr();
+			let count = extend_batch(ptr, capacity - len, len, &mut iter);
+			self.set_len(len + count);
+		}
+
+		if let Some(item) = iter.next() {
+			self.push(item);
+		} else {
+			return;
+		}
+
 		unsafe {
 			loop {
-				let mut len = self.len();
-				ptr = ptr.add(len);
-				let mut guard = DropGuard { ptr, len: 0 };
-				iter.by_ref().take(capacity - len).for_each(|item| {
-					ptr.add(guard.len).write(item);
-					guard.len += 1;
-				});
-
-				len += guard.len;
-				mem::forget(guard);
-				self.set_len(len);
-
 				if let Some(item) = iter.next() {
-					self.push(item);
+					self.push_heap(item);
 				} else {
-					return;
+					break;
 				}
 
-				let (heap_ptr, heap_capacity) = self.raw.heap;
-				ptr = heap_ptr.as_ptr();
-				capacity = heap_capacity;
+				let len = self.len();
+				let (ptr, capacity) = self.raw.heap;
+				let ptr = ptr.as_ptr();
+				let count = extend_batch(ptr, capacity - len, len, &mut iter);
+				self.set_len(len + count);
 			}
 		}
+	}
+
+	fn insert_many_impl(&mut self, mut index: usize, iter: impl Iterator<Item = T>) {
+		let len = self.len();
+		if index == len {
+			return self.extend(iter);
+		}
+
+		let mut iter = iter.fuse();
+		let (lower_bound, _) = iter.size_hint();
+		self.reserve(lower_bound);
+
+		let count = unsafe {
+			let ptr = self.as_mut_ptr();
+			let count = insert_many_batch(ptr, index, lower_bound, len, &mut iter);
+			self.set_len(len + count);
+			count
+		};
+
+		index += count;
+		iter.enumerate()
+			.for_each(|(i, item)| self.insert(index + i, item));
+	}
+
+	pub fn insert_many(&mut self, index: usize, iterable: impl IntoIterator<Item = T>) {
+		self.insert_many_impl(index, iterable.into_iter());
 	}
 }
 
@@ -1201,6 +1245,22 @@ impl Drop for DropDealloc {
 	}
 }
 
+struct DropShiftGuard<T> {
+	ptr: *mut T,
+	len: usize,
+	shifted_ptr: *const T,
+	shifted_len: usize,
+}
+
+impl<T> Drop for DropShiftGuard<T> {
+	fn drop(&mut self) {
+		unsafe {
+			ptr::slice_from_raw_parts_mut(self.ptr, self.len).drop_in_place();
+			ptr::copy(self.shifted_ptr, self.ptr, self.shifted_len);
+		}
+	}
+}
+
 #[derive(Debug)]
 pub enum CollectionAllocError {
 	CapacityOverflow,
@@ -1340,4 +1400,65 @@ fn infallible<T>(res: Result<T, CollectionAllocError>) -> T {
 		Err(e @ CollectionAllocError::CapacityOverflow) => panic!("{e}"),
 		Err(CollectionAllocError::Alloc { layout }) => alloc::alloc::handle_alloc_error(layout),
 	}
+}
+
+unsafe fn extend_batch<T, I>(
+	ptr: *mut T,
+	remaining_capacity: usize,
+	len: usize,
+	iter: &mut I,
+) -> usize
+where
+	I: Iterator<Item = T>,
+{
+	let ptr_end = unsafe { ptr.add(len) };
+	let mut guard = DropGuard {
+		ptr: ptr_end,
+		len: 0,
+	};
+
+	iter.take(remaining_capacity)
+		.enumerate()
+		.for_each(|(i, item)| {
+			unsafe { ptr_end.add(i).write(item) };
+			guard.len = i + 1;
+		});
+
+	let count = guard.len;
+	mem::forget(guard);
+	count
+}
+
+unsafe fn insert_many_batch<T, I>(
+	ptr: *mut T,
+	index: usize,
+	lower_bound: usize,
+	len: usize,
+	iter: &mut I,
+) -> usize
+where
+	I: Iterator<Item = T>,
+{
+	unsafe { ptr::copy(ptr.add(index), ptr.add(index + lower_bound), len - index) };
+	let ptr_ith = unsafe { ptr.add(index) };
+	let mut guard = DropShiftGuard {
+		ptr: ptr_ith,
+		len: 0,
+		shifted_ptr: unsafe { ptr_ith.add(lower_bound) },
+		shifted_len: len - index,
+	};
+
+	iter.take(lower_bound).enumerate().for_each(|(i, item)| {
+		unsafe { ptr_ith.add(i).write(item) };
+		guard.len = i + 1;
+	});
+
+	let count = guard.len;
+	mem::forget(guard);
+
+	if count < lower_bound {
+		unsafe { ptr::copy(ptr_ith.add(lower_bound), ptr_ith.add(count), len - index) };
+	}
+
+	count
 }
