@@ -56,7 +56,7 @@ macro_rules! smallvec {
 pub struct SmallVec<T, const N: usize> {
 	len: TaggedLen,
 	raw: RawSmallVec<T, N>,
-	marker: PhantomData<T>,
+	marker: PhantomData<fn() -> T>,
 }
 
 impl<T, const N: usize> SmallVec<T, N> {

@@ -1,14 +1,14 @@
-use rayon::prelude::*;
 use tracing::{Level, trace};
 use vmm_ir::Instruction;
 use vmm_num::Wrapping;
 use vmm_utils::InsertOrPush as _;
+use vmm_vec::SmallVec;
 
 #[derive(Debug, Clone)]
 pub enum Change {
 	Remove,
 	RemoveOffset(isize),
-	Swap(Vec<Instruction>),
+	Swap(SmallVec<Instruction, 2>),
 	Replace(Instruction),
 }
 
@@ -45,7 +45,7 @@ impl Change {
 	pub fn apply(self, ops: &mut Vec<Instruction>, i: usize, size: usize) -> (bool, usize) {
 		match self {
 			Self::Remove => {
-				let removed = ops.par_drain(i..(i + size)).collect::<Vec<_>>();
+				let removed = ops.drain(i..(i + size)).collect::<SmallVec<_, 2>>();
 
 				trace!("removing instructions {removed:?}");
 
@@ -59,7 +59,7 @@ impl Change {
 				(true, 0)
 			}
 			Self::Swap(instrs) => {
-				let mut replaced = Vec::with_capacity(size);
+				let mut replaced = SmallVec::<_, 4>::with_capacity(size);
 				for _ in 0..size {
 					replaced.push(ops.remove(i));
 				}
@@ -73,7 +73,7 @@ impl Change {
 				(true, 0)
 			}
 			Self::Replace(instr) => {
-				let mut replaced = Vec::with_capacity(size);
+				let mut replaced = SmallVec::<_, 4>::with_capacity(size);
 				for _ in 0..size {
 					replaced.push(ops.remove(i));
 				}

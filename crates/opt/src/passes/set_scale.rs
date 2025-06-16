@@ -46,7 +46,7 @@ impl PeepholePass for OptimizeSetScaleValPass {
 					offset,
 					factor,
 				}),
-			] => Some(Change::Swap(vec![
+			] => Some(Change::swap([
 				Instruction::clear_val(),
 				Instruction::inc_val_at(
 					WrappingMul::wrapping_mul(value.get(), factor) as i8,

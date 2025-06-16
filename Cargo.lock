@@ -805,12 +805,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
 
 [[package]]
-name = "smallvec"
-version = "2.0.0-alpha.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87b96efa4bd6bdd2ff0c6615cc36fc4970cbae63cfd46ddff5cee35a1b4df570"
-
-[[package]]
 name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -940,7 +934,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sharded-slab",
- "smallvec 1.15.0",
+ "smallvec",
  "thread_local",
  "tracing",
  "tracing-core",
@@ -1009,7 +1003,6 @@ name = "vmm_ir"
 version = "0.1.0"
 dependencies = [
  "serde",
- "smallvec 2.0.0-alpha.11",
  "vmm_num",
  "vmm_span",
  "vmm_utils",
@@ -1042,6 +1035,7 @@ dependencies = [
  "vmm_tape",
  "vmm_type_name",
  "vmm_utils",
+ "vmm_vec",
 ]
 
 [[package]]
