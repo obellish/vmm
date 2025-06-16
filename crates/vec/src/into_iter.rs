@@ -107,7 +107,7 @@ impl<T, const N: usize> Drop for IntoIter<T, N> {
 				let capacity = self.raw.heap.1;
 				Some(DropDealloc {
 					ptr: NonNull::new_unchecked(ptr),
-					capacity
+					capacity,
 				})
 			} else {
 				None
