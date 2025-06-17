@@ -979,6 +979,7 @@ checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
 name = "vmm"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "clap",
  "color-eyre",
  "rayon",
@@ -1036,7 +1037,6 @@ name = "vmm_opt"
 version = "0.1.0"
 dependencies = [
  "itertools 0.14.0",
- "rayon",
  "ron",
  "serde",
  "serde-value",

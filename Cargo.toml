@@ -24,6 +24,10 @@ vmm_parse = { path = "crates/parse" }
 vmm_program.workspace = true
 vmm_utils = { workspace = true, features = ["heap_size"] }
 
+[dev-dependencies]
+# We use anyhow to avoid having to install color_eyre
+anyhow = "1"
+
 [workspace]
 members = [
     "crates/alloc",
@@ -35,7 +39,8 @@ members = [
     "crates/program",
     "crates/serde_array",
     "crates/span",
-    "crates/tape", "crates/testing",
+    "crates/tape",
+    "crates/testing",
     "crates/type_name",
     "crates/utils",
     "crates/vec"

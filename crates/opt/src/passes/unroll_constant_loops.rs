@@ -1,4 +1,3 @@
-use rayon::prelude::*;
 use vmm_ir::{BlockInstruction, Instruction, Offset, PtrMovement};
 use vmm_span::Span;
 
@@ -70,7 +69,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			return false;
 		};
 
-		if inner.par_iter().any(Instruction::has_io) {
+		if inner.iter().any(Instruction::has_io) {
 			return false;
 		}
 

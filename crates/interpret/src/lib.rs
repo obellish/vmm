@@ -98,6 +98,14 @@ impl<R, W> Interpreter<R, W> {
 	pub const fn ptr_mut(&mut self) -> &mut TapePointer {
 		self.tape_mut().ptr_mut()
 	}
+
+	pub const fn input(&self) -> &R {
+		&self.input
+	}
+
+	pub const fn output(&self) -> &W {
+		&self.output
+	}
 }
 
 #[allow(clippy::unused_self)]

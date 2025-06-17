@@ -9,7 +9,6 @@ version.workspace = true
 
 [dependencies]
 itertools = "0.14"
-rayon.workspace = true
 ron = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive", "std"] }
 serde-value = "0.7.0"
