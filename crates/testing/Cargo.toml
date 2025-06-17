@@ -9,3 +9,6 @@ version.workspace = true
 
 [dependencies]
 arbitrary.workspace = true
+
+[dev-dependencies]
+regex = { version = "0.1", package = "regex-lite" }
