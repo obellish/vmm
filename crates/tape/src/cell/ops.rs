@@ -1,6 +1,8 @@
-use core::ops::*;
+use core::ops::{Add, AddAssign};
 
-use vmm_num::ops::*;
+use vmm_num::ops::{
+	WrappingAdd, WrappingAddAssign, WrappingMul, WrappingMulAssign, WrappingSub, WrappingSubAssign,
+};
 
 use super::Cell;
 
