@@ -13,4 +13,4 @@ serde_array.workspace = true
 vmm_num.workspace = true
 
 [dev-dependencies]
-arbtest = "0.3"
+vmm_testing.workspace = true

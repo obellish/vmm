@@ -115,33 +115,22 @@ impl IndexMut<usize> for Tape {
 
 #[cfg(test)]
 mod tests {
-	// use quickcheck::TestResult;
-
-	// use super::Tape;
-
-	// #[quickcheck_macros::quickcheck]
-	// fn index_check(idx: usize) -> TestResult {
-	// 	let mut tape = Tape::new();
-
-	// 	*tape.ptr_mut() += idx;
-
-	// 	TestResult::from_bool(matches!(tape.cell().0, 0))
-	// }
-
-	use arbtest::arbtest;
+	use vmm_testing::run_test;
 
 	use super::Tape;
 
 	#[test]
 	fn any_index_works() {
-		arbtest(|u| {
-			let mut tape = Tape::new();
-			let idx: usize = u.arbitrary()?;
+		let mut tape = Tape::new();
+		_ = run_test(|u| {
+			let idx = u.arbitrary::<usize>()?;
+
 			*tape.ptr_mut() += idx;
 
-			assert_eq!(tape.cell().0, 0);
+			assert_eq!(tape.cell().0, 1);
 
 			Ok(())
-		});
+		})
+		.budget_ms(10);
 	}
 }

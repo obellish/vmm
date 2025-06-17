@@ -60,6 +60,7 @@ vmm_num = { path = "crates/num" }
 vmm_program = { path = "crates/program" }
 vmm_span = { path = "crates/span" }
 vmm_tape = { path = "crates/tape" }
+vmm_testing = { path = "crates/testing" }
 vmm_utils = { path = "crates/utils" }
 
 [workspace.lints.rust]
