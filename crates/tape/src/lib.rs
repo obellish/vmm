@@ -123,12 +123,9 @@ impl Default for Tape {
 
 impl Drop for Tape {
 	fn drop(&mut self) {
-		// let ptr = self.as_mut_ptr();
+		let layout = Layout::array::<Cell>(TAPE_SIZE).unwrap();
 
-		// drop(unsafe { Box::from_raw(ptr) });
-		let ptr = self.as_mut_ptr();
-
-		drop(unsafe { Vec::from_raw_parts(ptr, TAPE_SIZE, TAPE_SIZE) });
+		unsafe { alloc::alloc::dealloc(self.cells.as_ptr().cast(), layout) }
 	}
 }
 
