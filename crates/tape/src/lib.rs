@@ -6,7 +6,6 @@ extern crate alloc;
 mod cell;
 mod ptr;
 
-use alloc::{boxed::Box, vec, vec::Vec};
 use core::{
 	alloc::{Layout, LayoutError},
 	fmt::{Debug, Formatter, Result as FmtResult},
@@ -29,22 +28,6 @@ impl Tape {
 	#[inline]
 	#[must_use]
 	pub fn new() -> Self {
-		// let mut cells = vec![Cell::new(0); TAPE_SIZE];
-
-		// for (idx, cell) in cells.iter_mut().enumerate() {
-		// 	cell.set_index(idx);
-		// }
-
-		// let cells = cells.into_boxed_slice();
-
-		// let raw_cells = Box::into_raw(cells).cast::<Cell>();
-
-		// assert!(!raw_cells.is_null());
-
-		// Self {
-		// 	cells: unsafe { NonNull::new_unchecked(raw_cells) },
-		// 	ptr: unsafe { TapePointer::new_unchecked(0) },
-		// }
 		Self::try_new().unwrap()
 	}
 
