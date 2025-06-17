@@ -56,6 +56,7 @@ mod tests {
 	}
 
 	#[test]
+	#[cfg_attr(miri, ignore)]
 	fn hello_world_test_unoptimized() -> anyhow::Result<()> {
 		assert_eq!(run_program(HELLO_WORLD_TEST, false)?, b"Hello World! 255\n");
 

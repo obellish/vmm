@@ -6,10 +6,12 @@ extern crate alloc;
 mod cell;
 mod ptr;
 
-use alloc::{boxed::Box, vec};
+use alloc::{boxed::Box, vec, vec::Vec};
 use core::{
+	alloc::{Layout, LayoutError},
 	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Index, IndexMut},
+	ptr::NonNull,
 };
 
 pub use self::{cell::*, ptr::*};
@@ -18,8 +20,8 @@ pub const TAPE_SIZE: usize = 30000;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Tape {
-	// We use a custom allocator, so we put this on the heap
-	cells: Box<[Cell; TAPE_SIZE]>,
+	// Pointer created by Vec::new(), then boxed.
+	cells: NonNull<Cell>,
 	ptr: TapePointer,
 }
 
@@ -27,25 +29,53 @@ impl Tape {
 	#[inline]
 	#[must_use]
 	pub fn new() -> Self {
-		let mut cells = vec![Cell::new(0); TAPE_SIZE];
+		// let mut cells = vec![Cell::new(0); TAPE_SIZE];
 
-		for (idx, cell) in cells.iter_mut().enumerate() {
-			cell.set_index(idx);
-		}
+		// for (idx, cell) in cells.iter_mut().enumerate() {
+		// 	cell.set_index(idx);
+		// }
 
-		Self {
-			cells: cells.into_boxed_slice().try_into().unwrap(),
+		// let cells = cells.into_boxed_slice();
+
+		// let raw_cells = Box::into_raw(cells).cast::<Cell>();
+
+		// assert!(!raw_cells.is_null());
+
+		// Self {
+		// 	cells: unsafe { NonNull::new_unchecked(raw_cells) },
+		// 	ptr: unsafe { TapePointer::new_unchecked(0) },
+		// }
+		Self::try_new().unwrap()
+	}
+
+	pub fn try_new() -> Result<Self, LayoutError> {
+		let layout = Layout::array::<Cell>(TAPE_SIZE)?;
+
+		let ptr = unsafe {
+			let raw = alloc::alloc::alloc_zeroed(layout);
+
+			if raw.is_null() {
+				alloc::alloc::handle_alloc_error(layout);
+			}
+
+			raw.cast::<Cell>()
+		};
+
+		let tape = Self {
+			cells: unsafe { NonNull::new_unchecked(ptr) },
 			ptr: unsafe { TapePointer::new_unchecked(0) },
-		}
+		};
+
+		Ok(tape)
 	}
 
 	#[must_use]
 	pub fn cell(&self) -> &Cell {
-		unsafe { self.cells.get_unchecked(self.ptr.value()) }
+		unsafe { &*self.cells.as_ptr().add(self.ptr().value()) }
 	}
 
 	pub fn cell_mut(&mut self) -> &mut Cell {
-		unsafe { self.cells.get_unchecked_mut(self.ptr.value()) }
+		unsafe { &mut *self.cells.as_ptr().add(self.ptr().value()) }
 	}
 
 	#[must_use]
@@ -59,11 +89,11 @@ impl Tape {
 
 	#[must_use]
 	pub const fn as_slice(&self) -> &[Cell] {
-		&*self.cells
+		unsafe { core::slice::from_raw_parts(self.cells.as_ptr(), TAPE_SIZE) }
 	}
 
 	pub const fn as_mut_slice(&mut self) -> &mut [Cell] {
-		&mut *self.cells
+		unsafe { core::slice::from_raw_parts_mut(self.cells.as_ptr(), TAPE_SIZE) }
 	}
 
 	#[must_use]
@@ -71,28 +101,17 @@ impl Tape {
 		self.cells.as_ptr()
 	}
 
+	#[expect(clippy::needless_pass_by_ref_mut)]
 	pub const fn as_mut_ptr(&mut self) -> *mut Cell {
-		self.cells.as_mut_ptr()
+		self.cells.as_ptr()
 	}
 }
 
 impl Debug for Tape {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-		let pretty_printing = f.alternate();
-		let mut state = f.debug_list();
-
-		for (i, cell) in self.cells.iter().copied().map(Cell::value).enumerate() {
-			if matches!(cell, 0)
-				&& !pretty_printing
-				&& self.cells[i..].iter().all(|c| matches!(c.value(), 0))
-			{
-				return state.finish_non_exhaustive();
-			}
-
-			state.entry(&cell);
-		}
-
-		state.finish()
+		f.debug_struct("Tape")
+			.field("ptr", &self.ptr)
+			.finish_non_exhaustive()
 	}
 }
 
@@ -102,19 +121,30 @@ impl Default for Tape {
 	}
 }
 
+impl Drop for Tape {
+	fn drop(&mut self) {
+		// let ptr = self.as_mut_ptr();
+
+		// drop(unsafe { Box::from_raw(ptr) });
+		let ptr = self.as_mut_ptr();
+
+		drop(unsafe { Vec::from_raw_parts(ptr, TAPE_SIZE, TAPE_SIZE) });
+	}
+}
+
 impl Index<usize> for Tape {
 	type Output = Cell;
 
 	#[inline]
 	fn index(&self, index: usize) -> &Self::Output {
-		&self.cells[index % TAPE_SIZE]
+		&self.as_slice()[index % TAPE_SIZE]
 	}
 }
 
 impl IndexMut<usize> for Tape {
 	#[inline]
 	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-		&mut self.cells[index % TAPE_SIZE]
+		&mut self.as_mut_slice()[index % TAPE_SIZE]
 	}
 }
 
