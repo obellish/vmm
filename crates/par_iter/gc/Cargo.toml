@@ -1,0 +1,10 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_par_gc"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]

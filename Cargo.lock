@@ -1045,6 +1045,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "vmm_par_gc"
+version = "0.1.0"
+
+[[package]]
+name = "vmm_par_utils"
+version = "0.1.0"
+
+[[package]]
 name = "vmm_parse"
 version = "0.1.0"
 dependencies = [

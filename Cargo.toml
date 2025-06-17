@@ -35,6 +35,7 @@ members = [
     "crates/ir",
     "crates/num",
     "crates/opt",
+    "crates/par_iter/gc", "crates/par_iter/utils",
     "crates/parse",
     "crates/program",
     "crates/serde_array",

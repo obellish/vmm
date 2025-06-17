@@ -1,0 +1,12 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_par_utils"
+rust-version.workspace = true
+version.workspace = true
+
+[features]
+default = ["std"]
+std = []
