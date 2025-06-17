@@ -242,7 +242,7 @@ where
 
 	#[inline]
 	fn move_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
-		let src_value = mem::take(self.cell_mut());
+		let src_value = mem::take(self.cell_mut().as_mut_u8());
 
 		let dst_offset = self.calculate_index(offset);
 
@@ -255,7 +255,7 @@ where
 	fn fetch_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(&mut self.tape_mut()[src_offset]);
+		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(self.cell_mut(), value);
 
@@ -269,7 +269,7 @@ where
 
 		let tape = self.tape_mut();
 
-		let src_val = mem::take(&mut tape[src_offset]);
+		let src_val = mem::take(tape[src_offset].as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
 			&mut tape[dst_offset],
@@ -283,7 +283,7 @@ where
 	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(&mut self.tape_mut()[src_offset]);
+		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
 			self.cell_mut(),
@@ -318,7 +318,7 @@ where
 	fn sub_cell(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		let current_value = mem::take(self.cell_mut());
+		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
 		WrappingSubAssign::wrapping_sub_assign(&mut self.tape_mut()[idx], current_value);
 
@@ -327,7 +327,7 @@ where
 
 	#[inline]
 	fn take_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
-		let current_value = mem::take(self.cell_mut());
+		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
 		self.move_ptr(offset)?;
 
@@ -338,7 +338,7 @@ where
 
 	#[inline]
 	fn scale_and_take_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
-		let current_value = mem::take(self.cell_mut());
+		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
 		self.move_ptr(offset)?;
 
@@ -352,7 +352,7 @@ where
 
 	#[inline]
 	fn dupe_val(&mut self, offsets: &[Offset]) -> Result<(), RuntimeError> {
-		let value = mem::take(self.cell_mut());
+		let value = mem::take(self.cell_mut().as_mut_u8());
 
 		for offset in offsets {
 			let idx = self.calculate_index(*offset);
@@ -376,9 +376,9 @@ where
 	fn replace_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(&mut self.tape_mut()[src_offset]);
+		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
 
-		_ = mem::replace(self.cell_mut(), value);
+		_ = mem::replace(self.cell_mut().as_mut_u8(), value);
 
 		Ok(())
 	}
@@ -425,7 +425,7 @@ where
 					.iter()
 					.try_for_each(|i| self.execute_instruction(i))?;
 
-				mem::take(self.cell_mut());
+				mem::take(self.cell_mut().as_mut_u8());
 			}
 			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}

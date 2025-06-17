@@ -70,7 +70,7 @@ impl Add<&u8> for &Cell {
 
 impl AddAssign for Cell {
 	fn add_assign(&mut self, rhs: Self) {
-		*self = Add::add(*self, rhs);
+		AddAssign::add_assign(self.as_mut_u8(), rhs.value());
 	}
 }
 

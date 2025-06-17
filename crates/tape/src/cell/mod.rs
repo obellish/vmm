@@ -24,6 +24,19 @@ impl Cell {
 		Self::create(value, Some(index))
 	}
 
+	pub const fn set_index(&mut self, index: usize) {
+		self.index = Some(index);
+	}
+
+	#[must_use]
+	pub const fn as_u8(&self) -> &u8 {
+		unsafe { &*(&raw const self.value).cast::<u8>() }
+	}
+
+	pub fn as_mut_u8(&mut self) -> &mut u8 {
+		unsafe { &mut *(&raw mut self.value).cast::<u8>() }
+	}
+
 	#[must_use]
 	pub fn value(self) -> u8 {
 		self.value.get_or_zero()
@@ -110,5 +123,21 @@ impl PartialEq<u8> for Cell {
 impl PartialOrd<u8> for Cell {
 	fn partial_cmp(&self, other: &u8) -> Option<core::cmp::Ordering> {
 		Some(Ord::cmp(&self.value(), other))
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::Cell;
+
+	#[test]
+	fn as_u8_works() {
+		let mut value = Cell::new(8);
+
+		assert_eq!(*value.as_u8(), 8);
+
+		*value.as_mut_u8() = 0;
+
+		assert_eq!(*value.as_u8(), 0);
 	}
 }

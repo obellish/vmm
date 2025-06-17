@@ -6,13 +6,11 @@ extern crate alloc;
 mod cell;
 mod ptr;
 
-use alloc::boxed::Box;
+use alloc::{boxed::Box, vec};
 use core::{
 	fmt::{Debug, Formatter, Result as FmtResult},
 	ops::{Index, IndexMut},
 };
-
-use vmm_num::Wrapping;
 
 pub use self::{cell::*, ptr::*};
 
@@ -21,7 +19,6 @@ pub const TAPE_SIZE: usize = 30000;
 #[derive(Clone, PartialEq, Eq)]
 pub struct Tape {
 	// We use a custom allocator, so we put this on the heap
-	// cells: Box<[Wrapping<u8>; TAPE_SIZE]>,
 	cells: Box<[Cell; TAPE_SIZE]>,
 	ptr: TapePointer,
 }
@@ -30,12 +27,14 @@ impl Tape {
 	#[inline]
 	#[must_use]
 	pub fn new() -> Self {
-		let cells = Box::new([Cell::new(0); TAPE_SIZE]);
+		let mut cells = vec![Cell::new(0); TAPE_SIZE];
+
+		for (idx, cell) in cells.iter_mut().enumerate() {
+			cell.set_index(idx);
+		}
 
 		Self {
-			// cells: Box::new([Wrapping(0); TAPE_SIZE]),
-			// cells: Box::new(core::array::from_fn(|idx| Cell::with_index(0, idx))),
-			cells,
+			cells: cells.into_boxed_slice().try_into().unwrap(),
 			ptr: unsafe { TapePointer::new_unchecked(0) },
 		}
 	}
