@@ -14,4 +14,4 @@ heap_size = ["alloc"]
 insert_or_push = ["alloc"]
 
 [dev-dependencies]
-quickcheck.workspace = true
+vmm_testing = { path = "../testing" }

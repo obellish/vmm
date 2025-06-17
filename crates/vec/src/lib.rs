@@ -30,6 +30,7 @@ use core::{
 
 #[cfg(feature = "bytes")]
 use bytes::{BufMut, buf::UninitSlice};
+use vmm_utils::InsertOrPush;
 
 pub use self::{drain::*, extract_if::*, into_iter::*, splice::*};
 
@@ -1144,6 +1145,16 @@ impl<T, const N: usize> FromIterator<T> for SmallVec<T, N> {
 impl<T: Hash, const N: usize> Hash for SmallVec<T, N> {
 	fn hash<H: Hasher>(&self, state: &mut H) {
 		self.as_slice().hash(state);
+	}
+}
+
+impl<T, const N: usize> InsertOrPush<T> for SmallVec<T, N> {
+	fn insert_or_push(&mut self, index: usize, value: T) {
+		if index >= self.len() {
+			self.push(value);
+		} else {
+			self.insert(index, value);
+		}
 	}
 }
 

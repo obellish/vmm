@@ -14,6 +14,7 @@ std = []
 [dependencies]
 bytes = { version = "1", optional = true, default-features = false }
 serde = { workspace = true, default-features = false }
+vmm_utils = { workspace = true, features = ["insert_or_push"] }
 
 [dev-dependencies]
 criterion = "0.6"

@@ -62,26 +62,68 @@ where
 #[cfg(test)]
 #[allow(unused_allocation)]
 mod tests {
-	use alloc::{borrow::Cow, boxed::Box, string::String, vec::Vec};
+	use alloc::{
+		borrow::{Cow, ToOwned},
+		boxed::Box,
+		string::String,
+		vec::Vec,
+	};
 
-	use quickcheck::{TestResult, quickcheck};
+	use vmm_testing::{arbitrary, run_test};
 
 	use super::HeapSize;
 
-	fn string_impl(a: String) -> TestResult {
-		TestResult::from_bool(a.heap_size() == a.len())
+	trait TestHelper<'a>: arbitrary::Arbitrary<'a> + HeapSize {
+		fn expected(&self) -> usize;
 	}
 
-	fn vec_impl<T>(vec: Vec<T>) -> TestResult {
-		TestResult::from_bool(vec.heap_size() == vec.capacity() * core::mem::size_of::<T>())
+	impl<'a, T> TestHelper<'a> for Vec<T>
+	where
+		T: arbitrary::Arbitrary<'a>,
+	{
+		fn expected(&self) -> usize {
+			self.capacity() * core::mem::size_of::<T>()
+		}
+	}
+
+	impl TestHelper<'_> for String {
+		fn expected(&self) -> usize {
+			self.capacity()
+		}
+	}
+
+	impl<'a, T> TestHelper<'a> for Cow<'a, T>
+	where
+		T: ?Sized + ToOwned + 'a,
+		T::Owned: TestHelper<'a>,
+	{
+		fn expected(&self) -> usize {
+			match self {
+				Self::Borrowed(_) => 0,
+				Self::Owned(v) => v.expected(),
+			}
+		}
+	}
+
+	fn check<'a, T>(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<()>
+	where
+		T: TestHelper<'a>,
+	{
+		let value = u.arbitrary::<T>()?;
+
+		assert_eq!(value.heap_size(), value.expected());
+
+		Ok(())
 	}
 
 	#[test]
+	#[expect(clippy::redundant_closure)]
 	fn basic() {
-		quickcheck(string_impl as fn(String) -> TestResult);
-		quickcheck(vec_impl as fn(Vec<u8>) -> TestResult);
-		quickcheck(vec_impl as fn(Vec<u16>) -> TestResult);
-		quickcheck(vec_impl as fn(Vec<()>) -> TestResult);
+		run_test(|u| check::<Vec<u8>>(u));
+		run_test(|u| check::<Vec<u16>>(u));
+		run_test(|u| check::<String>(u));
+		run_test(|u| check::<Vec<()>>(u));
+		run_test(|u| check::<Cow<'_, str>>(u));
 	}
 
 	#[test]
