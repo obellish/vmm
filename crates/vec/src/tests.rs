@@ -16,6 +16,8 @@ use core::{
 	ptr,
 };
 
+use vmm_utils::InsertOrPush as _;
+
 use super::{SmallVec, smallvec};
 
 #[test]
@@ -951,6 +953,57 @@ fn grow_down_after_spill() {
 	v.clear();
 
 	v.grow(2);
+}
+
+#[test]
+fn inline_insert_or_push() {
+	let mut v: SmallVec<u8, 8> = smallvec![0u8, 1, 2, 3, 4, 5];
+
+	v.insert_or_push(2, 6);
+
+	assert_eq!(v, [0, 1, 6, 2, 3, 4, 5]);
+
+	let mut v: SmallVec<u8, 8> = smallvec![0, 1];
+
+	v.insert_or_push(2, 6);
+
+	assert_eq!(v, [0, 1, 6]);
+}
+
+#[test]
+fn heap_insert_or_push() {
+	let mut v: SmallVec<u8, 1> = smallvec![0, 1, 2, 3, 4, 5];
+
+	v.insert_or_push(2, 6);
+
+	assert_eq!(v, [0, 1, 6, 2, 3, 4, 5]);
+
+	let mut v: SmallVec<u8, 1> = smallvec![0, 1];
+
+	v.insert_or_push(2, 6);
+
+	assert_eq!(v, [0, 1, 6]);
+}
+
+#[test]
+fn insert_or_push_spills() {
+	let mut v: SmallVec<u8, 6> = smallvec![0, 1, 2, 3, 4, 5];
+
+	assert!(!v.spilled());
+
+	v.insert_or_push(2, 6);
+
+	assert!(v.spilled());
+	assert_eq!(v, [0, 1, 6, 2, 3, 4, 5]);
+
+	let mut v: SmallVec<u8, 2> = smallvec![0, 1];
+
+	assert!(!v.spilled());
+
+	v.insert_or_push(2, 6);
+
+	assert!(v.spilled());
+	assert_eq!(v, [0, 1, 6]);
 }
 
 #[cfg(feature = "bytes")]
