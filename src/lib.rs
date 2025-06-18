@@ -1,13 +1,19 @@
-//! This is only for the tests
+#[doc(inline)]
+pub use {
+	vmm_alloc as alloc, vmm_interpret as interpret, vmm_ir as ir, vmm_opt as opt,
+	vmm_parse as parse, vmm_program as program, vmm_utils as utils,
+};
 
 #[cfg(test)]
 mod tests {
 	use std::io;
 
-	use vmm_interpret::Interpreter;
-	use vmm_opt::{HashMetadataStore, Optimizer};
-	use vmm_parse::{ParseError, Parser};
-	use vmm_program::Program;
+	use super::{
+		interpret::Interpreter,
+		opt::{HashMetadataStore, Optimizer},
+		parse::{ParseError, Parser},
+		program::Program,
+	};
 
 	const HELLO_WORLD: &str = include_str!("../programs/hello_world.bf");
 

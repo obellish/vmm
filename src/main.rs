@@ -11,12 +11,14 @@ use tracing_subscriber::{
 	fmt::{self, format::FmtSpan},
 	prelude::*,
 };
-use vmm_alloc::{AllocChain, SyncStalloc};
-use vmm_interpret::{Interpreter, Profiler};
-use vmm_opt::{HashMetadataStore, Optimizer, OutputMetadataStore};
-use vmm_parse::Parser as BfParser;
-use vmm_program::Program;
-use vmm_utils::HeapSize as _;
+use vmm::{
+	alloc::{AllocChain, SyncStalloc},
+	interpret::{Interpreter, Profiler},
+	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
+	parse::Parser as BfParser,
+	program::Program,
+	utils::HeapSize as _,
+};
 
 #[global_allocator]
 static ALLOC: AllocChain<'static, SyncStalloc<8192, 4>, System> = SyncStalloc::new().chain(&System);
