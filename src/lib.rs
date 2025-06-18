@@ -13,7 +13,7 @@ mod tests {
 		opt::{HashMetadataStore, Optimizer},
 		parse::{ParseError, Parser},
 		program::Program,
-		tape::PtrTape,
+		tape::{BoxTape, PtrTape, Tape},
 	};
 
 	const HELLO_WORLD: &str = include_str!("../programs/hello_world.bf");
@@ -33,7 +33,7 @@ mod tests {
 			.map(|v| v.into_iter().collect::<Program>())
 	}
 
-	fn run_program(program: &'static str, optimized: bool) -> anyhow::Result<Vec<u8>> {
+	fn run_program<T: Tape>(program: &'static str, optimized: bool) -> anyhow::Result<Vec<u8>> {
 		let program = get_program(program)?;
 
 		let output = {
@@ -43,7 +43,7 @@ mod tests {
 				program
 			};
 
-			let mut interpreter: Interpreter<PtrTape, _, _> =
+			let mut interpreter: Interpreter<T, _, _> =
 				Interpreter::new(program, io::empty(), Vec::<u8>::new());
 
 			interpreter.run()?;
@@ -55,32 +55,54 @@ mod tests {
 	}
 
 	#[test]
-	fn hello_world_unoptimized() -> anyhow::Result<()> {
-		assert_eq!(run_program(HELLO_WORLD, false)?, b"Hello World!\n");
+	fn hello_world_unoptimized_ptr_tape() -> anyhow::Result<()> {
+		assert_eq!(
+			run_program::<PtrTape>(HELLO_WORLD, false)?,
+			b"Hello World!\n"
+		);
+
+		Ok(())
+	}
+
+	#[test]
+	fn hello_world_unoptimized_box_tape() -> anyhow::Result<()> {
+		assert_eq!(
+			run_program::<BoxTape>(HELLO_WORLD, false)?,
+			b"Hello World!\n"
+		);
 
 		Ok(())
 	}
 
 	#[test]
 	#[cfg_attr(miri, ignore)]
-	fn hello_world_optimized() -> anyhow::Result<()> {
-		assert_eq!(run_program(HELLO_WORLD, true)?, b"Hello World!\n");
+	fn hello_world_optimized_ptr_tape() -> anyhow::Result<()> {
+		assert_eq!(
+			run_program::<PtrTape>(HELLO_WORLD, true)?,
+			b"Hello World!\n"
+		);
 
 		Ok(())
 	}
 
 	#[test]
 	#[cfg_attr(miri, ignore)]
-	fn hello_world_test_unoptimized() -> anyhow::Result<()> {
-		assert_eq!(run_program(HELLO_WORLD_TEST, false)?, b"Hello World! 255\n");
+	fn hello_world_test_unoptimized_ptr_tape() -> anyhow::Result<()> {
+		assert_eq!(
+			run_program::<PtrTape>(HELLO_WORLD_TEST, false)?,
+			b"Hello World! 255\n"
+		);
 
 		Ok(())
 	}
 
 	#[test]
 	#[cfg_attr(miri, ignore)]
-	fn hello_world_test_optimized() -> anyhow::Result<()> {
-		assert_eq!(run_program(HELLO_WORLD_TEST, true)?, b"Hello World! 255\n");
+	fn hello_world_test_optimized_ptr_tape() -> anyhow::Result<()> {
+		assert_eq!(
+			run_program::<PtrTape>(HELLO_WORLD_TEST, true)?,
+			b"Hello World! 255\n"
+		);
 
 		Ok(())
 	}
@@ -88,8 +110,11 @@ mod tests {
 	// We only run optimized bc unoptimized takes too long
 	#[test]
 	#[cfg_attr(miri, ignore)]
-	fn bench_optimized() -> anyhow::Result<()> {
-		assert_eq!(run_program(BENCH, true)?, b"ZYXWVUTSRQPONMLKJIHGFEDCBA\n");
+	fn bench_optimized_ptr_tape() -> anyhow::Result<()> {
+		assert_eq!(
+			run_program::<PtrTape>(BENCH, true)?,
+			b"ZYXWVUTSRQPONMLKJIHGFEDCBA\n"
+		);
 
 		Ok(())
 	}

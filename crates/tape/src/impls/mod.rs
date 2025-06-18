@@ -1,3 +1,4 @@
+mod boxed;
 mod ptr;
 
-pub use self::ptr::*;
+pub use self::{boxed::*, ptr::*};

@@ -53,6 +53,20 @@ impl Drop for PtrTape {
 	}
 }
 
+impl Index<usize> for PtrTape {
+	type Output = Cell;
+
+	fn index(&self, index: usize) -> &Self::Output {
+		&self.as_slice()[index % TAPE_SIZE]
+	}
+}
+
+impl IndexMut<usize> for PtrTape {
+	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+		&mut self.as_mut_slice()[index % TAPE_SIZE]
+	}
+}
+
 impl Tape for PtrTape {
 	fn as_slice(&self) -> &[Cell] {
 		unsafe { slice::from_raw_parts(self.cells.as_ptr(), TAPE_SIZE) }
@@ -84,19 +98,5 @@ impl Tape for PtrTape {
 
 	unsafe fn current_cell_unchecked_mut(&mut self) -> &mut Cell {
 		self.current_cell_mut()
-	}
-}
-
-impl Index<usize> for PtrTape {
-	type Output = Cell;
-
-	fn index(&self, index: usize) -> &Self::Output {
-		&self.as_slice()[index % TAPE_SIZE]
-	}
-}
-
-impl IndexMut<usize> for PtrTape {
-	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-		&mut self.as_mut_slice()[index % TAPE_SIZE]
 	}
 }
