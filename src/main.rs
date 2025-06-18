@@ -2,7 +2,6 @@ use std::{alloc::System, fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::Result;
-use rayon::prelude::*;
 use tracing::info;
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
@@ -35,14 +34,14 @@ fn main() -> Result<()> {
 	let raw_data = fs::read_to_string(args.file)?;
 
 	let filtered_data = raw_data
-		.par_chars()
+		.chars()
 		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
 		.collect::<String>();
 
 	let program = {
 		let unoptimized = BfParser::new(&filtered_data)
 			.scan()?
-			.into_par_iter()
+			.into_iter()
 			.collect::<Program>();
 
 		info!(
@@ -68,8 +67,8 @@ fn main() -> Result<()> {
 		program.len()
 	);
 
-	let ir = program
-		.par_iter()
+	let ir: String = program
+		.iter()
 		.map(|i| i.to_string() + "\n")
 		.collect::<String>();
 

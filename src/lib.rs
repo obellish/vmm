@@ -22,7 +22,12 @@ mod tests {
 	const BENCH: &str = include_str!("../programs/bench.bf");
 
 	fn get_program(raw: &'static str) -> Result<Program, ParseError> {
-		Parser::new(raw)
+		let raw = raw
+			.chars()
+			.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
+			.collect::<String>();
+
+		Parser::new(&raw)
 			.scan()
 			.map(|v| v.into_iter().collect::<Program>())
 	}

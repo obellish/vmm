@@ -973,7 +973,6 @@ dependencies = [
  "anyhow",
  "clap",
  "color-eyre",
- "rayon",
  "ron",
  "tracing",
  "tracing-error",
