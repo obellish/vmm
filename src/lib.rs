@@ -1,7 +1,7 @@
 #[doc(inline)]
 pub use {
 	vmm_alloc as alloc, vmm_interpret as interpret, vmm_ir as ir, vmm_opt as opt,
-	vmm_parse as parse, vmm_program as program, vmm_utils as utils,
+	vmm_parse as parse, vmm_program as program, vmm_tape as tape, vmm_utils as utils,
 };
 
 #[cfg(test)]
@@ -13,6 +13,7 @@ mod tests {
 		opt::{HashMetadataStore, Optimizer},
 		parse::{ParseError, Parser},
 		program::Program,
+		tape::PtrTape,
 	};
 
 	const HELLO_WORLD: &str = include_str!("../programs/hello_world.bf");
@@ -42,7 +43,8 @@ mod tests {
 				program
 			};
 
-			let mut interpreter = Interpreter::new(program, io::empty(), Vec::<u8>::new());
+			let mut interpreter: Interpreter<PtrTape, _, _> =
+				Interpreter::new(program, io::empty(), Vec::<u8>::new());
 
 			interpreter.run()?;
 

@@ -16,6 +16,7 @@ use vmm::{
 	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
 	parse::Parser as BfParser,
 	program::Program,
+	tape::PtrTape,
 	utils::HeapSize as _,
 };
 
@@ -35,7 +36,7 @@ fn main() -> Result<()> {
 
 	let filtered_data = raw_data
 		.chars()
-		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
+		.filter(|c| matches!(c, '+'..='.' | '>' | '<' | '[' | ']'))
 		.collect::<String>();
 
 	let program = {
@@ -75,13 +76,13 @@ fn main() -> Result<()> {
 	fs::write("./out/ir.txt", ir)?;
 
 	let profiler = if program.needs_input() {
-		let mut vm = Interpreter::stdio(program).and_with_profiler();
+		let mut vm = Interpreter::<PtrTape>::stdio(program).and_with_profiler();
 
 		vm.run()?;
 
 		vm.profiler()
 	} else {
-		let mut vm = Interpreter::stdio(program)
+		let mut vm = Interpreter::<PtrTape>::stdio(program)
 			.with_input(std::io::empty())
 			.and_with_profiler();
 

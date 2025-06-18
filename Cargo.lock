@@ -984,6 +984,7 @@ dependencies = [
  "vmm_opt",
  "vmm_parse",
  "vmm_program",
+ "vmm_tape",
  "vmm_utils",
 ]
 

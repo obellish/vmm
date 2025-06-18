@@ -22,15 +22,15 @@ pub use self::profiler::*;
 pub const ITERATION_LIMIT: usize = 100_000;
 
 #[derive(Debug, Clone)]
-pub struct Interpreter<R = Stdin, W = Stdout> {
+pub struct Interpreter<T, R = Stdin, W = Stdout> {
 	program: Program,
 	input: R,
 	output: W,
 	profiler: Option<Profiler>,
-	tape: Tape,
+	tape: T,
 }
 
-impl<R, W> Interpreter<R, W> {
+impl<T: Tape, R, W> Interpreter<T, R, W> {
 	#[inline]
 	pub fn new(program: Program, input: R, output: W) -> Self {
 		Self {
@@ -38,7 +38,7 @@ impl<R, W> Interpreter<R, W> {
 			input,
 			output,
 			profiler: None,
-			tape: Tape::new(),
+			tape: T::init(),
 		}
 	}
 
@@ -70,32 +70,32 @@ impl<R, W> Interpreter<R, W> {
 	}
 
 	#[inline]
-	pub const fn tape(&self) -> &Tape {
+	pub const fn tape(&self) -> &T {
 		&self.tape
 	}
 
 	#[inline]
-	pub const fn tape_mut(&mut self) -> &mut Tape {
+	pub const fn tape_mut(&mut self) -> &mut T {
 		&mut self.tape
 	}
 
 	#[inline]
-	pub fn cell(&self) -> &Cell {
-		self.tape().cell()
+	pub fn current_cell(&self) -> &Cell {
+		unsafe { self.tape().current_cell_unchecked() }
 	}
 
 	#[inline]
 	pub fn cell_mut(&mut self) -> &mut Cell {
-		self.tape_mut().cell_mut()
+		unsafe { self.tape_mut().current_cell_unchecked_mut() }
 	}
 
 	#[inline]
-	pub const fn ptr(&self) -> &TapePointer {
+	pub fn ptr(&self) -> &TapePointer {
 		self.tape().ptr()
 	}
 
 	#[inline]
-	pub const fn ptr_mut(&mut self) -> &mut TapePointer {
+	pub fn ptr_mut(&mut self) -> &mut TapePointer {
 		self.tape_mut().ptr_mut()
 	}
 
@@ -109,28 +109,28 @@ impl<R, W> Interpreter<R, W> {
 }
 
 #[allow(clippy::unused_self)]
-impl<R, W> Interpreter<R, W>
+impl<T: Tape, R, W> Interpreter<T, R, W>
 where
 	R: Read + 'static,
 	W: Write + 'static,
 {
 	#[inline]
-	pub fn into_dyn(self) -> Interpreter<Box<dyn Read>, Box<dyn Write>> {
+	pub fn into_dyn(self) -> Interpreter<T, Box<dyn Read>, Box<dyn Write>> {
 		Interpreter::new(self.program, Box::new(self.input), Box::new(self.output))
 	}
 
 	#[inline]
-	pub fn with_input<RR: Read>(self, input: RR) -> Interpreter<RR, W> {
+	pub fn with_input<RR: Read>(self, input: RR) -> Interpreter<T, RR, W> {
 		Interpreter::new(self.program, input, self.output)
 	}
 
 	#[inline]
-	pub fn with_output<WW: Write>(self, output: WW) -> Interpreter<R, WW> {
+	pub fn with_output<WW: Write>(self, output: WW) -> Interpreter<T, R, WW> {
 		Interpreter::new(self.program, self.input, output)
 	}
 
 	#[inline]
-	pub fn with_io<RR: Read, WW: Write>(self, input: RR, output: WW) -> Interpreter<RR, WW> {
+	pub fn with_io<RR: Read, WW: Write>(self, input: RR, output: WW) -> Interpreter<T, RR, WW> {
 		Interpreter::new(self.program, input, output)
 	}
 
@@ -214,7 +214,7 @@ where
 
 	#[inline]
 	fn find_zero(&mut self, offset: isize) -> Result<(), RuntimeError> {
-		while !self.cell().is_zero() {
+		while !self.current_cell().is_zero() {
 			*self.ptr_mut() += offset;
 		}
 
@@ -225,7 +225,7 @@ where
 	fn dyn_loop(&mut self, instructions: &[Instruction]) -> Result<(), RuntimeError> {
 		let mut iterations = 0usize;
 
-		while !self.cell().is_zero() {
+		while !self.current_cell().is_zero() {
 			iterations += 1;
 
 			if matches!(iterations, ITERATION_LIMIT) {
@@ -299,7 +299,7 @@ where
 		value: Option<NonZeroU8>,
 		offset: isize,
 	) -> Result<(), RuntimeError> {
-		while !self.cell().is_zero() {
+		while !self.current_cell().is_zero() {
 			self.cell_mut().set_value(value.get_or_zero());
 			*self.ptr_mut() += offset;
 		}
@@ -417,7 +417,7 @@ where
 		match instr {
 			BlockInstruction::DynamicLoop(instrs) => self.dyn_loop(instrs)?,
 			BlockInstruction::IfNz(instrs) => {
-				if self.cell().is_zero() {
+				if self.current_cell().is_zero() {
 					return Ok(());
 				}
 
@@ -473,7 +473,7 @@ where
 	}
 }
 
-impl Interpreter<Stdin, Stdout> {
+impl<T: Tape> Interpreter<T, Stdin, Stdout> {
 	#[inline]
 	#[must_use]
 	pub fn stdio(program: Program) -> Self {
