@@ -7,6 +7,13 @@ name = "vmm_par_utils"
 rust-version.workspace = true
 version.workspace = true
 
+[dependencies]
+atomic-maybe-uninit = { version = "0.3", optional = true }
+
+[dev-dependencies]
+fastrand = "2"
+
 [features]
+atomic = ["dep:atomic-maybe-uninit"]
 default = ["std"]
 std = []
