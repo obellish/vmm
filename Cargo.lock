@@ -95,12 +95,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dde20b3d026af13f561bdd0f15edf01fc734f0dafcedbaf42bba506a9517f223"
 
 [[package]]
-name = "atomic-maybe-uninit"
-version = "0.3.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f87802388a732ab8851f443960d29fe1b5e1d7c0713e3091a045e66fe3acf639"
-
-[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -345,12 +339,6 @@ dependencies = [
  "indenter",
  "once_cell",
 ]
-
-[[package]]
-name = "fastrand"
-version = "2.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
 
 [[package]]
 name = "fnv"
@@ -1054,21 +1042,6 @@ dependencies = [
  "vmm_type_name",
  "vmm_utils",
  "vmm_vec",
-]
-
-[[package]]
-name = "vmm_par_gc"
-version = "0.1.0"
-dependencies = [
- "vmm_par_utils",
-]
-
-[[package]]
-name = "vmm_par_utils"
-version = "0.1.0"
-dependencies = [
- "atomic-maybe-uninit",
- "fastrand",
 ]
 
 [[package]]
