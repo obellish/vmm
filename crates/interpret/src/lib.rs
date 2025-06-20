@@ -213,7 +213,7 @@ where
 	}
 
 	#[inline]
-	fn find_zero(&mut self, offset: isize) -> Result<(), RuntimeError> {
+	fn find_zero(&mut self, Offset(offset): Offset) -> Result<(), RuntimeError> {
 		while !self.current_cell().is_zero() {
 			*self.ptr_mut() += offset;
 		}
@@ -297,7 +297,7 @@ where
 	fn set_until_zero(
 		&mut self,
 		value: Option<NonZeroU8>,
-		offset: isize,
+		Offset(offset): Offset,
 	) -> Result<(), RuntimeError> {
 		while !self.current_cell().is_zero() {
 			self.cell_mut().set_value(value.get_or_zero());
@@ -364,10 +364,19 @@ where
 	}
 
 	#[inline]
-	fn find_and_set_zero(&mut self, offset: isize, value: NonZeroU8) -> Result<(), RuntimeError> {
+	fn find_and_set_zero(&mut self, offset: Offset, value: NonZeroU8) -> Result<(), RuntimeError> {
 		self.find_zero(offset)?;
 
 		self.set_val(Some(value), Offset(0))?;
+
+		Ok(())
+	}
+
+	#[inline]
+	fn find_cell_by_zero(&mut self, jump_by: Offset, offset: Offset) -> Result<(), RuntimeError> {
+		self.find_zero(jump_by)?;
+
+		self.move_ptr(offset)?;
 
 		Ok(())
 	}
@@ -456,6 +465,9 @@ where
 			}
 			SuperInstruction::SetUntilZero { value, offset } => {
 				self.set_until_zero(value, offset)?;
+			}
+			SuperInstruction::FindCellByZero { jump_by, offset } => {
+				self.find_cell_by_zero(jump_by, offset)?
 			}
 			i => return Err(RuntimeError::Unimplemented((i).into())),
 		}
