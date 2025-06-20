@@ -244,6 +244,11 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub fn shift_vals(offset: impl Into<Offset>) -> Self {
+		Self::Super(SuperInstruction::shift_vals(offset))
+	}
+
+	#[must_use]
 	pub const fn is_overwriting_current_cell(&self) -> bool {
 		matches!(
 			self,

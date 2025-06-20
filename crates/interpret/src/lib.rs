@@ -399,6 +399,16 @@ where
 	}
 
 	#[inline]
+	fn shift_vals(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		while !self.current_cell().is_zero() {
+			self.move_val(offset)?;
+			self.move_ptr(-offset)?;
+		}
+
+		Ok(())
+	}
+
+	#[inline]
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -475,6 +485,7 @@ where
 			SuperInstruction::FindCellByZero { jump_by, offset } => {
 				self.find_cell_by_zero(jump_by, offset)?;
 			}
+			SuperInstruction::ShiftVals(offset) => self.shift_vals(offset)?,
 			i => return Err(RuntimeError::Unimplemented((i).into())),
 		}
 

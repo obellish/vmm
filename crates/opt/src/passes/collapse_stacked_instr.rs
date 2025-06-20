@@ -1,5 +1,5 @@
 use vmm_ir::{Instruction, Offset};
-use vmm_num::ops::WrappingAdd;
+use vmm_num::ops::{WrappingAdd, WrappingMul};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -130,7 +130,12 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: y,
 				},
 			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
-
+			[
+				Instruction::ScaleVal { factor: x },
+				Instruction::ScaleVal { factor: y },
+			] => Some(Change::Replace(Instruction::scale_val(
+				WrappingMul::wrapping_mul(x, y),
+			))),
 			_ => None,
 		}
 	}
@@ -167,7 +172,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 					offset: Offset(0),
 					..
 				}
-			]
+			] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
 		) || matches!(
 			window,
 			[

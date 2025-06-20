@@ -50,6 +50,17 @@ impl PeepholePass for OptimizeScaleValPass {
 				}),
 				Instruction::TakeVal(y),
 			] if *x == -y => Some(Change::replace(Instruction::scale_val(*factor))),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Take,
+					offset: x,
+					factor,
+				}),
+				Instruction::MoveVal(y),
+			] if *x == -y => Some(Change::swap([
+				Instruction::scale_val(*factor),
+				Instruction::move_ptr(x),
+			])),
 			_ => None,
 		}
 	}
@@ -83,7 +94,7 @@ impl PeepholePass for OptimizeScaleValPass {
 					action: ScaleAnd::Move,
 					offset: y,
 					..
-				}) | Instruction::TakeVal(y)
+				}) | Instruction::TakeVal(y) | Instruction::MoveVal(y)
 			]
 			if *x == -y
 		)

@@ -30,6 +30,7 @@ pub enum SuperInstruction {
 		jump_by: Offset,
 		offset: Offset,
 	},
+	ShiftVals(Offset),
 }
 
 impl SuperInstruction {
@@ -76,6 +77,11 @@ impl SuperInstruction {
 			offset: offset.into(),
 		}
 	}
+
+	#[must_use]
+	pub fn shift_vals(offset: impl Into<Offset>) -> Self {
+		Self::ShiftVals(offset.into())
+	}
 }
 
 #[allow(unreachable_patterns)]
@@ -112,6 +118,7 @@ impl IsZeroingCell for SuperInstruction {
 				action: ScaleAnd::Move,
 				..
 			} | Self::SetUntilZero { .. }
+				| Self::ShiftVals(..)
 		)
 	}
 }
