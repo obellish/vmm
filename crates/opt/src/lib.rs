@@ -152,6 +152,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<OptimizeScaleValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeZeroedCellIncValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeScaleAndTakeValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeScaleAndSetValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSetScaleValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeTakeValPass>(progress);
 		self.run_default_peephole_pass::<OptimizeTakeFetchValPass>(progress);

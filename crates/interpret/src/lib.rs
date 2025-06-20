@@ -300,6 +300,28 @@ where
 	}
 
 	#[inline]
+	fn scale_and_set_val(
+		&mut self,
+		factor: u8,
+		offset: Offset,
+		value: NonZeroU8,
+	) -> Result<(), RuntimeError> {
+		let src_offset = self.ptr().value();
+		let dst_offset = self.calculate_index(offset);
+
+		let tape = self.tape_mut();
+
+		let src_val = mem::replace(tape[src_offset].as_mut_u8(), value.get());
+
+		WrappingAddAssign::wrapping_add_assign(
+			&mut tape[dst_offset],
+			WrappingMul::wrapping_mul(src_val, factor),
+		);
+
+		Ok(())
+	}
+
+	#[inline]
 	fn set_until_zero(
 		&mut self,
 		value: Option<NonZeroU8>,
@@ -476,6 +498,11 @@ where
 				offset,
 				factor,
 			} => self.scale_and_take_val(factor, offset)?,
+			SuperInstruction::ScaleAnd {
+				action: ScaleAnd::Set(value),
+				offset,
+				factor,
+			} => self.scale_and_set_val(factor, offset, value)?,
 			SuperInstruction::FindAndSetZero { offset, value } => {
 				self.find_and_set_zero(offset, value)?;
 			}

@@ -13,6 +13,7 @@ mod remove_dead_code;
 mod reorder_instr;
 mod replace_val;
 mod scale_and_move_val;
+mod scale_and_set_val;
 mod scale_and_take_val;
 mod scale_val;
 mod set_scale;
@@ -32,8 +33,8 @@ pub use self::{
 	clear_cell::*, clear_loop::*, collapse_relative_instr::*, collapse_stacked_instr::*,
 	combine_move_change::*, constant_sub::*, fetch_and_scale_val::*, fetch_val::*,
 	find_cell_by_zero::*, find_zero::*, if_nz::*, remove_dead_code::*, reorder_instr::*,
-	replace_val::*, scale_and_move_val::*, scale_and_take_val::*, scale_val::*, set_scale::*,
-	set_until_zero::*, set_zero::*, shift_vals::*, sub_cell::*, sup::*, take_to_fetch::*,
-	take_val::*, unroll_constant_loops::*, unroll_increment_loops::*, unroll_super_scale::*,
-	zeroed_cell_inc::*,
+	replace_val::*, scale_and_move_val::*, scale_and_set_val::*, scale_and_take_val::*,
+	scale_val::*, set_scale::*, set_until_zero::*, set_zero::*, shift_vals::*, sub_cell::*, sup::*,
+	take_to_fetch::*, take_val::*, unroll_constant_loops::*, unroll_increment_loops::*,
+	unroll_super_scale::*, zeroed_cell_inc::*,
 };

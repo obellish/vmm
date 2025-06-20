@@ -32,6 +32,13 @@ impl PeepholePass for RemoveRedundantScaleValInstrBasicPass {
 					..
 				}),
 			] => Some(Change::replace(Instruction::clear_val())),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Set(value),
+					factor: 0,
+					..
+				}),
+			] => Some(Change::replace(Instruction::set_val(value.get()))),
 			_ => None,
 		}
 	}

@@ -54,6 +54,10 @@ impl SuperInstruction {
 		Self::scale_and(factor, offset, ScaleAnd::Fetch)
 	}
 
+	pub fn scale_and_set_val(factor: u8, offset: impl Into<Offset>, value: NonZeroU8) -> Self {
+		Self::scale_and(factor, offset, ScaleAnd::Set(value))
+	}
+
 	#[must_use]
 	pub fn find_and_set_zero(value: NonZeroU8, offset: impl Into<Offset>) -> Self {
 		Self::FindAndSetZero {

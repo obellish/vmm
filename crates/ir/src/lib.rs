@@ -173,6 +173,11 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub fn scale_and_set_val(factor: u8, offset: impl Into<Offset>, value: NonZeroU8) -> Self {
+		SuperInstruction::scale_and_set_val(factor, offset, value).into()
+	}
+
+	#[must_use]
 	pub fn move_ptr(offset: impl Into<Offset>) -> Self {
 		Self::MovePtr(offset.into())
 	}
