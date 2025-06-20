@@ -1080,7 +1080,6 @@ dependencies = [
  "serde",
  "serde_array",
  "vmm_num",
- "vmm_testing",
  "vmm_utils",
 ]
 

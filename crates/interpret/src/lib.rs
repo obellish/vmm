@@ -467,7 +467,7 @@ where
 				self.set_until_zero(value, offset)?;
 			}
 			SuperInstruction::FindCellByZero { jump_by, offset } => {
-				self.find_cell_by_zero(jump_by, offset)?
+				self.find_cell_by_zero(jump_by, offset)?;
 			}
 			i => return Err(RuntimeError::Unimplemented((i).into())),
 		}

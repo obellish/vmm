@@ -1,6 +1,6 @@
 [build]
 rustdocflags = ["--cfg", "docsrs", "--show-type-layout", "-Z", "unstable-options"]
-rustflags = ["-C", "target-cpu=native"]
+rustflags = ["-Ctarget-cpu=native", "-Clink-args=-zstack-size=2880112"]
 
 [alias]
 mutate = "mutants --test-tool=nextest -v -V --all-features"

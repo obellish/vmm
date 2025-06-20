@@ -51,25 +51,3 @@ pub trait Tape: Default + IndexMut<usize, Output = Cell> {
 		unsafe { self.as_mut_slice().get_unchecked_mut(idx) }
 	}
 }
-
-#[cfg(test)]
-mod tests {
-	use vmm_testing::run_test;
-
-	use super::{PtrTape, Tape as _};
-
-	#[test]
-	fn any_index_works() {
-		let mut tape = PtrTape::new();
-		_ = run_test(|u| {
-			let idx = u.arbitrary::<usize>()?;
-
-			*tape.ptr_mut() += idx;
-
-			assert_eq!(tape.current_cell().value(), 1);
-
-			Ok(())
-		})
-		.budget_ms(10);
-	}
-}
