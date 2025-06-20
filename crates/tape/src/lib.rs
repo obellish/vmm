@@ -14,15 +14,13 @@ pub use self::{cell::*, impls::*, ptr::*};
 pub const TAPE_SIZE: usize = 30000;
 
 pub trait Tape: Default + IndexMut<usize, Output = Cell> {
-	#[must_use]
-	fn init() -> Self {
-		let mut tape = Self::default();
+	/// Initialize the tape, setting all cells indices and values.
+	fn init(&mut self) {
+		for (i, cell) in self.as_mut_slice().iter_mut().enumerate() {
+			cell.set_value(0);
 
-		for (i, cell) in tape.as_mut_slice().iter_mut().enumerate() {
 			cell.set_index(i);
 		}
-
-		tape
 	}
 
 	fn as_slice(&self) -> &[Cell];

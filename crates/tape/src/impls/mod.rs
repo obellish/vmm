@@ -9,15 +9,25 @@ mod tests {
 	use crate::{BoxTape, PtrTape, TAPE_SIZE, Tape, VecTape};
 
 	fn check_length<T: Tape>() {
-		let tape = T::init();
+		let mut tape = T::default();
+
+		tape.init();
 
 		assert_eq!(tape.as_slice().len(), TAPE_SIZE);
 	}
 
 	#[test]
-	fn is_correct_length() {
+	fn is_box_correct_length() {
 		check_length::<BoxTape>();
-		check_length::<VecTape>();
+	}
+
+	#[test]
+	fn is_ptr_correct_length() {
 		check_length::<PtrTape>();
+	}
+
+	#[test]
+	fn is_vec_correct_length() {
+		check_length::<VecTape>();
 	}
 }

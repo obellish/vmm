@@ -58,9 +58,9 @@ where
 }
 
 impl Tape for VecTape {
-	fn init() -> Self {
-		Self::new()
-	}
+	fn init(&mut self) {}
+
+	// We don't need to init, as we do it in `new`
 
 	fn as_slice(&self) -> &[Cell] {
 		self.cells.as_slice()

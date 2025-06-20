@@ -38,7 +38,13 @@ impl<T: Tape, R, W> Interpreter<T, R, W> {
 			input,
 			output,
 			profiler: None,
-			tape: T::init(),
+			tape: {
+				let mut t = T::default();
+
+				t.init();
+
+				t
+			},
 		}
 	}
 

@@ -29,11 +29,11 @@ impl PtrTape {
 				alloc::alloc::handle_alloc_error(layout);
 			}
 
-			raw.cast::<Cell>()
+			NonNull::new_unchecked(raw.cast())
 		};
 
 		Ok(Self {
-			cells: unsafe { NonNull::new_unchecked(ptr) },
+			cells: ptr,
 			ptr: unsafe { TapePointer::new_unchecked(0) },
 		})
 	}
