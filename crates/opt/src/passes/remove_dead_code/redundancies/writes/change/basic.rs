@@ -128,7 +128,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					| Instruction::Super(SuperInstruction::ScaleAnd {
 						action: ScaleAnd::Take,
 						..
-					}),
+					}) | Instruction::ScaleVal { .. },
 				Instruction::SetVal {
 					offset: Offset(0),
 					..

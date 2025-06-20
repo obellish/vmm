@@ -3,9 +3,9 @@ use vmm_ir::Instruction;
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct RemoveRedundantScaleValInstrPass;
+pub struct RemoveRedundantScaleValInstrBasicPass;
 
-impl PeepholePass for RemoveRedundantScaleValInstrPass {
+impl PeepholePass for RemoveRedundantScaleValInstrBasicPass {
 	const SIZE: usize = 1;
 
 	#[inline]
