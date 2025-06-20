@@ -132,7 +132,7 @@ impl PtrMovement for SuperInstruction {
 	fn ptr_movement(&self) -> Option<isize> {
 		match self {
 			Self::ScaleAnd {
-				action: ScaleAnd::Move | ScaleAnd::Fetch,
+				action: ScaleAnd::Move | ScaleAnd::Fetch | ScaleAnd::Set(..),
 				..
 			} => Some(0),
 			Self::ScaleAnd {

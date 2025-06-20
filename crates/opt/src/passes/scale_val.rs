@@ -61,6 +61,22 @@ impl PeepholePass for OptimizeScaleValPass {
 				Instruction::scale_val(*factor),
 				Instruction::move_ptr(x),
 			])),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Take,
+					offset: x,
+					factor: a,
+				}),
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Set(value),
+					offset: y,
+					factor: b,
+				}),
+			] if *x == -y => Some(Change::swap([
+				Instruction::scale_val(WrappingMul::wrapping_mul(a, b)),
+				Instruction::move_ptr(x),
+				Instruction::set_val(value.get()),
+			])),
 			_ => None,
 		}
 	}
@@ -91,10 +107,11 @@ impl PeepholePass for OptimizeScaleValPass {
 					..
 				}),
 				Instruction::Super(SuperInstruction::ScaleAnd {
-					action: ScaleAnd::Move,
+					action: ScaleAnd::Move | ScaleAnd::Set(..),
 					offset: y,
 					..
-				}) | Instruction::TakeVal(y) | Instruction::MoveVal(y)
+				}) | Instruction::TakeVal(y)
+					| Instruction::MoveVal(y)
 			]
 			if *x == -y
 		)
