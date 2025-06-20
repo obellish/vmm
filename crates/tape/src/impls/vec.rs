@@ -15,8 +15,6 @@ pub struct VecTape {
 impl VecTape {
 	#[must_use]
 	pub fn new() -> Self {
-		extern crate std;
-
 		Self {
 			cells: {
 				let mut cells = Vec::with_capacity(TAPE_SIZE);
@@ -24,7 +22,7 @@ impl VecTape {
 					cells.push(Cell::with_index(0, i));
 				}
 
-				std::dbg!(cells.len());
+				cells.shrink_to_fit();
 
 				cells
 			},
