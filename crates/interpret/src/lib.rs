@@ -219,9 +219,9 @@ where
 	}
 
 	#[inline]
-	fn find_zero(&mut self, Offset(offset): Offset) -> Result<(), RuntimeError> {
+	fn find_zero(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		while !self.current_cell().is_zero() {
-			*self.ptr_mut() += offset;
+			self.move_ptr(offset)?;
 		}
 
 		Ok(())
