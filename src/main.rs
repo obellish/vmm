@@ -21,7 +21,8 @@ use vmm::{
 };
 
 #[global_allocator]
-static ALLOC: AllocChain<'static, SyncStalloc<8192, 4>, System> = SyncStalloc::new().chain(&System);
+static ALLOC: AllocChain<'static, SyncStalloc<65535, 4>, System> =
+	SyncStalloc::new().chain(&System);
 
 fn main() -> Result<()> {
 	_ = fs::remove_dir_all("./out");

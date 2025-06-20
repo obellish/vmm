@@ -22,6 +22,8 @@ mod tests {
 
 	const BENCH: &str = include_str!("../programs/bench.bf");
 
+	const TEST: &str = include_str!("../programs/test.bf");
+
 	fn get_program(raw: &'static str) -> Result<Program, ParseError> {
 		let raw = raw
 			.chars()
@@ -75,12 +77,49 @@ mod tests {
 	}
 
 	#[test]
-	#[cfg_attr(miri, ignore)]
 	fn hello_world_optimized_ptr_tape() -> anyhow::Result<()> {
 		assert_eq!(
 			run_program::<PtrTape>(HELLO_WORLD, true)?,
 			b"Hello World!\n"
 		);
+
+		Ok(())
+	}
+
+	#[test]
+	fn hello_world_optimized_box_tape() -> anyhow::Result<()> {
+		assert_eq!(
+			run_program::<BoxTape>(HELLO_WORLD, true)?,
+			b"Hello World!\n"
+		);
+
+		Ok(())
+	}
+
+	#[test]
+	fn test_unoptimized_ptr_tape() -> anyhow::Result<()> {
+		assert_eq!(run_program::<PtrTape>(TEST, false)?, []);
+
+		Ok(())
+	}
+
+	#[test]
+	fn test_optimized_ptr_tape() -> anyhow::Result<()> {
+		assert_eq!(run_program::<PtrTape>(TEST, true)?, []);
+
+		Ok(())
+	}
+
+	#[test]
+	fn test_unoptimized_box_tape() -> anyhow::Result<()> {
+		assert_eq!(run_program::<BoxTape>(TEST, false)?, []);
+
+		Ok(())
+	}
+
+	#[test]
+	fn test_optimized_box_tape() -> anyhow::Result<()> {
+		assert_eq!(run_program::<BoxTape>(TEST, true)?, []);
 
 		Ok(())
 	}
