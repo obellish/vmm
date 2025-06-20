@@ -39,7 +39,9 @@ impl<'source> Parser<'source> {
 
 		let mut parsed = parse(self.inner.filter_map(Result::ok), 0)?;
 
-		parsed.insert(0, Instruction::Start);
+		parsed.insert(0, Instruction::Boundary);
+
+		parsed.push(Instruction::Boundary);
 
 		Ok(parsed)
 	}

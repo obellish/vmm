@@ -179,7 +179,7 @@ impl<S: MetadataStore> Optimizer<S> {
 
 		self.run_default_dynamic_loop_pass::<RemoveEmptyLoopsPass>(progress);
 		self.run_default_peephole_pass::<RemoveUnreachableLoopsPass>(progress);
-		self.run_default_peephole_pass::<RemoveUnusedStartingInstrPass>(progress);
+		self.run_default_peephole_pass::<RemoveUnusedBoundaryInstrPass>(progress);
 		self.run_default_dynamic_loop_pass::<RemoveInfiniteLoopsPass>(progress);
 
 		self.run_default_peephole_pass::<UnrollConstantLoopsPass>(progress);

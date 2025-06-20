@@ -437,7 +437,7 @@ where
 		}
 
 		match instr {
-			Instruction::Start => self.start()?,
+			Instruction::Boundary => self.start()?,
 			Instruction::IncVal { value, offset } => self.inc_val(*value, *offset)?,
 			Instruction::SetVal { value, offset } => self.set_val(*value, *offset)?,
 			Instruction::MovePtr(offset) => self.move_ptr(*offset)?,

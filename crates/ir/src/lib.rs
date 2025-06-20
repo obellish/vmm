@@ -22,9 +22,9 @@ pub use self::{block_instr::*, offset::*, super_instr::*, utils::*};
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
 pub enum Instruction {
-	/// The start of the program
+	/// The "boundary" (start/end) of a program
 	/// Is a no-op, but allows for other optimizations to be applied
-	Start,
+	Boundary,
 	/// Increment the value at the current cell (offset = None) or at an offset
 	IncVal {
 		value: i8,
@@ -429,7 +429,7 @@ impl Display for Instruction {
 				f.write_char(']')?;
 			}
 			Self::Read => f.write_str("getc")?,
-			Self::Start => f.write_str("start")?,
+			Self::Boundary => f.write_str("boundary")?,
 			Self::Super(s) => Display::fmt(&s, f)?,
 			Self::Block(l) => Display::fmt(&l, f)?,
 			// _ => f.write_char('*')?,
@@ -480,7 +480,7 @@ impl PtrMovement for Instruction {
 			Self::ScaleVal { .. }
 			| Self::SetVal { .. }
 			| Self::IncVal { .. }
-			| Self::Start
+			| Self::Boundary
 			| Self::Read
 			| Self::Write { .. }
 			| Self::SubCell { .. }
