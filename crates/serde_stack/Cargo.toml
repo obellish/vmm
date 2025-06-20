@@ -1,0 +1,12 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "serde_stack"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde.workspace = true
+stacker = "0.1"
