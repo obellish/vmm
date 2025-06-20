@@ -52,7 +52,7 @@ pub enum Instruction {
 	/// Move the pointer along the tape
 	MovePtr(Offset),
 	/// Find the next zero, jumping by the value
-	FindZero(isize),
+	FindZero(Offset),
 	/// Read a value from the input
 	Read,
 	/// Write the value to an output
@@ -112,7 +112,7 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn find_and_set_zero(v: NonZeroU8, offset: isize) -> Self {
+	pub fn find_and_set_zero(v: NonZeroU8, offset: impl Into<Offset>) -> Self {
 		Self::Super(SuperInstruction::find_and_set_zero(v, offset))
 	}
 
@@ -183,8 +183,8 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn find_zero(jump_by: isize) -> Self {
-		Self::FindZero(jump_by)
+	pub fn find_zero(jump_by: impl Into<Offset>) -> Self {
+		Self::FindZero(jump_by.into())
 	}
 
 	#[must_use]
@@ -234,8 +234,13 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub const fn set_until_zero(value: u8, offset: isize) -> Self {
+	pub fn set_until_zero(value: u8, offset: impl Into<Offset>) -> Self {
 		Self::Super(SuperInstruction::set_until_zero(value, offset))
+	}
+
+	#[must_use]
+	pub fn find_cell_by_zero(jump_by: impl Into<Offset>, offset: impl Into<Offset>) -> Self {
+		Self::Super(SuperInstruction::find_cell_by_zero(jump_by, offset))
 	}
 
 	#[must_use]

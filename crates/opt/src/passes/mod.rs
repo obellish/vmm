@@ -6,6 +6,7 @@ mod combine_move_change;
 mod constant_sub;
 mod fetch_and_scale_val;
 mod fetch_val;
+mod find_cell_by_zero;
 mod find_zero;
 mod if_nz;
 mod remove_dead_code;
@@ -27,9 +28,9 @@ mod zeroed_cell_inc;
 
 pub use self::{
 	clear_cell::*, clear_loop::*, collapse_relative_instr::*, collapse_stacked_instr::*,
-	combine_move_change::*, constant_sub::*, fetch_and_scale_val::*, fetch_val::*, find_zero::*,
-	if_nz::*, remove_dead_code::*, reorder_instr::*, replace_val::*, scale_and_move_val::*,
-	scale_and_take_val::*, scale_val::*, set_scale::*, set_until_zero::*, set_zero::*, sub_cell::*,
-	take_to_fetch::*, take_val::*, unroll_constant_loops::*, unroll_increment_loops::*,
-	unroll_super_scale::*, zeroed_cell_inc::*,
+	combine_move_change::*, constant_sub::*, fetch_and_scale_val::*, fetch_val::*,
+	find_cell_by_zero::*, find_zero::*, if_nz::*, remove_dead_code::*, reorder_instr::*,
+	replace_val::*, scale_and_move_val::*, scale_and_take_val::*, scale_val::*, set_scale::*,
+	set_until_zero::*, set_zero::*, sub_cell::*, take_to_fetch::*, take_val::*,
+	unroll_constant_loops::*, unroll_increment_loops::*, unroll_super_scale::*, zeroed_cell_inc::*,
 };

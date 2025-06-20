@@ -973,7 +973,6 @@ dependencies = [
  "anyhow",
  "clap",
  "color-eyre",
- "rayon",
  "ron",
  "tracing",
  "tracing-error",
@@ -985,6 +984,7 @@ dependencies = [
  "vmm_opt",
  "vmm_parse",
  "vmm_program",
+ "vmm_tape",
  "vmm_utils",
 ]
 
@@ -1080,7 +1080,7 @@ dependencies = [
  "serde",
  "serde_array",
  "vmm_num",
- "vmm_testing",
+ "vmm_utils",
 ]
 
 [[package]]

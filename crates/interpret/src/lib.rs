@@ -12,9 +12,9 @@ use std::{
 };
 
 use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
-use vmm_num::Wrapping;
+use vmm_num::ops::{WrappingAddAssign, WrappingMul, WrappingMulAssign, WrappingSubAssign};
 use vmm_program::Program;
-use vmm_tape::{Tape, TapePointer};
+use vmm_tape::{Cell, Tape, TapePointer};
 use vmm_utils::GetOrZero as _;
 
 pub use self::profiler::*;
@@ -22,15 +22,15 @@ pub use self::profiler::*;
 pub const ITERATION_LIMIT: usize = 100_000;
 
 #[derive(Debug, Clone)]
-pub struct Interpreter<R = Stdin, W = Stdout> {
+pub struct Interpreter<T, R = Stdin, W = Stdout> {
 	program: Program,
 	input: R,
 	output: W,
 	profiler: Option<Profiler>,
-	tape: Tape,
+	tape: T,
 }
 
-impl<R, W> Interpreter<R, W> {
+impl<T: Tape, R, W> Interpreter<T, R, W> {
 	#[inline]
 	pub fn new(program: Program, input: R, output: W) -> Self {
 		Self {
@@ -38,7 +38,13 @@ impl<R, W> Interpreter<R, W> {
 			input,
 			output,
 			profiler: None,
-			tape: Tape::new(),
+			tape: {
+				let mut t = T::default();
+
+				t.init();
+
+				t
+			},
 		}
 	}
 
@@ -70,32 +76,32 @@ impl<R, W> Interpreter<R, W> {
 	}
 
 	#[inline]
-	pub const fn tape(&self) -> &Tape {
+	pub const fn tape(&self) -> &T {
 		&self.tape
 	}
 
 	#[inline]
-	pub const fn tape_mut(&mut self) -> &mut Tape {
+	pub const fn tape_mut(&mut self) -> &mut T {
 		&mut self.tape
 	}
 
 	#[inline]
-	pub fn cell(&self) -> &Wrapping<u8> {
-		self.tape().cell()
+	pub fn current_cell(&self) -> &Cell {
+		unsafe { self.tape().current_cell_unchecked() }
 	}
 
 	#[inline]
-	pub fn cell_mut(&mut self) -> &mut Wrapping<u8> {
-		self.tape_mut().cell_mut()
+	pub fn cell_mut(&mut self) -> &mut Cell {
+		unsafe { self.tape_mut().current_cell_unchecked_mut() }
 	}
 
 	#[inline]
-	pub const fn ptr(&self) -> &TapePointer {
+	pub fn ptr(&self) -> &TapePointer {
 		self.tape().ptr()
 	}
 
 	#[inline]
-	pub const fn ptr_mut(&mut self) -> &mut TapePointer {
+	pub fn ptr_mut(&mut self) -> &mut TapePointer {
 		self.tape_mut().ptr_mut()
 	}
 
@@ -109,28 +115,28 @@ impl<R, W> Interpreter<R, W> {
 }
 
 #[allow(clippy::unused_self)]
-impl<R, W> Interpreter<R, W>
+impl<T: Tape, R, W> Interpreter<T, R, W>
 where
 	R: Read + 'static,
 	W: Write + 'static,
 {
 	#[inline]
-	pub fn into_dyn(self) -> Interpreter<Box<dyn Read>, Box<dyn Write>> {
+	pub fn into_dyn(self) -> Interpreter<T, Box<dyn Read>, Box<dyn Write>> {
 		Interpreter::new(self.program, Box::new(self.input), Box::new(self.output))
 	}
 
 	#[inline]
-	pub fn with_input<RR: Read>(self, input: RR) -> Interpreter<RR, W> {
+	pub fn with_input<RR: Read>(self, input: RR) -> Interpreter<T, RR, W> {
 		Interpreter::new(self.program, input, self.output)
 	}
 
 	#[inline]
-	pub fn with_output<WW: Write>(self, output: WW) -> Interpreter<R, WW> {
+	pub fn with_output<WW: Write>(self, output: WW) -> Interpreter<T, R, WW> {
 		Interpreter::new(self.program, self.input, output)
 	}
 
 	#[inline]
-	pub fn with_io<RR: Read, WW: Write>(self, input: RR, output: WW) -> Interpreter<RR, WW> {
+	pub fn with_io<RR: Read, WW: Write>(self, input: RR, output: WW) -> Interpreter<T, RR, WW> {
 		Interpreter::new(self.program, input, output)
 	}
 
@@ -159,7 +165,7 @@ where
 				continue;
 			}
 
-			self.cell_mut().0 = buf[0];
+			self.cell_mut().set_value(buf[0]);
 			break;
 		}
 
@@ -170,7 +176,7 @@ where
 	fn write_char(&mut self, count: usize, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		let ch = self.tape()[idx].0;
+		let ch = self.tape()[idx].value();
 
 		let o = vec![ch; count];
 
@@ -191,7 +197,7 @@ where
 	fn inc_val(&mut self, value: i8, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		self.tape_mut()[idx] += value;
+		WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[idx], value);
 
 		Ok(())
 	}
@@ -200,7 +206,7 @@ where
 	fn set_val(&mut self, value: Option<NonZeroU8>, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		self.tape_mut()[idx].0 = value.get_or_zero();
+		self.tape_mut()[idx].set_value(value.get_or_zero());
 
 		Ok(())
 	}
@@ -213,8 +219,8 @@ where
 	}
 
 	#[inline]
-	fn find_zero(&mut self, offset: isize) -> Result<(), RuntimeError> {
-		while !matches!(self.cell().0, 0) {
+	fn find_zero(&mut self, Offset(offset): Offset) -> Result<(), RuntimeError> {
+		while !self.current_cell().is_zero() {
 			*self.ptr_mut() += offset;
 		}
 
@@ -225,7 +231,7 @@ where
 	fn dyn_loop(&mut self, instructions: &[Instruction]) -> Result<(), RuntimeError> {
 		let mut iterations = 0usize;
 
-		while !matches!(self.cell().0, 0) {
+		while !self.current_cell().is_zero() {
 			iterations += 1;
 
 			if matches!(iterations, ITERATION_LIMIT) {
@@ -242,11 +248,11 @@ where
 
 	#[inline]
 	fn move_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
-		let src_value = mem::take(self.cell_mut()).0;
+		let src_value = mem::take(self.cell_mut().as_mut_u8());
 
 		let dst_offset = self.calculate_index(offset);
 
-		self.tape_mut()[dst_offset] += src_value;
+		WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[dst_offset], src_value);
 
 		Ok(())
 	}
@@ -255,9 +261,9 @@ where
 	fn fetch_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(&mut self.tape_mut()[src_offset]).0;
+		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
 
-		*self.cell_mut() += value;
+		WrappingAddAssign::wrapping_add_assign(self.cell_mut(), value);
 
 		Ok(())
 	}
@@ -269,9 +275,12 @@ where
 
 		let tape = self.tape_mut();
 
-		let src_val = mem::take(&mut tape[src_offset]);
+		let src_val = mem::take(tape[src_offset].as_mut_u8());
 
-		tape[dst_offset] += Wrapping::mul(src_val, factor).0;
+		WrappingAddAssign::wrapping_add_assign(
+			&mut tape[dst_offset],
+			WrappingMul::wrapping_mul(src_val, factor),
+		);
 
 		Ok(())
 	}
@@ -280,9 +289,12 @@ where
 	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(&mut self.tape_mut()[src_offset]);
+		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
 
-		*self.cell_mut() += Wrapping::mul(value, factor).0;
+		WrappingAddAssign::wrapping_add_assign(
+			self.cell_mut(),
+			WrappingMul::wrapping_mul(value, factor),
+		);
 
 		Ok(())
 	}
@@ -291,10 +303,10 @@ where
 	fn set_until_zero(
 		&mut self,
 		value: Option<NonZeroU8>,
-		offset: isize,
+		Offset(offset): Offset,
 	) -> Result<(), RuntimeError> {
-		while !matches!(self.cell().0, 0) {
-			_ = mem::replace(&mut self.cell_mut().0, value.get_or_zero());
+		while !self.current_cell().is_zero() {
+			self.cell_mut().set_value(value.get_or_zero());
 			*self.ptr_mut() += offset;
 		}
 
@@ -303,7 +315,7 @@ where
 
 	#[inline]
 	fn scale_val(&mut self, factor: u8) -> Result<(), RuntimeError> {
-		*self.cell_mut() *= factor;
+		WrappingMulAssign::wrapping_mul_assign(self.cell_mut(), factor);
 
 		Ok(())
 	}
@@ -312,55 +324,65 @@ where
 	fn sub_cell(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		let current_value = mem::take(self.cell_mut());
+		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
-		self.tape_mut()[idx] -= current_value.0;
+		WrappingSubAssign::wrapping_sub_assign(&mut self.tape_mut()[idx], current_value);
 
 		Ok(())
 	}
 
 	#[inline]
 	fn take_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
-		let current_value = mem::take(self.cell_mut()).0;
+		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
 		self.move_ptr(offset)?;
 
-		*self.cell_mut() += current_value;
+		WrappingAddAssign::wrapping_add_assign(self.cell_mut(), current_value);
 
 		Ok(())
 	}
 
 	#[inline]
 	fn scale_and_take_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
-		let current_value = mem::take(self.cell_mut());
+		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
 		self.move_ptr(offset)?;
 
-		*self.cell_mut() += Wrapping::mul(current_value, factor).0;
+		WrappingAddAssign::wrapping_add_assign(
+			self.cell_mut(),
+			WrappingMul::wrapping_mul(current_value, factor),
+		);
 
 		Ok(())
 	}
 
 	#[inline]
 	fn dupe_val(&mut self, offsets: &[Offset]) -> Result<(), RuntimeError> {
-		let value = mem::take(self.cell_mut()).0;
+		let value = mem::take(self.cell_mut().as_mut_u8());
 
 		for offset in offsets {
 			let idx = self.calculate_index(*offset);
 
-			self.tape_mut()[idx] += value;
+			WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[idx], value);
 		}
 
 		Ok(())
 	}
 
 	#[inline]
-	fn find_and_set_zero(&mut self, offset: isize, value: NonZeroU8) -> Result<(), RuntimeError> {
-		while !matches!(self.cell().0, 0) {
-			*self.ptr_mut() += offset;
-		}
+	fn find_and_set_zero(&mut self, offset: Offset, value: NonZeroU8) -> Result<(), RuntimeError> {
+		self.find_zero(offset)?;
 
-		self.cell_mut().0 = value.get();
+		self.set_val(Some(value), Offset(0))?;
+
+		Ok(())
+	}
+
+	#[inline]
+	fn find_cell_by_zero(&mut self, jump_by: Offset, offset: Offset) -> Result<(), RuntimeError> {
+		self.find_zero(jump_by)?;
+
+		self.move_ptr(offset)?;
 
 		Ok(())
 	}
@@ -369,9 +391,9 @@ where
 	fn replace_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(&mut self.tape_mut()[src_offset]);
+		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
 
-		_ = mem::replace(self.cell_mut(), value);
+		_ = mem::replace(self.cell_mut().as_mut_u8(), value);
 
 		Ok(())
 	}
@@ -410,7 +432,7 @@ where
 		match instr {
 			BlockInstruction::DynamicLoop(instrs) => self.dyn_loop(instrs)?,
 			BlockInstruction::IfNz(instrs) => {
-				if matches!(self.cell().0, 0) {
+				if self.current_cell().is_zero() {
 					return Ok(());
 				}
 
@@ -418,7 +440,7 @@ where
 					.iter()
 					.try_for_each(|i| self.execute_instruction(i))?;
 
-				mem::take(self.cell_mut());
+				mem::take(self.cell_mut().as_mut_u8());
 			}
 			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
@@ -450,6 +472,9 @@ where
 			SuperInstruction::SetUntilZero { value, offset } => {
 				self.set_until_zero(value, offset)?;
 			}
+			SuperInstruction::FindCellByZero { jump_by, offset } => {
+				self.find_cell_by_zero(jump_by, offset)?;
+			}
 			i => return Err(RuntimeError::Unimplemented((i).into())),
 		}
 
@@ -461,12 +486,12 @@ where
 	fn calculate_index(&self, offset: Offset) -> usize {
 		match offset.0 {
 			0 => self.ptr().value(),
-			x => (*self.ptr() + x).value(),
+			x => (self.ptr() + x).value(),
 		}
 	}
 }
 
-impl Interpreter<Stdin, Stdout> {
+impl<T: Tape> Interpreter<T, Stdin, Stdout> {
 	#[inline]
 	#[must_use]
 	pub fn stdio(program: Program) -> Self {

@@ -19,12 +19,16 @@ pub enum SuperInstruction {
 		factor: u8,
 	},
 	FindAndSetZero {
-		offset: isize,
+		offset: Offset,
 		value: NonZeroU8,
 	},
 	SetUntilZero {
 		value: Option<NonZeroU8>,
-		offset: isize,
+		offset: Offset,
+	},
+	FindCellByZero {
+		jump_by: Offset,
+		offset: Offset,
 	},
 }
 
@@ -50,15 +54,26 @@ impl SuperInstruction {
 	}
 
 	#[must_use]
-	pub const fn find_and_set_zero(value: NonZeroU8, offset: isize) -> Self {
-		Self::FindAndSetZero { offset, value }
+	pub fn find_and_set_zero(value: NonZeroU8, offset: impl Into<Offset>) -> Self {
+		Self::FindAndSetZero {
+			offset: offset.into(),
+			value,
+		}
 	}
 
 	#[must_use]
-	pub const fn set_until_zero(value: u8, offset: isize) -> Self {
+	pub fn set_until_zero(value: u8, offset: impl Into<Offset>) -> Self {
 		Self::SetUntilZero {
 			value: NonZeroU8::new(value),
-			offset,
+			offset: offset.into(),
+		}
+	}
+
+	#[must_use]
+	pub fn find_cell_by_zero(jump_by: impl Into<Offset>, offset: impl Into<Offset>) -> Self {
+		Self::FindCellByZero {
+			jump_by: jump_by.into(),
+			offset: offset.into(),
 		}
 	}
 }

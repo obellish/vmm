@@ -2,7 +2,6 @@ use std::{alloc::System, fmt::Debug, fs, path::PathBuf};
 
 use clap::Parser;
 use color_eyre::eyre::Result;
-use rayon::prelude::*;
 use tracing::info;
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
@@ -11,15 +10,19 @@ use tracing_subscriber::{
 	fmt::{self, format::FmtSpan},
 	prelude::*,
 };
-use vmm_alloc::{AllocChain, SyncStalloc};
-use vmm_interpret::{Interpreter, Profiler};
-use vmm_opt::{HashMetadataStore, Optimizer, OutputMetadataStore};
-use vmm_parse::Parser as BfParser;
-use vmm_program::Program;
-use vmm_utils::HeapSize as _;
+use vmm::{
+	alloc::{AllocChain, SyncStalloc},
+	interpret::{Interpreter, Profiler},
+	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
+	parse::Parser as BfParser,
+	program::Program,
+	tape::PtrTape,
+	utils::HeapSize as _,
+};
 
 #[global_allocator]
-static ALLOC: AllocChain<'static, SyncStalloc<8192, 4>, System> = SyncStalloc::new().chain(&System);
+static ALLOC: AllocChain<'static, SyncStalloc<65535, 4>, System> =
+	SyncStalloc::new().chain(&System);
 
 fn main() -> Result<()> {
 	_ = fs::remove_dir_all("./out");
@@ -33,14 +36,14 @@ fn main() -> Result<()> {
 	let raw_data = fs::read_to_string(args.file)?;
 
 	let filtered_data = raw_data
-		.par_chars()
-		.filter(|c| matches!(c, '+' | '-' | '>' | '<' | ',' | '.' | '[' | ']'))
+		.chars()
+		.filter(|c| matches!(c, '+'..='.' | '>' | '<' | '[' | ']'))
 		.collect::<String>();
 
 	let program = {
 		let unoptimized = BfParser::new(&filtered_data)
 			.scan()?
-			.into_par_iter()
+			.into_iter()
 			.collect::<Program>();
 
 		info!(
@@ -66,21 +69,21 @@ fn main() -> Result<()> {
 		program.len()
 	);
 
-	let ir = program
-		.par_iter()
+	let ir: String = program
+		.iter()
 		.map(|i| i.to_string() + "\n")
 		.collect::<String>();
 
 	fs::write("./out/ir.txt", ir)?;
 
 	let profiler = if program.needs_input() {
-		let mut vm = Interpreter::stdio(program).and_with_profiler();
+		let mut vm = Interpreter::<PtrTape>::stdio(program).and_with_profiler();
 
 		vm.run()?;
 
 		vm.profiler()
 	} else {
-		let mut vm = Interpreter::stdio(program)
+		let mut vm = Interpreter::<PtrTape>::stdio(program)
 			.with_input(std::io::empty())
 			.and_with_profiler();
 

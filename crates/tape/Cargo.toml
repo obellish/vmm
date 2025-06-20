@@ -11,6 +11,4 @@ version.workspace = true
 serde = { workspace = true, default-features = false, features = ["derive"] }
 serde_array.workspace = true
 vmm_num.workspace = true
-
-[dev-dependencies]
-vmm_testing.workspace = true
+vmm_utils = { workspace = true, features = ["get_or_zero"] }

@@ -161,6 +161,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<OptimizeFetchValPass>(progress);
 		self.run_default_dynamic_loop_pass::<OptimizeSetUntilZeroPass>(progress);
 		self.run_default_peephole_pass::<OptimizeReplaceValPass>(progress);
+		self.run_default_peephole_pass::<OptimizeFindCellByZeroPass>(progress);
 
 		self.run_default_peephole_pass::<ReorderMoveChangePass>(progress);
 		self.run_default_peephole_pass::<ReorderOffsetBetweenMovesPass>(progress);
