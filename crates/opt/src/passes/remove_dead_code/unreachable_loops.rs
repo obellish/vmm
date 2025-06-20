@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, IsZeroingCell as _};
+use vmm_ir::{Instruction, IsZeroingCell as _, SuperInstruction};
 
 use crate::{Change, PeepholePass};
 
@@ -18,6 +18,6 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 
 	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [i, Instruction::Block(..)] if i.is_zeroing_cell())
+		matches!(window, [i, Instruction::Block(..) | Instruction::Super(SuperInstruction::ShiftVals(..))] if i.is_zeroing_cell())
 	}
 }

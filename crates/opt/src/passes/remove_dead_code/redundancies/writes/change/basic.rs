@@ -37,7 +37,8 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 			| [
 				Instruction::IncVal {
 					offset: Offset(0), ..
-				},
+				}
+				| Instruction::ScaleVal { .. },
 				Instruction::SetVal {
 					offset: Offset(0), ..
 				},
@@ -63,7 +64,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value: None,
 					offset: Offset(0),
 				},
-				Instruction::SubCell { .. },
+				Instruction::SubCell { .. } | Instruction::ScaleVal { .. },
 			] => Some(Change::remove_offset(1)),
 			[
 				Instruction::TakeVal(offset)
@@ -138,7 +139,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value: None,
 					offset: Offset(0)
 				},
-				Instruction::SubCell { .. }
+				Instruction::SubCell { .. } | Instruction::ScaleVal { .. }
 			]
 		)
 	}

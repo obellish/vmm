@@ -20,6 +20,7 @@ mod set_until_zero;
 mod set_zero;
 mod shift_vals;
 mod sub_cell;
+mod sup;
 mod take_to_fetch;
 mod take_val;
 mod unroll_constant_loops;
@@ -32,6 +33,7 @@ pub use self::{
 	combine_move_change::*, constant_sub::*, fetch_and_scale_val::*, fetch_val::*,
 	find_cell_by_zero::*, find_zero::*, if_nz::*, remove_dead_code::*, reorder_instr::*,
 	replace_val::*, scale_and_move_val::*, scale_and_take_val::*, scale_val::*, set_scale::*,
-	set_until_zero::*, set_zero::*, shift_vals::*, sub_cell::*, take_to_fetch::*, take_val::*,
-	unroll_constant_loops::*, unroll_increment_loops::*, unroll_super_scale::*, zeroed_cell_inc::*,
+	set_until_zero::*, set_zero::*, shift_vals::*, sub_cell::*, sup::*, take_to_fetch::*,
+	take_val::*, unroll_constant_loops::*, unroll_increment_loops::*, unroll_super_scale::*,
+	zeroed_cell_inc::*,
 };
