@@ -18,9 +18,8 @@
             },
             "args": [
                 "-o",
-                "--",
                 "${workspaceFolder}${pathSeparator}programs${pathSeparator}rot13.bf",
-            ]
+            ],
         }
     ]
 }
