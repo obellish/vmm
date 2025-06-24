@@ -197,35 +197,19 @@ where
 
 impl<T, E> FallibleTap<T, E> for Result<T, E> {
 	fn tap_ok(self, func: impl FnOnce(&T)) -> Self {
-		if let Ok(ref val) = self {
-			func(val);
-		}
-
-		self
+		SpecFallibleTap::spec_tap_ok(self, func)
 	}
 
-	fn tap_ok_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
-		if let Ok(ref mut val) = self {
-			func(val);
-		}
-
-		self
+	fn tap_ok_mut(self, func: impl FnOnce(&mut T)) -> Self {
+		SpecFallibleTap::spec_tap_ok_mut(self, func)
 	}
 
 	fn tap_err(self, func: impl FnOnce(&E)) -> Self {
-		if let Err(ref val) = self {
-			func(val);
-		}
-
-		self
+		SpecFallibleTap::spec_tap_err(self, func)
 	}
 
-	fn tap_err_mut(mut self, func: impl FnOnce(&mut E)) -> Self {
-		if let Err(ref mut val) = self {
-			func(val);
-		}
-
-		self
+	fn tap_err_mut(self, func: impl FnOnce(&mut E)) -> Self {
+		SpecFallibleTap::spec_tap_err_mut(self, func)
 	}
 }
 
@@ -290,6 +274,132 @@ impl<T> OptionalTap<T> for Option<T> {
 	}
 }
 
+trait SpecFallibleTap<T: ?Sized, E: ?Sized> {
+	fn spec_tap_ok(self, func: impl FnOnce(&T)) -> Self;
+
+	fn spec_tap_ok_mut(self, func: impl FnOnce(&mut T)) -> Self;
+
+	fn spec_tap_err(self, func: impl FnOnce(&E)) -> Self;
+
+	fn spec_tap_err_mut(self, func: impl FnOnce(&mut E)) -> Self;
+}
+
+#[cfg(not(feature = "nightly"))]
+impl<T, E> SpecFallibleTap<T, E> for Result<T, E> {
+	fn spec_tap_ok(self, func: impl FnOnce(&T)) -> Self {
+		if let Ok(ref val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	fn spec_tap_ok_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
+		if let Ok(ref mut val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	fn spec_tap_err(self, func: impl FnOnce(&E)) -> Self {
+		if let Err(ref val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	fn spec_tap_err_mut(mut self, func: impl FnOnce(&mut E)) -> Self {
+		if let Err(ref mut val) = self {
+			func(val);
+		}
+
+		self
+	}
+}
+
+#[cfg(feature = "nightly")]
+impl<T, E> SpecFallibleTap<T, E> for Result<T, E> {
+	default fn spec_tap_ok(self, func: impl FnOnce(&T)) -> Self {
+		if let Ok(ref val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	default fn spec_tap_ok_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
+		if let Ok(ref mut val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	default fn spec_tap_err(self, func: impl FnOnce(&E)) -> Self {
+		if let Err(ref val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	default fn spec_tap_err_mut(mut self, func: impl FnOnce(&mut E)) -> Self {
+		if let Err(ref mut val) = self {
+			func(val);
+		}
+
+		self
+	}
+}
+
+#[cfg(feature = "nightly")]
+impl<T> SpecFallibleTap<T, !> for Result<T, !> {
+	fn spec_tap_ok(self, func: impl FnOnce(&T)) -> Self {
+		let Ok(ref val) = self;
+		func(val);
+		self
+	}
+
+	fn spec_tap_ok_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
+		let Ok(ref mut val) = self;
+		func(val);
+		self
+	}
+
+	fn spec_tap_err(self, _: impl FnOnce(&!)) -> Self {
+		self
+	}
+
+	fn spec_tap_err_mut(self, _: impl FnOnce(&mut !)) -> Self {
+		self
+	}
+}
+
+#[cfg(feature = "nightly")]
+impl<T> SpecFallibleTap<T, core::convert::Infallible> for Result<T, core::convert::Infallible> {
+	fn spec_tap_ok(self, func: impl FnOnce(&T)) -> Self {
+		let Ok(ref val) = self;
+		func(val);
+		self
+	}
+
+	fn spec_tap_ok_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
+		let Ok(ref mut val) = self;
+		func(val);
+		self
+	}
+
+	fn spec_tap_err_mut(self, _: impl FnOnce(&mut core::convert::Infallible)) -> Self {
+		self
+	}
+
+	fn spec_tap_err(self, _: impl FnOnce(&core::convert::Infallible)) -> Self {
+		self
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	extern crate alloc;
@@ -326,5 +436,22 @@ mod tests {
 
 		let _: Option<i32> = None.tap_none(|| val = 10);
 		assert_eq!(val, 10);
+	}
+
+	#[cfg(feature = "nightly")]
+	#[expect(clippy::uninhabited_references)]
+	#[test]
+	fn spec() {
+		let res: Result<i32, !> = Ok(3);
+
+		_ = res.tap_ok(|v| assert_eq!(*v, 3));
+
+		_ = res.tap_err(|v| match *v {});
+
+		let res: Result<i32, core::convert::Infallible> = Ok(5);
+
+		_ = res.tap_ok(|v| assert_eq!(*v, 5));
+
+		_ = res.tap_err(|v| match *v {});
 	}
 }
