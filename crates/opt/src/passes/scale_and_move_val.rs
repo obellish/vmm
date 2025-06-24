@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, Value};
 
 use crate::{Change, LoopPass};
 
@@ -11,24 +11,24 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 		match loop_values {
 			[
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					value: j @ 0..=i8::MAX,
+					value: Value::Constant(j @ 0..=i8::MAX),
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 			]
 			| [
 				Instruction::IncVal {
-					value: j @ 0..=i8::MAX,
+					value: Value::Constant(j @ 0..=i8::MAX),
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(x),
@@ -41,21 +41,21 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			}
 			[
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 				Instruction::IncVal {
-					value: value @ 0..=i8::MAX,
+					value: Value::Constant(value @ 0..=i8::MAX),
 					offset: x,
 				},
 			]
 			| [
 				Instruction::IncVal {
-					value: value @ 0..=i8::MAX,
+					value: Value::Constant(value @ 0..=i8::MAX),
 					offset: x,
 				},
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::scale_and_move_val(
@@ -76,7 +76,7 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			loop_values,
 			[
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				},
 				Instruction::MovePtr(x),
@@ -86,7 +86,7 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 				Instruction::IncVal { offset: Offset(0), .. },
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				},
 				Instruction::MovePtr(y)
@@ -96,20 +96,20 @@ impl LoopPass for OptimizeScaleAndMoveValPass {
 			loop_values,
 			[
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				},
 				Instruction::IncVal {
-					value: 0..=i8::MAX,
+					value: Value::Constant(0..=i8::MAX),
 					..
 				}
 			] | [
 				Instruction::IncVal {
-					value: 0..=i8::MAX,
+					value: Value::Constant(0..=i8::MAX),
 					..
 				},
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				}
 			]

@@ -11,7 +11,10 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction, WriteInstruction};
+use vmm_ir::{
+	BlockInstruction, FromCell, Instruction, Offset, ScaleAnd, SuperInstruction, Value,
+	WriteInstruction,
+};
 use vmm_num::ops::{WrappingAddAssign, WrappingMul, WrappingMulAssign, WrappingSubAssign};
 use vmm_program::Program;
 use vmm_tape::{Cell, Tape, TapePointer};
@@ -457,6 +460,12 @@ where
 		self.set_val(NonZeroU8::new(last), Offset(0))
 	}
 
+	fn write_target(&mut self, count: usize, value: Value<u8>) -> Result<(), RuntimeError> {
+		let value = self.resolve_value(value);
+
+		self.write_to_output(value, count)
+	}
+
 	#[inline]
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
@@ -465,7 +474,10 @@ where
 
 		match instr {
 			Instruction::Boundary => self.boundary()?,
-			Instruction::IncVal { value, offset } => self.inc_val(*value, *offset)?,
+			Instruction::IncVal {
+				value: Value::Constant(value),
+				offset,
+			} => self.inc_val(*value, *offset)?,
 			Instruction::SetVal { value, offset } => self.set_val(*value, *offset)?,
 			Instruction::MovePtr(offset) => self.move_ptr(*offset)?,
 			Instruction::Read => self.read_char()?,
@@ -556,6 +568,7 @@ where
 			} => self.write_and_set(*count, *offset, *value)?,
 			WriteInstruction::Byte(ch) => self.write_byte(*ch)?,
 			WriteInstruction::Bytes(s) => self.write_bytes(s)?,
+			WriteInstruction::Value { count, value } => self.write_target(*count, *value)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}
 
@@ -587,6 +600,18 @@ where
 		}
 
 		Ok(())
+	}
+
+	fn resolve_value<V>(&self, value: Value<V>) -> V
+	where
+		V: FromCell,
+	{
+		match value {
+			Value::CellAt(offset) => {
+				V::from_cell(self.tape()[self.calculate_index(offset)].value())
+			}
+			Value::Constant(v) => v,
+		}
 	}
 }
 

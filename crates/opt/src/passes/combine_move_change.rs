@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, Value};
 
 use crate::{Change, PeepholePass};
 
@@ -14,7 +14,7 @@ impl PeepholePass for CombineMoveChangePass {
 			[
 				Instruction::MovePtr(Offset(x @ 1..=isize::MAX)),
 				Instruction::IncVal {
-					value,
+					value: Value::Constant(value),
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(Offset(y @ isize::MIN..=0)),

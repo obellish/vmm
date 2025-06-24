@@ -1,4 +1,4 @@
-use vmm_ir::{BlockInstruction, Instruction, Offset};
+use vmm_ir::{BlockInstruction, Instruction, Offset, Value};
 
 use crate::{Change, PeepholePass};
 
@@ -19,7 +19,7 @@ impl PeepholePass for RemoveUnusedBoundaryInstrPass {
 			[
 				Instruction::Boundary,
 				Instruction::IncVal {
-					value,
+					value: Value::Constant(value),
 					offset: Offset(offset),
 				},
 			] => Some(Change::swap([

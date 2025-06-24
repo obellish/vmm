@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, Value};
 
 use crate::{Change, LoopPass};
 
@@ -17,14 +17,14 @@ impl LoopPass for OptimizeClearLoopPass {
 				},
 				Instruction::MovePtr(y),
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 			]
 			| [
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
@@ -44,7 +44,7 @@ impl LoopPass for OptimizeClearLoopPass {
 					value: None,
 				},
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 			] => Some(Change::swap([
@@ -53,7 +53,7 @@ impl LoopPass for OptimizeClearLoopPass {
 			])),
 			[
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 				Instruction::SetVal {
@@ -84,13 +84,13 @@ impl LoopPass for OptimizeClearLoopPass {
 				},
 				Instruction::MovePtr(_),
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				}
 			] | [
 				Instruction::MovePtr(_),
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				},
 				Instruction::MovePtr(_),
@@ -100,14 +100,14 @@ impl LoopPass for OptimizeClearLoopPass {
 				}
 			] | [
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				},
 				Instruction::SetVal { value: None, .. }
 			] | [
 				Instruction::SetVal { value: None, .. },
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				}
 			]

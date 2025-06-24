@@ -7,6 +7,7 @@ mod block_instr;
 mod offset;
 mod super_instr;
 mod utils;
+mod value;
 mod write_instr;
 
 use alloc::{string::ToString, vec::Vec};
@@ -18,7 +19,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-pub use self::{block_instr::*, offset::*, super_instr::*, utils::*, write_instr::*};
+pub use self::{block_instr::*, offset::*, super_instr::*, utils::*, value::*, write_instr::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -28,7 +29,7 @@ pub enum Instruction {
 	Boundary,
 	/// Increment the value at the current cell (offset = None) or at an offset
 	IncVal {
-		value: i8,
+		value: Value<i8>,
 		offset: Offset,
 	},
 	SubCell {
@@ -104,7 +105,7 @@ impl Instruction {
 	#[must_use]
 	pub fn inc_val_at(v: i8, offset: impl Into<Offset>) -> Self {
 		Self::IncVal {
-			value: v,
+			value: v.into(),
 			offset: offset.into(),
 		}
 	}
@@ -173,6 +174,11 @@ impl Instruction {
 	#[must_use]
 	pub fn scale_and_set_val(factor: u8, offset: impl Into<Offset>, value: NonZeroU8) -> Self {
 		SuperInstruction::scale_and_set_val(factor, offset, value).into()
+	}
+
+	#[must_use]
+	pub const fn write_value(count: usize, value: Value<u8>) -> Self {
+		Self::Write(WriteInstruction::write_value(count, value))
 	}
 
 	#[must_use]
@@ -315,11 +321,6 @@ impl Instruction {
 	#[must_use]
 	pub const fn is_change_val(&self) -> bool {
 		matches!(self, Self::IncVal { .. })
-	}
-
-	#[must_use]
-	pub const fn is_dec_val(&self) -> bool {
-		matches!(self, Self::IncVal {value, ..} if *value < 0 )
 	}
 
 	#[must_use]

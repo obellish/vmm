@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, Value};
 
 use crate::{Change, LoopPass};
 
@@ -11,15 +11,21 @@ impl LoopPass for OptimizeSubCellPass {
 		match loop_values {
 			[
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
-				Instruction::IncVal { value: -1, offset },
+				Instruction::IncVal {
+					value: Value::Constant(-1),
+					offset,
+				},
 			]
 			| [
-				Instruction::IncVal { value: -1, offset },
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
+					offset,
+				},
+				Instruction::IncVal {
+					value: Value::Constant(-1),
 					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::sub_cell(offset))),
@@ -37,14 +43,20 @@ impl LoopPass for OptimizeSubCellPass {
 			loop_values,
 			[
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				},
-				Instruction::IncVal { value: -1, .. }
-			] | [
-				Instruction::IncVal { value: -1, .. },
 				Instruction::IncVal {
-					value: -1,
+					value: Value::Constant(-1),
+					..
+				}
+			] | [
+				Instruction::IncVal {
+					value: Value::Constant(-1),
+					..
+				},
+				Instruction::IncVal {
+					value: Value::Constant(-1),
 					offset: Offset(0)
 				}
 			]

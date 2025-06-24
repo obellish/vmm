@@ -1,4 +1,4 @@
-use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction, Value};
 use vmm_num::ops::WrappingAdd;
 use vmm_utils::GetOrZero as _;
 
@@ -19,7 +19,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 					value: x,
 				},
 				Instruction::IncVal {
-					value: y,
+					value: Value::Constant(y),
 					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::set_val(

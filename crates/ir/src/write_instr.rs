@@ -3,7 +3,7 @@ use core::num::NonZeroU8;
 
 use serde::{Deserialize, Serialize};
 
-use super::{IsZeroingCell, Offset, PtrMovement};
+use super::{IsZeroingCell, Offset, PtrMovement, Value};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -19,6 +19,10 @@ pub enum WriteInstruction {
 	},
 	Byte(u8),
 	Bytes(Vec<u8>),
+	Value {
+		count: usize,
+		value: Value<u8>,
+	},
 }
 
 impl WriteInstruction {
@@ -39,10 +43,12 @@ impl WriteInstruction {
 
 	#[must_use]
 	pub fn write_many_at(count: usize, offset: impl Into<Offset>) -> Self {
-		Self::Cell {
-			count,
-			offset: offset.into(),
-		}
+		Self::write_value(count, Value::CellAt(offset.into()))
+	}
+
+	#[must_use]
+	pub const fn write_value(count: usize, value: Value<u8>) -> Self {
+		Self::Value { count, value }
 	}
 
 	#[must_use]

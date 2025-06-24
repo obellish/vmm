@@ -1,5 +1,5 @@
 use itertools::Itertools as _;
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, Value};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -29,7 +29,10 @@ fn sorter_key(instr: &Instruction) -> (Offset, Option<i8>) {
 
 const fn get_inc_value(i: &Instruction) -> Option<i8> {
 	match i {
-		Instruction::IncVal { value, .. } => Some(*value),
+		Instruction::IncVal {
+			value: Value::Constant(value),
+			..
+		} => Some(*value),
 		_ => None,
 	}
 }
