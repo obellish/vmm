@@ -82,6 +82,10 @@ impl WriteInstruction {
 
 impl IsZeroingCell for WriteInstruction {
 	fn is_zeroing_cell(&self) -> bool {
+		if let Self::Bytes(bytes) = self {
+			return bytes.last().is_some_and(|v| matches!(*v, 0));
+		}
+
 		matches!(self, Self::CellAndSet { value: None, .. } | Self::Byte(0))
 	}
 }

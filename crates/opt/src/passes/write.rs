@@ -5,9 +5,9 @@ use vmm_utils::GetOrZero as _;
 use crate::{Change, PeepholePass};
 
 #[derive(Debug, Default)]
-pub struct OptimizeWriteBasicPass;
+pub struct OptimizeWritePass;
 
-impl PeepholePass for OptimizeWriteBasicPass {
+impl PeepholePass for OptimizeWritePass {
 	const SIZE: usize = 2;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
@@ -40,6 +40,20 @@ impl PeepholePass for OptimizeWriteBasicPass {
 				Instruction::write_byte(*x),
 				Instruction::set_val(WrappingAdd::wrapping_add(x, y)),
 			])),
+			[
+				Instruction::SetVal { value, offset: x },
+				Instruction::Write(WriteInstruction::Cell {
+					count: 1,
+					offset: y,
+				}),
+			] if *x == *y => Some(Change::swap([
+				Instruction::move_ptr(x),
+				Instruction::write_byte(value.get_or_zero()),
+			])),
+			[
+				Instruction::Write(WriteInstruction::Byte(x)),
+				Instruction::Write(WriteInstruction::Byte(y)),
+			] => Some(Change::replace(Instruction::write_string([*x, *y]))),
 			_ => None,
 		}
 	}
@@ -56,6 +70,9 @@ impl PeepholePass for OptimizeWriteBasicPass {
 			] | [
 				Instruction::Write(WriteInstruction::CellAndSet { offset: x, .. }),
 				Instruction::IncVal { offset: y, .. }
+			] | [
+				Instruction::SetVal { offset: x, .. },
+				Instruction::Write(WriteInstruction::Cell { offset: y, .. })
 			]
 			if *x == *y
 		) || matches!(
@@ -66,6 +83,9 @@ impl PeepholePass for OptimizeWriteBasicPass {
 					offset: Offset(0),
 					..
 				}
+			] | [
+				Instruction::Write(WriteInstruction::Byte(..) | WriteInstruction::Bytes(..)),
+				Instruction::Write(WriteInstruction::Byte(..) | WriteInstruction::Bytes(..))
 			]
 		)
 	}
