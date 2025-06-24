@@ -189,7 +189,7 @@ where
 	}
 
 	#[inline]
-	const fn start(&self) -> Result<(), RuntimeError> {
+	const fn boundary(&self) -> Result<(), RuntimeError> {
 		Ok(())
 	}
 
@@ -437,7 +437,7 @@ where
 		}
 
 		match instr {
-			Instruction::Boundary => self.start()?,
+			Instruction::Boundary => self.boundary()?,
 			Instruction::IncVal { value, offset } => self.inc_val(*value, *offset)?,
 			Instruction::SetVal { value, offset } => self.set_val(*value, *offset)?,
 			Instruction::MovePtr(offset) => self.move_ptr(*offset)?,

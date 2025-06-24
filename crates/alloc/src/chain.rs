@@ -5,6 +5,9 @@ use core::{
 	ptr::NonNull,
 };
 
+#[cfg(feature = "nightly")]
+use tap::prelude::*;
+
 pub struct AllocChain<'a, A, B: ?Sized>(A, &'a B);
 
 impl<'a, A, B: ?Sized> AllocChain<'a, A, B> {
@@ -61,14 +64,11 @@ where
 			}
 
 			let res_b = self.1.allocate(new_layout);
-			if let Ok(ptr_b) = res_b {
-				unsafe {
-					ptr.copy_to_nonoverlapping(ptr_b.cast(), old_layout.size());
-					self.0.deallocate(ptr, old_layout);
-				}
-			}
 
-			res_b
+			res_b.tap_ok(|ptr_b| unsafe {
+				ptr.copy_to_nonoverlapping(ptr_b.cast(), old_layout.size());
+				self.0.deallocate(ptr, old_layout);
+			})
 		} else {
 			unsafe { self.1.grow(ptr, old_layout, new_layout) }
 		}
@@ -107,14 +107,10 @@ where
 
 			let res_b = self.1.allocate(new_layout);
 
-			if let Ok(ptr_b) = res_b {
-				unsafe {
-					ptr.copy_to_nonoverlapping(ptr_b.cast(), old_layout.size());
-					self.0.deallocate(ptr, old_layout);
-				}
-			}
-
-			res_b
+			res_b.tap_ok(|ptr_b| unsafe {
+				ptr.copy_to_nonoverlapping(ptr_b.cast(), old_layout.size());
+				self.0.deallocate(ptr, old_layout);
+			})
 		} else {
 			unsafe { self.1.shrink(ptr, old_layout, new_layout) }
 		}

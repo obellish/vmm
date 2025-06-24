@@ -39,7 +39,8 @@ members = [
     "crates/program",
     "crates/serde_array",
     "crates/serde_stack",
-    "crates/span", "crates/tap",
+    "crates/span",
+    "crates/tap",
     "crates/tape",
     "crates/testing",
     "crates/type_name",
@@ -61,6 +62,7 @@ vmm_ir = { path = "crates/ir" }
 vmm_num = { path = "crates/num" }
 vmm_program = { path = "crates/program" }
 vmm_span = { path = "crates/span" }
+tap = { path = "crates/tap" }
 vmm_tape = { path = "crates/tape" }
 vmm_testing = { path = "crates/testing" }
 vmm_utils = { path = "crates/utils" }

@@ -7,9 +7,12 @@ name = "vmm_alloc"
 rust-version.workspace = true
 version.workspace = true
 
+[dependencies]
+tap = { workspace = true, optional = true }
+
 [features]
 default = ["std"]
-nightly = []
+nightly = ["dep:tap"]
 std = []
 
 [[example]]

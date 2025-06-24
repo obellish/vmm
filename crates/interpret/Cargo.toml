@@ -9,6 +9,7 @@ version.workspace = true
 
 [dependencies]
 serde = { workspace = true, features = ["derive", "std"] }
+tap.workspace = true
 vmm_ir.workspace = true
 vmm_num = { workspace = true, features = ["nightly"] }
 vmm_program.workspace = true

@@ -358,7 +358,7 @@ where
 		let align = layout.align().div_ceil(B);
 
 		if matches!(size, 0) {
-			let dangling = NonNull::new(layout.align() as _).unwrap();
+			let dangling = NonNull::new(layout.align() as _).ok_or(AllocError)?;
 			return Ok(NonNull::slice_from_raw_parts(dangling, 0));
 		}
 
