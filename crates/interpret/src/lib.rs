@@ -438,6 +438,15 @@ where
 	}
 
 	#[inline]
+	fn write_byte(&mut self, b: u8) -> Result<(), RuntimeError> {
+		self.write_to_output(b, 1)?;
+
+		self.set_val(NonZeroU8::new(b), Offset(0))?;
+
+		Ok(())
+	}
+
+	#[inline]
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -534,7 +543,7 @@ where
 				offset,
 				value,
 			} => self.write_and_set(*count, *offset, *value)?,
-			WriteInstruction::Byte(ch) => self.write_to_output(*ch, 1)?,
+			WriteInstruction::Byte(ch) => self.write_byte(*ch)?,
 			WriteInstruction::Bytes(s) => self.write_many_to_output(s)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
 		}

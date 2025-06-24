@@ -1,4 +1,5 @@
-use vmm_ir::{Instruction, WriteInstruction};
+use vmm_ir::{Instruction, Offset, WriteInstruction};
+use vmm_num::ops::WrappingAdd;
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -29,6 +30,16 @@ impl PeepholePass for OptimizeWriteBasicPass {
 				x,
 				value.get_or_zero(),
 			))),
+			[
+				Instruction::Write(WriteInstruction::Byte(x)),
+				Instruction::IncVal {
+					offset: Offset(0),
+					value: y,
+				},
+			] => Some(Change::swap([
+				Instruction::write_byte(*x),
+				Instruction::set_val(WrappingAdd::wrapping_add(x, y)),
+			])),
 			_ => None,
 		}
 	}
@@ -42,8 +53,20 @@ impl PeepholePass for OptimizeWriteBasicPass {
 						| WriteInstruction::Cell { offset: x, .. }
 				),
 				Instruction::SetVal { offset: y, .. }
+			] | [
+				Instruction::Write(WriteInstruction::CellAndSet { offset: x, .. }),
+				Instruction::IncVal { offset: y, .. }
 			]
 			if *x == *y
+		) || matches!(
+			window,
+			[
+				Instruction::Write(WriteInstruction::Byte(..)),
+				Instruction::IncVal {
+					offset: Offset(0),
+					..
+				}
+			]
 		)
 	}
 }

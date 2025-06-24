@@ -82,7 +82,7 @@ impl WriteInstruction {
 
 impl IsZeroingCell for WriteInstruction {
 	fn is_zeroing_cell(&self) -> bool {
-		matches!(self, Self::CellAndSet { value: None, .. })
+		matches!(self, Self::CellAndSet { value: None, .. } | Self::Byte(0))
 	}
 }
 
