@@ -8,5 +8,8 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-serde.workspace = true
+serde = { workspace = true, features = ["std"] }
 stacker = "0.1"
+
+[dev-dependencies]
+serde_json = { workspace = true, features = ["unbounded_depth"] }

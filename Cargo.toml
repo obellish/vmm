@@ -37,7 +37,8 @@ members = [
     "crates/opt",
     "crates/parse",
     "crates/program",
-    "crates/serde_array", "crates/serde_stack",
+    "crates/serde_array",
+    "crates/serde_stack",
     "crates/span",
     "crates/tape",
     "crates/testing",
@@ -54,6 +55,7 @@ rayon = { version = "1.10", default-features = false }
 ron = "0.10"
 serde = { version = "1", default-features = false }
 serde_array = { path = "crates/serde_array" }
+serde_json = "1"
 tracing = { version = "0.1", features = ["attributes"] }
 vmm_ir = { path = "crates/ir" }
 vmm_num = { path = "crates/num" }
