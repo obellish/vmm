@@ -27,6 +27,7 @@ mod take_val;
 mod unroll_constant_loops;
 mod unroll_increment_loops;
 mod unroll_super_scale;
+mod write;
 mod zeroed_cell_inc;
 
 pub use self::{
@@ -36,5 +37,5 @@ pub use self::{
 	replace_val::*, scale_and_move_val::*, scale_and_set_val::*, scale_and_take_val::*,
 	scale_val::*, set_scale::*, set_until_zero::*, set_zero::*, shift_vals::*, sub_cell::*, sup::*,
 	take_to_fetch::*, take_val::*, unroll_constant_loops::*, unroll_increment_loops::*,
-	unroll_super_scale::*, zeroed_cell_inc::*,
+	unroll_super_scale::*, write::*, zeroed_cell_inc::*,
 };

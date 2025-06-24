@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, WriteInstruction};
 use vmm_num::ops::{WrappingAdd, WrappingMul};
 use vmm_utils::GetOrZero as _;
 
@@ -111,24 +111,24 @@ impl PeepholePass for CollapseStackedInstrPass {
 				},
 			] => Some(Change::replace(Instruction::set_val(value.get_or_zero()))),
 			[
-				Instruction::Write {
+				Instruction::Write(WriteInstruction::Cell {
 					offset: Offset(0),
 					count: a,
-				},
-				Instruction::Write {
+				}),
+				Instruction::Write(WriteInstruction::Cell {
 					offset: Offset(0),
 					count: b,
-				},
+				}),
 			] => Some(Change::replace(Instruction::write_many(a + b))),
 			[
-				Instruction::Write {
+				Instruction::Write(WriteInstruction::Cell {
 					count: a,
 					offset: x,
-				},
-				Instruction::Write {
+				}),
+				Instruction::Write(WriteInstruction::Cell {
 					count: b,
 					offset: y,
-				},
+				}),
 			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
 			[
 				Instruction::ScaleVal { factor: x },
@@ -164,44 +164,26 @@ impl PeepholePass for CollapseStackedInstrPass {
 						..
 					}
 				] | [
-				Instruction::Write {
+				Instruction::Write(WriteInstruction::Cell {
 					offset: Offset(0),
 					..
-				},
-				Instruction::Write {
+				}),
+				Instruction::Write(WriteInstruction::Cell {
 					offset: Offset(0),
 					..
-				}
+				})
 			] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
 		) || matches!(
 			window,
 			[
-				Instruction::IncVal {
-					offset: x,
-					..
-				},
-				Instruction::IncVal {
-					offset: y,
-					..
-				}
+				Instruction::IncVal { offset: x, .. },
+				Instruction::IncVal { offset: y, .. }
 			] | [
-				Instruction::SetVal {
-					offset: x,
-					..
-				},
-				Instruction::SetVal {
-					offset: y,
-					..
-				}
+				Instruction::SetVal { offset: x, .. },
+				Instruction::SetVal { offset: y, .. }
 			] | [
-				Instruction::Write {
-					offset: x,
-					..
-				},
-				Instruction::Write {
-					offset: y,
-					..
-				}
+				Instruction::Write(WriteInstruction::Cell { offset: x, .. }),
+				Instruction::Write(WriteInstruction::Cell { offset: y, .. })
 			]
 			if *x == *y
 		)

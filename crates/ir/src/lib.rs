@@ -7,6 +7,7 @@ mod block_instr;
 mod offset;
 mod super_instr;
 mod utils;
+mod write_instr;
 
 use alloc::{string::ToString, vec::Vec};
 use core::{
@@ -17,7 +18,7 @@ use core::{
 use serde::{Deserialize, Serialize};
 use vmm_utils::GetOrZero as _;
 
-pub use self::{block_instr::*, offset::*, super_instr::*, utils::*};
+pub use self::{block_instr::*, offset::*, super_instr::*, utils::*, write_instr::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -56,10 +57,7 @@ pub enum Instruction {
 	/// Read a value from the input
 	Read,
 	/// Write the value to an output
-	Write {
-		count: usize,
-		offset: Offset,
-	},
+	Write(WriteInstruction),
 	/// A block of instructions
 	Block(BlockInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
@@ -178,6 +176,26 @@ impl Instruction {
 	}
 
 	#[must_use]
+	pub fn write_once_and_set(value: u8) -> Self {
+		WriteInstruction::write_once_and_set(value).into()
+	}
+
+	#[must_use]
+	pub fn write_once_and_set_at(offset: impl Into<Offset>, value: u8) -> Self {
+		WriteInstruction::write_once_and_set_at(offset, value).into()
+	}
+
+	#[must_use]
+	pub fn write_many_and_set(count: usize, value: u8) -> Self {
+		WriteInstruction::write_many_and_set(count, value).into()
+	}
+
+	#[must_use]
+	pub fn write_many_and_set_at(count: usize, offset: impl Into<Offset>, value: u8) -> Self {
+		WriteInstruction::write_many_and_set_at(count, offset, value).into()
+	}
+
+	#[must_use]
 	pub fn move_ptr(offset: impl Into<Offset>) -> Self {
 		Self::MovePtr(offset.into())
 	}
@@ -204,10 +222,7 @@ impl Instruction {
 
 	#[must_use]
 	pub fn write_once_at(offset: impl Into<Offset>) -> Self {
-		Self::Write {
-			offset: offset.into(),
-			count: 1,
-		}
+		WriteInstruction::write_once_at(offset).into()
 	}
 
 	#[must_use]
@@ -217,10 +232,17 @@ impl Instruction {
 
 	#[must_use]
 	pub fn write_many_at(count: usize, offset: impl Into<Offset>) -> Self {
-		Self::Write {
-			offset: offset.into(),
-			count,
-		}
+		WriteInstruction::write_many_at(count, offset).into()
+	}
+
+	#[must_use]
+	pub const fn write_byte(ch: u8) -> Self {
+		Self::Write(WriteInstruction::write_byte(ch))
+	}
+
+	#[must_use]
+	pub fn write_string(s: impl IntoIterator<Item = u8>) -> Self {
+		WriteInstruction::write_bytes(s).into()
 	}
 
 	#[must_use]
@@ -366,9 +388,7 @@ impl Instruction {
 	#[must_use]
 	pub const fn offset(&self) -> Option<Offset> {
 		match self {
-			Self::SetVal { offset, .. }
-			| Self::IncVal { offset, .. }
-			| Self::Write { offset, .. } => Some(*offset),
+			Self::SetVal { offset, .. } | Self::IncVal { offset, .. } => Some(*offset),
 			_ => None,
 		}
 	}
@@ -416,13 +436,6 @@ impl Display for Instruction {
 				f.write_str("scale ")?;
 				Display::fmt(&factor, f)?;
 			}
-			Self::Write { count, offset } => {
-				f.write_str("putc ")?;
-				Display::fmt(&count, f)?;
-				let Offset(offset) = offset;
-				write!(f, "{offset:#}")?;
-				f.write_char(' ')?;
-			}
 			Self::FindZero(offset) => {
 				f.write_str("findz [")?;
 				Display::fmt(&offset, f)?;
@@ -452,12 +465,19 @@ impl From<SuperInstruction> for Instruction {
 	}
 }
 
+impl From<WriteInstruction> for Instruction {
+	fn from(value: WriteInstruction) -> Self {
+		Self::Write(value)
+	}
+}
+
 impl IsZeroingCell for Instruction {
 	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
 		match self {
 			Self::Block(l) => l.is_zeroing_cell(),
 			Self::Super(s) => s.is_zeroing_cell(),
+			Self::Write(w) => w.is_zeroing_cell(),
 			Self::SetVal {
 				value: None,
 				offset: Offset(0),
@@ -477,12 +497,12 @@ impl PtrMovement for Instruction {
 		match self {
 			Self::Super(s) => s.ptr_movement(),
 			Self::Block(l) => l.ptr_movement(),
+			Self::Write(w) => w.ptr_movement(),
 			Self::ScaleVal { .. }
 			| Self::SetVal { .. }
 			| Self::IncVal { .. }
 			| Self::Boundary
 			| Self::Read
-			| Self::Write { .. }
 			| Self::SubCell { .. }
 			| Self::FetchVal(..)
 			| Self::MoveVal(..)

@@ -26,7 +26,7 @@ impl LoopPass for RemoveInfiniteLoopsPass {
 						value: Some(..),
 						offset: Offset(0)
 					}
-			]
+			] | [Instruction::Read, ..]
 		) && !loop_values.might_move_ptr()
 	}
 }

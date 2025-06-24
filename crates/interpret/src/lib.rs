@@ -11,7 +11,7 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
+use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction, WriteInstruction};
 use vmm_num::ops::{WrappingAddAssign, WrappingMul, WrappingMulAssign, WrappingSubAssign};
 use vmm_program::Program;
 use vmm_tape::{Cell, Tape, TapePointer};
@@ -178,14 +178,7 @@ where
 
 		let ch = self.tape()[idx].value();
 
-		let o = vec![ch; count];
-
-		if !cfg!(target_os = "windows") || ch < 128 {
-			self.output.write_all(&o)?;
-			self.output.flush()?;
-		}
-
-		Ok(())
+		self.write_to_output(ch, count)
 	}
 
 	#[inline]
@@ -431,6 +424,20 @@ where
 	}
 
 	#[inline]
+	fn write_and_set(
+		&mut self,
+		count: usize,
+		offset: Offset,
+		value: Option<NonZeroU8>,
+	) -> Result<(), RuntimeError> {
+		let idx = self.calculate_index(offset);
+
+		let ch = mem::replace(self.tape_mut()[idx].as_mut_u8(), value.get_or_zero());
+
+		self.write_to_output(ch, count)
+	}
+
+	#[inline]
 	fn execute_instruction(&mut self, instr: &Instruction) -> Result<(), RuntimeError> {
 		if let Some(profiler) = &mut self.profiler {
 			profiler.handle(instr);
@@ -441,7 +448,6 @@ where
 			Instruction::IncVal { value, offset } => self.inc_val(*value, *offset)?,
 			Instruction::SetVal { value, offset } => self.set_val(*value, *offset)?,
 			Instruction::MovePtr(offset) => self.move_ptr(*offset)?,
-			Instruction::Write { offset, count } => self.write_char(*count, *offset)?,
 			Instruction::Read => self.read_char()?,
 			Instruction::FindZero(i) => self.find_zero(*i)?,
 			Instruction::SubCell { offset } => self.sub_cell(*offset)?,
@@ -453,6 +459,7 @@ where
 			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
+			Instruction::Write(w) => self.execute_write_instruction(w)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -519,6 +526,22 @@ where
 		Ok(())
 	}
 
+	fn execute_write_instruction(&mut self, instr: &WriteInstruction) -> Result<(), RuntimeError> {
+		match instr {
+			WriteInstruction::Cell { count, offset } => self.write_char(*count, *offset)?,
+			WriteInstruction::CellAndSet {
+				count,
+				offset,
+				value,
+			} => self.write_and_set(*count, *offset, *value)?,
+			WriteInstruction::Byte(ch) => self.write_to_output(*ch, 1)?,
+			WriteInstruction::Bytes(s) => self.write_many_to_output(s)?,
+			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
+		}
+
+		Ok(())
+	}
+
 	#[inline]
 	#[allow(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Offset) -> usize {
@@ -526,6 +549,24 @@ where
 			0 => self.ptr().value(),
 			x => (self.ptr() + x).value(),
 		}
+	}
+
+	#[inline]
+	fn write_to_output(&mut self, ch: u8, count: usize) -> Result<(), RuntimeError> {
+		let bytes = vec![ch; count];
+		self.write_many_to_output(&bytes)
+	}
+
+	fn write_many_to_output(&mut self, bytes: &[u8]) -> Result<(), RuntimeError> {
+		if bytes
+			.iter()
+			.all(|ch| !cfg!(target_os = "windows") || *ch < 128)
+		{
+			self.output.write_all(bytes)?;
+			self.output.flush()?;
+		}
+
+		Ok(())
 	}
 }
 

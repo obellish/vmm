@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset};
+use vmm_ir::{Instruction, Offset, WriteInstruction};
 
 use crate::{Change, PeepholePass};
 
@@ -19,7 +19,7 @@ impl PeepholePass for RemovePointlessInstrPass {
 			window,
 			[Instruction::MovePtr(Offset(0))
 				| Instruction::IncVal { value: 0, .. }
-				| Instruction::Write { count: 0, .. }]
+				| Instruction::Write(WriteInstruction::Cell { count: 0, .. })]
 		)
 	}
 }

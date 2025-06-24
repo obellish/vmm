@@ -34,6 +34,7 @@ pub enum SuperInstruction {
 }
 
 impl SuperInstruction {
+	#[must_use]
 	pub fn scale_and(factor: u8, offset: impl Into<Offset>, action: ScaleAnd) -> Self {
 		Self::ScaleAnd {
 			action,
@@ -42,18 +43,22 @@ impl SuperInstruction {
 		}
 	}
 
+	#[must_use]
 	pub fn scale_and_move_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		Self::scale_and(factor, offset, ScaleAnd::Move)
 	}
 
+	#[must_use]
 	pub fn scale_and_take_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		Self::scale_and(factor, offset, ScaleAnd::Take)
 	}
 
+	#[must_use]
 	pub fn fetch_and_scale_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		Self::scale_and(factor, offset, ScaleAnd::Fetch)
 	}
 
+	#[must_use]
 	pub fn scale_and_set_val(factor: u8, offset: impl Into<Offset>, value: NonZeroU8) -> Self {
 		Self::scale_and(factor, offset, ScaleAnd::Set(value))
 	}
