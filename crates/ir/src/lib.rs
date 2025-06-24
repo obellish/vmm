@@ -59,7 +59,6 @@ pub enum Instruction {
 	Read,
 	/// Write the value to an output
 	Write {
-		count: usize,
 		value: Value<Bytes>,
 	},
 	/// A block of instructions
@@ -180,12 +179,11 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn write_value<B>(count: usize, value: Value<B>) -> Self
+	pub fn write_value<B>(value: Value<B>) -> Self
 	where
 		B: Into<Bytes>,
 	{
 		Self::Write {
-			count,
 			value: value.map(Into::into),
 		}
 	}
@@ -217,28 +215,17 @@ impl Instruction {
 
 	#[must_use]
 	pub fn write_once_at(offset: impl Into<Offset>) -> Self {
-		// Self::write_value(1, Value::<Bytes>::CellAt(offset.into()))
-		Self::write_many_at(1, offset)
-	}
-
-	#[must_use]
-	pub fn write_many(count: usize) -> Self {
-		Self::write_many_at(count, 0)
-	}
-
-	#[must_use]
-	pub fn write_many_at(count: usize, offset: impl Into<Offset>) -> Self {
-		Self::write_value(count, Value::<Bytes>::CellAt(offset.into()))
+		Self::write_value(Value::<Bytes>::CellAt(offset.into()))
 	}
 
 	#[must_use]
 	pub fn write_byte(ch: u8) -> Self {
-		Self::write_value(1, Value::Constant(ch))
+		Self::write_value(Value::Constant(ch))
 	}
 
 	#[must_use]
 	pub fn write_string(s: impl IntoIterator<Item = u8>) -> Self {
-		Self::write_value(1, Value::<Bytes>::Constant(s.into_iter().collect()))
+		Self::write_value(Value::<Bytes>::Constant(s.into_iter().collect()))
 	}
 
 	#[must_use]

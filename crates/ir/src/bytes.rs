@@ -8,6 +8,16 @@ pub enum Bytes {
 	Many(Vec<u8>),
 }
 
+impl Bytes {
+	#[must_use]
+	pub fn into_vec(self) -> Vec<u8> {
+		match self {
+			Self::Single(b) => Vec::from([b]),
+			Self::Many(b) => b,
+		}
+	}
+}
+
 impl From<u8> for Bytes {
 	fn from(value: u8) -> Self {
 		Self::Single(value)

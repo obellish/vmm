@@ -21,7 +21,7 @@ impl PeepholePass for RemovePointlessInstrPass {
 				| Instruction::IncVal {
 					value: Value::Constant(0),
 					..
-				} | Instruction::Write { count: 0, .. }]
+				}]
 		)
 	}
 }

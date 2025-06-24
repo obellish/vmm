@@ -34,11 +34,10 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::Write {
-					count,
 					value: Value::CellAt(Offset(0)),
 				},
 				Instruction::MovePtr(y),
-			] if *x == -y => Some(Change::replace(Instruction::write_many_at(*count, *x))),
+			] if *x == -y => Some(Change::replace(Instruction::write_once_at(*x))),
 			_ => None,
 		}
 	}

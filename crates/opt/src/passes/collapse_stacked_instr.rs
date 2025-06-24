@@ -111,26 +111,6 @@ impl PeepholePass for CollapseStackedInstrPass {
 				},
 			] => Some(Change::replace(Instruction::set_val(value.get_or_zero()))),
 			[
-				Instruction::Write {
-					value: Value::CellAt(Offset(0)),
-					count: a,
-				},
-				Instruction::Write {
-					value: Value::CellAt(Offset(0)),
-					count: b,
-				},
-			] => Some(Change::replace(Instruction::write_many(a + b))),
-			[
-				Instruction::Write {
-					count: a,
-					value: Value::CellAt(x),
-				},
-				Instruction::Write {
-					count: b,
-					value: Value::CellAt(y),
-				},
-			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
-			[
 				Instruction::ScaleVal { factor: x },
 				Instruction::ScaleVal { factor: y },
 			] => Some(Change::Replace(Instruction::scale_val(
@@ -163,16 +143,7 @@ impl PeepholePass for CollapseStackedInstrPass {
 						offset: Offset(0),
 						..
 					}
-				] | [
-				Instruction::Write {
-					value: Value::CellAt(Offset(0)),
-					..
-				},
-				Instruction::Write {
-					value: Value::CellAt(Offset(0)),
-					..
-				}
-			] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
+				] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
 		) || matches!(
 			window,
 			[
@@ -181,15 +152,6 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] | [
 				Instruction::SetVal { offset: x, .. },
 				Instruction::SetVal { offset: y, .. }
-			] | [
-				Instruction::Write {
-					value: Value::CellAt(x),
-					..
-				},
-				Instruction::Write {
-					value: Value::CellAt(y),
-					..
-				}
 			]
 			if *x == *y
 		)

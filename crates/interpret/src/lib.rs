@@ -418,10 +418,10 @@ where
 		Ok(())
 	}
 
-	fn write_value(&mut self, count: usize, value: &Value<Bytes>) -> Result<(), RuntimeError> {
+	fn write_value(&mut self, value: &Value<Bytes>) -> Result<(), RuntimeError> {
 		let value = self.resolve_value(value.clone());
 
-		self.write_many_to_output(count, value)
+		self.write_many_to_output(value)
 	}
 
 	#[inline]
@@ -446,7 +446,7 @@ where
 			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
-			Instruction::Write { count, value } => self.write_value(*count, value)?,
+			Instruction::Write { value } => self.write_value(value)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -522,19 +522,14 @@ where
 		}
 	}
 
-	fn write_many_to_output(&mut self, count: usize, bytes: Bytes) -> Result<(), RuntimeError> {
-		let bytes = match bytes {
-			Bytes::Single(b) => vec![b],
-			Bytes::Many(b) => b,
-		}
-		.repeat(count);
+	fn write_many_to_output(&mut self, bytes: Bytes) -> Result<(), RuntimeError> {
+		let bytes = bytes.into_vec();
 
-		if bytes
-			.iter()
-			.all(|ch| !cfg!(target_os = "windows") || *ch < 128)
-		{
-			self.output.write_all(&bytes)?;
-			self.output.flush()?;
+		for byte in bytes {
+			if !cfg!(target_os = "windows") || byte < 128 {
+				self.output.write_all(&[byte])?;
+				self.output.flush()?;
+			}
 		}
 
 		Ok(())

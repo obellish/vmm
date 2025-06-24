@@ -37,12 +37,11 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::Write {
-					count,
 					value: Value::CellAt(Offset(0)),
 				},
 				Instruction::MovePtr(y),
 			] => Some(Change::swap([
-				Instruction::write_many_at(*count, *x),
+				Instruction::write_once_at(x),
 				Instruction::move_ptr(*x + *y),
 			])),
 			_ => None,
