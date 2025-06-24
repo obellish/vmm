@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, Value, WriteInstruction};
+use vmm_ir::{Instruction, Offset, Value};
 use vmm_num::ops::{WrappingAdd, WrappingMul};
 use vmm_utils::GetOrZero as _;
 
@@ -111,24 +111,24 @@ impl PeepholePass for CollapseStackedInstrPass {
 				},
 			] => Some(Change::replace(Instruction::set_val(value.get_or_zero()))),
 			[
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
+				Instruction::Write {
+					value: Value::CellAt(Offset(0)),
 					count: a,
-				}),
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
+				},
+				Instruction::Write {
+					value: Value::CellAt(Offset(0)),
 					count: b,
-				}),
+				},
 			] => Some(Change::replace(Instruction::write_many(a + b))),
 			[
-				Instruction::Write(WriteInstruction::Cell {
+				Instruction::Write {
 					count: a,
-					offset: x,
-				}),
-				Instruction::Write(WriteInstruction::Cell {
+					value: Value::CellAt(x),
+				},
+				Instruction::Write {
 					count: b,
-					offset: y,
-				}),
+					value: Value::CellAt(y),
+				},
 			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
 			[
 				Instruction::ScaleVal { factor: x },
@@ -164,14 +164,14 @@ impl PeepholePass for CollapseStackedInstrPass {
 						..
 					}
 				] | [
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
+				Instruction::Write {
+					value: Value::CellAt(Offset(0)),
 					..
-				}),
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
+				},
+				Instruction::Write {
+					value: Value::CellAt(Offset(0)),
 					..
-				})
+				}
 			] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
 		) || matches!(
 			window,
@@ -182,8 +182,14 @@ impl PeepholePass for CollapseStackedInstrPass {
 				Instruction::SetVal { offset: x, .. },
 				Instruction::SetVal { offset: y, .. }
 			] | [
-				Instruction::Write(WriteInstruction::Cell { offset: x, .. }),
-				Instruction::Write(WriteInstruction::Cell { offset: y, .. })
+				Instruction::Write {
+					value: Value::CellAt(x),
+					..
+				},
+				Instruction::Write {
+					value: Value::CellAt(y),
+					..
+				}
 			]
 			if *x == *y
 		)

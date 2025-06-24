@@ -12,8 +12,7 @@ use std::{
 };
 
 use vmm_ir::{
-	BlockInstruction, FromCell, Instruction, Offset, ScaleAnd, SuperInstruction, Value,
-	WriteInstruction,
+	BlockInstruction, Bytes, FromCell, Instruction, Offset, ScaleAnd, SuperInstruction, Value,
 };
 use vmm_num::ops::{WrappingAddAssign, WrappingMul, WrappingMulAssign, WrappingSubAssign};
 use vmm_program::Program;
@@ -176,22 +175,15 @@ where
 	}
 
 	#[inline]
-	fn write_char(&mut self, count: usize, offset: Offset) -> Result<(), RuntimeError> {
-		let idx = self.calculate_index(offset);
-
-		let ch = self.tape()[idx].value();
-
-		self.write_to_output(ch, count)
-	}
-
-	#[inline]
 	const fn boundary(&self) -> Result<(), RuntimeError> {
 		Ok(())
 	}
 
 	#[inline]
-	fn inc_val(&mut self, value: i8, offset: Offset) -> Result<(), RuntimeError> {
+	fn inc_val(&mut self, value: Value<i8>, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
+
+		let value = self.resolve_value(value);
 
 		WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[idx], value);
 
@@ -426,44 +418,10 @@ where
 		Ok(())
 	}
 
-	#[inline]
-	fn write_and_set(
-		&mut self,
-		count: usize,
-		offset: Offset,
-		value: Option<NonZeroU8>,
-	) -> Result<(), RuntimeError> {
-		let idx = self.calculate_index(offset);
+	fn write_value(&mut self, count: usize, value: &Value<Bytes>) -> Result<(), RuntimeError> {
+		let value = self.resolve_value(value.clone());
 
-		let ch = mem::replace(self.tape_mut()[idx].as_mut_u8(), value.get_or_zero());
-
-		self.write_to_output(ch, count)
-	}
-
-	#[inline]
-	fn write_byte(&mut self, b: u8) -> Result<(), RuntimeError> {
-		self.write_to_output(b, 1)?;
-
-		self.set_val(NonZeroU8::new(b), Offset(0))?;
-
-		Ok(())
-	}
-
-	#[inline]
-	fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), RuntimeError> {
-		self.write_many_to_output(bytes)?;
-
-		let Some(last) = bytes.last().copied() else {
-			return Ok(());
-		};
-
-		self.set_val(NonZeroU8::new(last), Offset(0))
-	}
-
-	fn write_target(&mut self, count: usize, value: Value<u8>) -> Result<(), RuntimeError> {
-		let value = self.resolve_value(value);
-
-		self.write_to_output(value, count)
+		self.write_many_to_output(count, value)
 	}
 
 	#[inline]
@@ -474,10 +432,7 @@ where
 
 		match instr {
 			Instruction::Boundary => self.boundary()?,
-			Instruction::IncVal {
-				value: Value::Constant(value),
-				offset,
-			} => self.inc_val(*value, *offset)?,
+			Instruction::IncVal { value, offset } => self.inc_val(*value, *offset)?,
 			Instruction::SetVal { value, offset } => self.set_val(*value, *offset)?,
 			Instruction::MovePtr(offset) => self.move_ptr(*offset)?,
 			Instruction::Read => self.read_char()?,
@@ -491,7 +446,7 @@ where
 			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
-			Instruction::Write(w) => self.execute_write_instruction(w)?,
+			Instruction::Write { count, value } => self.write_value(*count, value)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -558,23 +513,6 @@ where
 		Ok(())
 	}
 
-	fn execute_write_instruction(&mut self, instr: &WriteInstruction) -> Result<(), RuntimeError> {
-		match instr {
-			WriteInstruction::Cell { count, offset } => self.write_char(*count, *offset)?,
-			WriteInstruction::CellAndSet {
-				count,
-				offset,
-				value,
-			} => self.write_and_set(*count, *offset, *value)?,
-			WriteInstruction::Byte(ch) => self.write_byte(*ch)?,
-			WriteInstruction::Bytes(s) => self.write_bytes(s)?,
-			WriteInstruction::Value { count, value } => self.write_target(*count, *value)?,
-			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
-		}
-
-		Ok(())
-	}
-
 	#[inline]
 	#[allow(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Offset) -> usize {
@@ -584,18 +522,18 @@ where
 		}
 	}
 
-	#[inline]
-	fn write_to_output(&mut self, ch: u8, count: usize) -> Result<(), RuntimeError> {
-		let bytes = vec![ch; count];
-		self.write_many_to_output(&bytes)
-	}
+	fn write_many_to_output(&mut self, count: usize, bytes: Bytes) -> Result<(), RuntimeError> {
+		let bytes = match bytes {
+			Bytes::Single(b) => vec![b],
+			Bytes::Many(b) => b,
+		}
+		.repeat(count);
 
-	fn write_many_to_output(&mut self, bytes: &[u8]) -> Result<(), RuntimeError> {
 		if bytes
 			.iter()
 			.all(|ch| !cfg!(target_os = "windows") || *ch < 128)
 		{
-			self.output.write_all(bytes)?;
+			self.output.write_all(&bytes)?;
 			self.output.flush()?;
 		}
 

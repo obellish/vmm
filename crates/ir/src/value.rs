@@ -2,12 +2,21 @@ use core::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde::{Deserialize, Serialize};
 
-use super::Offset;
+use super::{Bytes, Offset};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Value<T> {
 	CellAt(Offset),
 	Constant(T),
+}
+
+impl<T> Value<T> {
+	pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Value<U> {
+		match self {
+			Self::CellAt(offset) => Value::CellAt(offset),
+			Self::Constant(v) => Value::Constant(f(v)),
+		}
+	}
 }
 
 impl<T> Default for Value<T> {
@@ -38,5 +47,17 @@ pub trait FromCell {
 impl FromCell for u8 {
 	fn from_cell(cell: u8) -> Self {
 		cell
+	}
+}
+
+impl FromCell for Bytes {
+	fn from_cell(cell: u8) -> Self {
+		Self::Single(cell)
+	}
+}
+
+impl FromCell for i8 {
+	fn from_cell(cell: u8) -> Self {
+		cell as Self
 	}
 }
