@@ -874,12 +874,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tap"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
-
-[[package]]
 name = "thread_local"
 version = "1.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1079,12 +1073,12 @@ dependencies = [
  "serde-value",
  "serde_array",
  "serde_stack",
- "tap",
  "tracing",
  "vmm_ir",
  "vmm_num",
  "vmm_program",
  "vmm_span",
+ "vmm_tap",
  "vmm_tape",
  "vmm_type_name",
  "vmm_utils",
@@ -1119,6 +1113,10 @@ dependencies = [
  "serde",
  "vmm_num",
 ]
+
+[[package]]
+name = "vmm_tap"
+version = "0.1.0"
 
 [[package]]
 name = "vmm_tape"

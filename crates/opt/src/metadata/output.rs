@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use ron::ser::PrettyConfig;
 use serde::{Deserialize, Serialize};
-use tap::prelude::*;
+use vmm_tap::Pipe;
 use vmm_type_name::ShortName;
 
 use super::{MetadataStore, MetadataStoreError};

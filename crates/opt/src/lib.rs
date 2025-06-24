@@ -11,10 +11,10 @@ use std::{
 	mem,
 };
 
-use tap::prelude::*;
 use tracing::{debug, info, warn};
 use vmm_ir::{BlockInstruction, Instruction};
 use vmm_program::Program;
+use vmm_tap::{Pipe, Tap};
 
 #[allow(clippy::wildcard_imports)]
 use self::passes::*;

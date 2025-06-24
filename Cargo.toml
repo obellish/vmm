@@ -39,7 +39,7 @@ members = [
     "crates/program",
     "crates/serde_array",
     "crates/serde_stack",
-    "crates/span",
+    "crates/span", "crates/tap",
     "crates/tape",
     "crates/testing",
     "crates/type_name",
