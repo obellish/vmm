@@ -21,7 +21,7 @@ where
 	where
 		Self: Borrow<B>,
 	{
-		Borrow::borrow(&self).tap(|b| func(*b));
+		func(Borrow::borrow(&self));
 		self
 	}
 
@@ -29,7 +29,7 @@ where
 	where
 		Self: BorrowMut<B>,
 	{
-		BorrowMut::borrow_mut(&mut self).tap_mut(|b| func(*b));
+		func(BorrowMut::borrow_mut(&mut self));
 		self
 	}
 
@@ -37,7 +37,7 @@ where
 	where
 		Self: AsRef<R>,
 	{
-		AsRef::as_ref(&self).tap(|r| func(*r));
+		func(AsRef::as_ref(&self));
 		self
 	}
 
@@ -45,7 +45,7 @@ where
 	where
 		Self: AsMut<R>,
 	{
-		AsMut::as_mut(&mut self).tap_mut(|r| func(*r));
+		func(AsMut::as_mut(&mut self));
 		self
 	}
 
@@ -53,7 +53,7 @@ where
 	where
 		Self: Deref<Target = T>,
 	{
-		Deref::deref(&self).tap(|t| func(*t));
+		func(Deref::deref(&self));
 		self
 	}
 
@@ -61,7 +61,7 @@ where
 	where
 		Self: DerefMut<Target = T>,
 	{
-		DerefMut::deref_mut(&mut self).tap_mut(|t| func(*t));
+		func(DerefMut::deref_mut(&mut self));
 		self
 	}
 
@@ -250,6 +250,29 @@ where
 
 impl<T> OptionalTap<T> for Option<T> {
 	fn tap_some(self, func: impl FnOnce(&T)) -> Self {
+		SpecOptionalTap::spec_tap_some(self, func)
+	}
+
+	fn tap_some_mut(self, func: impl FnOnce(&mut T)) -> Self {
+		SpecOptionalTap::spec_tap_some_mut(self, func)
+	}
+
+	fn tap_none(self, func: impl FnOnce()) -> Self {
+		SpecOptionalTap::spec_tap_none(self, func)
+	}
+}
+
+trait SpecOptionalTap<T: ?Sized> {
+	fn spec_tap_some(self, func: impl FnOnce(&T)) -> Self;
+
+	fn spec_tap_some_mut(self, func: impl FnOnce(&mut T)) -> Self;
+
+	fn spec_tap_none(self, func: impl FnOnce()) -> Self;
+}
+
+#[cfg(not(feature = "nightly"))]
+impl<T> SpecOptionalTap<T> for Option<T> {
+	fn spec_tap_some(self, func: impl FnOnce(&T)) -> Self {
 		if let Some(ref val) = self {
 			func(val);
 		}
@@ -257,7 +280,7 @@ impl<T> OptionalTap<T> for Option<T> {
 		self
 	}
 
-	fn tap_some_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
+	fn spec_tap_some_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
 		if let Some(ref mut val) = self {
 			func(val);
 		}
@@ -265,11 +288,70 @@ impl<T> OptionalTap<T> for Option<T> {
 		self
 	}
 
-	fn tap_none(self, func: impl FnOnce()) -> Self {
+	fn spec_tap_none(self, func: impl FnOnce()) -> Self {
 		if self.is_none() {
 			func();
 		}
 
+		self
+	}
+}
+
+#[cfg(feature = "nightly")]
+impl<T> SpecOptionalTap<T> for Option<T> {
+	default fn spec_tap_some(self, func: impl FnOnce(&T)) -> Self {
+		if let Some(ref val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	default fn spec_tap_some_mut(mut self, func: impl FnOnce(&mut T)) -> Self {
+		if let Some(ref mut val) = self {
+			func(val);
+		}
+
+		self
+	}
+
+	default fn spec_tap_none(self, func: impl FnOnce()) -> Self {
+		if self.is_none() {
+			func();
+		}
+
+		self
+	}
+}
+
+#[cfg(feature = "nightly")]
+impl SpecOptionalTap<!> for Option<!> {
+	fn spec_tap_some(self, _: impl FnOnce(&!)) -> Self {
+		self
+	}
+
+	fn spec_tap_some_mut(self, _: impl FnOnce(&mut !)) -> Self {
+		self
+	}
+
+	fn spec_tap_none(self, func: impl FnOnce()) -> Self {
+		func();
+		self
+	}
+}
+
+#[cfg(feature = "nightly")]
+impl SpecOptionalTap<core::convert::Infallible> for Option<core::convert::Infallible> {
+	fn spec_tap_some(self, _: impl FnOnce(&core::convert::Infallible)) -> Self {
+		self
+	}
+
+	fn spec_tap_some_mut(self, _: impl FnOnce(&mut core::convert::Infallible)) -> Self {
+		self
+	}
+
+	fn spec_tap_none(self, func: impl FnOnce()) -> Self {
+		func();
 		self
 	}
 }
