@@ -50,6 +50,12 @@ impl PeepholePass for OptimizeWriteConstPass {
 				)
 			]
 			if *x == *y
+		) || matches!(
+			window,
+			[
+				Instruction::Write(WriteInstruction::Byte(..) | WriteInstruction::Bytes(..)),
+				Instruction::Write(WriteInstruction::Byte(..) | WriteInstruction::Bytes(..))
+			]
 		)
 	}
 }
