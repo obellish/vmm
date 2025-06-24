@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use ron::ser::{PrettyConfig, to_string_pretty};
+use ron::ser::PrettyConfig;
 use serde::{Deserialize, Serialize};
 use tap::prelude::*;
 use vmm_type_name::ShortName;
@@ -49,7 +49,18 @@ impl<T: MetadataStore> MetadataStore for OutputMetadataStore<T> {
 	{
 		self.inner.insert(iteration, value)?;
 
-		let serialized = to_string_pretty(value, config())?;
+		let serialized = {
+			let mut output = String::new();
+			let mut serializer = ron::Serializer::with_options(
+				&mut output,
+				Some(config()),
+				&ron::Options::default(),
+			)?;
+			let serializer = serde_stack::Serializer::new(&mut serializer);
+			value.serialize(serializer)?;
+
+			output
+		};
 
 		self.folder_path
 			.join(format!(
