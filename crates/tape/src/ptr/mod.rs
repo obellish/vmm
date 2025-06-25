@@ -20,6 +20,11 @@ impl TapePointer {
 	}
 
 	#[must_use]
+	pub const fn zero() -> Self {
+		unsafe { Self::new_unchecked(0) }
+	}
+
+	#[must_use]
 	pub const unsafe fn new_unchecked(value: usize) -> Self {
 		Self(value)
 	}
@@ -44,6 +49,6 @@ impl TapePointer {
 
 impl Default for TapePointer {
 	fn default() -> Self {
-		unsafe { Self::new_unchecked(0) }
+		Self::zero()
 	}
 }

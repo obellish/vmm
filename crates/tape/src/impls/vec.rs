@@ -20,7 +20,7 @@ impl VecTape {
 
 				cells
 			},
-			ptr: unsafe { TapePointer::new_unchecked(0) },
+			ptr: TapePointer::zero(),
 		}
 	}
 }

@@ -33,7 +33,7 @@ impl PtrTape {
 
 		Ok(Self {
 			cells: ptr,
-			ptr: unsafe { TapePointer::new_unchecked(0) },
+			ptr: TapePointer::zero()
 		})
 	}
 }

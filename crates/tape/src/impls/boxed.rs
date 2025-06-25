@@ -14,7 +14,7 @@ impl BoxTape {
 	pub fn new() -> Self {
 		Self {
 			cells: Box::new([Cell::new(0); TAPE_SIZE]),
-			ptr: unsafe { TapePointer::new_unchecked(0) },
+			ptr: TapePointer::zero()
 		}
 	}
 }
