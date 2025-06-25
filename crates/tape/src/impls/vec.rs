@@ -14,9 +14,7 @@ impl VecTape {
 		Self {
 			cells: {
 				let mut cells = Vec::with_capacity(TAPE_SIZE);
-				for i in 0..TAPE_SIZE {
-					cells.push(Cell::with_index(0, i));
-				}
+				cells.extend((0..TAPE_SIZE).map(|i| Cell::with_index(0, i)));
 
 				cells.shrink_to_fit();
 
