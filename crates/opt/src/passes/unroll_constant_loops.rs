@@ -23,7 +23,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					return None;
 				}
 
-				if !matches!(inner.ptr_movement(), Some(0)) {
+				if !matches!(inner.ptr_movement(), Some(Offset(0))) {
 					return None;
 				}
 
@@ -73,7 +73,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			return false;
 		}
 
-		if !matches!(inner.ptr_movement(), Some(0)) {
+		if !matches!(inner.ptr_movement(), Some(Offset(0))) {
 			return false;
 		}
 

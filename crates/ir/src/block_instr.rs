@@ -6,7 +6,7 @@ use core::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{Instruction, IsZeroingCell, PtrMovement};
+use super::{Instruction, IsZeroingCell, Offset, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -71,7 +71,7 @@ impl IsZeroingCell for BlockInstruction {
 
 impl PtrMovement for BlockInstruction {
 	#[inline]
-	fn ptr_movement(&self) -> Option<isize> {
+	fn ptr_movement(&self) -> Option<Offset> {
 		self.deref().ptr_movement()
 	}
 }

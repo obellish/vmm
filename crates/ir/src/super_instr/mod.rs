@@ -134,17 +134,17 @@ impl IsZeroingCell for SuperInstruction {
 
 impl PtrMovement for SuperInstruction {
 	#[inline]
-	fn ptr_movement(&self) -> Option<isize> {
+	fn ptr_movement(&self) -> Option<Offset> {
 		match self {
 			Self::ScaleAnd {
 				action: ScaleAnd::Move | ScaleAnd::Fetch | ScaleAnd::Set(..),
 				..
-			} => Some(0),
+			} => Some(Offset(0)),
 			Self::ScaleAnd {
 				action: ScaleAnd::Take,
 				offset,
 				..
-			} => Some(offset.value()),
+			} => Some(*offset),
 			_ => None,
 		}
 	}

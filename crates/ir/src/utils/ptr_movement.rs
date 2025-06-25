@@ -1,15 +1,17 @@
+use crate::Offset;
+
 pub trait PtrMovement {
-	fn ptr_movement(&self) -> Option<isize>;
+	fn ptr_movement(&self) -> Option<Offset>;
 
 	fn might_move_ptr(&self) -> bool {
-		!matches!(self.ptr_movement(), Some(0))
+		!matches!(self.ptr_movement(), Some(Offset(0)))
 	}
 }
 
 impl<T: PtrMovement> PtrMovement for [T] {
 	#[inline]
-	fn ptr_movement(&self) -> Option<isize> {
-		self.iter().try_fold(0isize, |a, b| {
+	fn ptr_movement(&self) -> Option<Offset> {
+		self.iter().try_fold(Offset(0), |a, b| {
 			let ptr_movement = b.ptr_movement()?;
 
 			Some(a + ptr_movement)
@@ -19,19 +21,19 @@ impl<T: PtrMovement> PtrMovement for [T] {
 
 #[cfg(test)]
 mod tests {
-	use crate::{Instruction, PtrMovement};
+	use crate::{Instruction, Offset, PtrMovement};
 
 	#[test]
 	fn no_movement() {
 		assert_eq!(
 			[Instruction::inc_val(2), Instruction::set_val(4)].ptr_movement(),
-			Some(0)
+			Some(Offset(0))
 		);
 	}
 
 	#[test]
 	fn basic_movement() {
-		assert_eq!([Instruction::move_ptr(7)].ptr_movement(), Some(7));
+		assert_eq!([Instruction::move_ptr(7)].ptr_movement(), Some(Offset(7)));
 		assert_eq!(
 			[
 				Instruction::move_ptr(7),
@@ -39,7 +41,7 @@ mod tests {
 				Instruction::move_ptr(-7)
 			]
 			.ptr_movement(),
-			Some(0)
+			Some(Offset(0))
 		);
 	}
 

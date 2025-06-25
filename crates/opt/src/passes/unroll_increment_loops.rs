@@ -76,7 +76,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 			return false;
 		}
 
-		if !matches!(inner.ptr_movement(), Some(0)) {
+		if !matches!(inner.ptr_movement(), Some(Offset(0))) {
 			return false;
 		}
 

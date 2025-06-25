@@ -474,7 +474,7 @@ impl IsZeroingCell for Instruction {
 
 impl PtrMovement for Instruction {
 	#[inline]
-	fn ptr_movement(&self) -> Option<isize> {
+	fn ptr_movement(&self) -> Option<Offset> {
 		match self {
 			Self::Super(s) => s.ptr_movement(),
 			Self::Block(l) => l.ptr_movement(),
@@ -488,8 +488,8 @@ impl PtrMovement for Instruction {
 			| Self::MoveVal(..)
 			| Self::DuplicateVal { .. }
 			| Self::ReplaceVal(..)
-			| Self::Write { .. } => Some(0),
-			Self::MovePtr(offset) | Self::TakeVal(offset) => Some(offset.value()),
+			| Self::Write { .. } => Some(Offset(0)),
+			Self::MovePtr(offset) | Self::TakeVal(offset) => Some(*offset),
 			_ => None,
 		}
 	}
