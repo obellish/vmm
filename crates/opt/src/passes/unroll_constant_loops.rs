@@ -27,7 +27,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					return None;
 				}
 
-				match inner.as_slice() {
+				match &**inner {
 					[
 						Instruction::IncVal {
 							value: -1,
@@ -78,7 +78,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 		}
 
 		matches!(
-			inner.as_slice(),
+			&**inner,
 			[
 				Instruction::IncVal {
 					offset: Offset(0),

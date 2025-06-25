@@ -226,26 +226,36 @@ where
 	*progress |= pass.run_pass(v);
 
 	if pass.should_run_on_dyn_loop() {
-		v.iter_mut()
-			.filter_map(|i| {
-				if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = i {
-					Some(i)
-				} else {
-					None
-				}
-			})
-			.for_each(|i| run_pass(pass, i, progress));
+		// v.iter_mut()
+		// 	.filter_map(|i| {
+		// 		if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = i {
+		// 			Some(i.to_vec())
+		// 		} else {
+		// 			None
+		// 		}
+		// 	})
+		// 	.for_each(|i| run_pass(pass, i, progress));
+
+		for i in v.iter_mut() {
+			if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = i {
+				let mut v = i.to_vec();
+
+				run_pass(pass, &mut v, progress);
+
+				*i = v.into_iter().collect();
+			}
+		}
 	}
 
 	if pass.should_run_on_if() {
-		v.iter_mut()
-			.filter_map(|i| {
-				if let Instruction::Block(BlockInstruction::IfNz(i)) = i {
-					Some(i)
-				} else {
-					None
-				}
-			})
-			.for_each(|i| run_pass(pass, i, progress));
+		for i in v {
+			if let Instruction::Block(BlockInstruction::IfNz(i)) = i {
+				let mut v = i.to_vec();
+
+				run_pass(pass, &mut v, progress);
+
+				*i = v.into_iter().collect();
+			}
+		}
 	}
 }

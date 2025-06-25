@@ -1,4 +1,4 @@
-use alloc::vec::Vec;
+use alloc::{boxed::Box, vec::Vec};
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	ops::Deref,
@@ -12,9 +12,9 @@ use super::{Instruction, IsZeroingCell, PtrMovement};
 #[non_exhaustive]
 pub enum BlockInstruction {
 	/// A dynamic loop, which checks the current cell for zero before executing
-	DynamicLoop(Vec<Instruction>),
+	DynamicLoop(Box<[Instruction]>),
 	/// An if-non-zero block, which zeros out the cell after executing
-	IfNz(Vec<Instruction>),
+	IfNz(Box<[Instruction]>),
 }
 
 impl BlockInstruction {
@@ -28,7 +28,7 @@ impl BlockInstruction {
 }
 
 impl Deref for BlockInstruction {
-	type Target = Vec<Instruction>;
+	type Target = [Instruction];
 
 	fn deref(&self) -> &Self::Target {
 		match self {

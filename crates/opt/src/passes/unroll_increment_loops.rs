@@ -24,7 +24,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 				&& !raw_loop.might_move_ptr()
 				&& (raw_loop.nested_loops() < MAX_LOOP_UNROLLING) =>
 			{
-				match inner.as_slice() {
+				match &**inner {
 					[
 						Instruction::IncVal {
 							value: -1,
@@ -85,7 +85,7 @@ impl PeepholePass for UnrollIncrementLoopsPass {
 		}
 
 		matches!(
-			inner.as_slice(),
+			&**inner,
 			[
 				Instruction::IncVal {
 					value: -1,
