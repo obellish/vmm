@@ -10,7 +10,7 @@ pub struct BoxTape {
 
 impl BoxTape {
 	#[must_use]
-	#[expect(clippy::large_stack_frames)]
+	#[allow(clippy::large_stack_frames)]
 	pub fn new() -> Self {
 		Self {
 			cells: Box::new([Cell::new(0); TAPE_SIZE]),
