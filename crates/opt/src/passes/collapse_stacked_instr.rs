@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, Value};
+use vmm_ir::{Instruction, Offset};
 use vmm_num::ops::{WrappingAdd, WrappingMul};
 use vmm_utils::GetOrZero as _;
 
@@ -16,21 +16,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 		match window {
 			[
 				Instruction::IncVal {
-					value: Value::Constant(i1),
+					value: i1,
 					offset: Offset(0),
 				},
 				Instruction::IncVal {
-					value: Value::Constant(i2),
-					offset: Offset(0),
-				},
-			] if *i1 == -i2 => Some(Change::remove()),
-			[
-				Instruction::IncVal {
-					value: Value::Constant(i1),
-					offset: Offset(0),
-				},
-				Instruction::IncVal {
-					value: Value::Constant(i2),
+					value: i2,
 					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::inc_val(
@@ -53,21 +43,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] => Some(Change::replace(Instruction::set_val(x.get()))),
 			[
 				Instruction::IncVal {
-					value: Value::Constant(i1),
+					value: i1,
 					offset: x,
 				},
 				Instruction::IncVal {
-					value: Value::Constant(i2),
-					offset: y,
-				},
-			] if *i1 == -i2 && x == y => Some(Change::remove()),
-			[
-				Instruction::IncVal {
-					value: Value::Constant(i1),
-					offset: x,
-				},
-				Instruction::IncVal {
-					value: Value::Constant(i2),
+					value: i2,
 					offset: y,
 				},
 			] if x == y => Some(Change::replace(Instruction::inc_val_at(
@@ -116,6 +96,9 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] => Some(Change::Replace(Instruction::scale_val(
 				WrappingMul::wrapping_mul(x, y),
 			))),
+			[Instruction::TakeVal(l), Instruction::TakeVal(r)] => {
+				Some(Change::replace(Instruction::take_val(l + r)))
+			}
 			_ => None,
 		}
 	}
@@ -127,11 +110,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::IncVal {
 					offset: Offset(0),
-					value: Value::Constant(..)
+					..
 				},
 				Instruction::IncVal {
 					offset: Offset(0),
-					value: Value::Constant(..)
+					..
 				}
 			] | [Instruction::MovePtr(..), Instruction::MovePtr(..)]
 				| [
@@ -144,11 +127,12 @@ impl PeepholePass for CollapseStackedInstrPass {
 						..
 					}
 				] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
+				| [Instruction::TakeVal(..), Instruction::TakeVal(..)]
 		) || matches!(
 			window,
 			[
-				Instruction::IncVal { offset: x, value: Value::Constant(..) },
-				Instruction::IncVal { offset: y, value: Value::Constant(..) }
+				Instruction::IncVal { offset: x, .. },
+				Instruction::IncVal { offset: y, .. }
 			] | [
 				Instruction::SetVal { offset: x, .. },
 				Instruction::SetVal { offset: y, .. }

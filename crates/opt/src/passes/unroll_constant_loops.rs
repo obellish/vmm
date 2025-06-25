@@ -1,4 +1,4 @@
-use vmm_ir::{BlockInstruction, Instruction, Offset, PtrMovement, Value};
+use vmm_ir::{BlockInstruction, Instruction, Offset, PtrMovement};
 use vmm_span::Span;
 
 use crate::{Change, PeepholePass};
@@ -30,7 +30,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				match inner.as_slice() {
 					[
 						Instruction::IncVal {
-							value: Value::Constant(-1),
+							value: -1,
 							offset: Offset(0),
 						},
 						rest @ ..,
@@ -38,7 +38,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					| [
 						rest @ ..,
 						Instruction::IncVal {
-							value: Value::Constant(-1),
+							value: -1,
 							offset: Offset(0),
 						},
 					] => {
@@ -82,14 +82,14 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			[
 				Instruction::IncVal {
 					offset: Offset(0),
-					value: Value::Constant(-1)
+					value: -1
 				},
 				..
 			] | [
 				..,
 				Instruction::IncVal {
 					offset: Offset(0),
-					value: Value::Constant(-1)
+					value: -1
 				}
 			]
 		)

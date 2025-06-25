@@ -15,7 +15,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					value: Value::Constant(value),
+					value,
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
@@ -64,10 +64,8 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			window,
 			[
 				Instruction::MovePtr(..),
-				Instruction::IncVal {
-					value: Value::Constant(..),
-					..
-				} | Instruction::SetVal { .. }
+				Instruction::IncVal { .. }
+					| Instruction::SetVal { .. }
 					| Instruction::Write {
 						value: Value::CellAt(..)
 					},

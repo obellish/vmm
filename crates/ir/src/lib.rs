@@ -29,7 +29,7 @@ pub enum Instruction {
 	Boundary,
 	/// Increment the value at the current cell (offset = None) or at an offset
 	IncVal {
-		value: Value<i8>,
+		value: i8,
 		offset: Offset,
 	},
 	SubCell {

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, ScaleAnd, SuperInstruction, Value};
+use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
 use vmm_num::ops::WrappingAdd;
 use vmm_utils::GetOrZero;
 
@@ -24,7 +24,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 				},
 				Instruction::IncVal {
 					offset: y,
-					value: Value::Constant(b),
+					value: b,
 				},
 			] if *x == *y => Some(Change::replace(Instruction::set_val_at(
 				WrappingAdd::wrapping_add(a.get_or_zero(), *b),
@@ -65,7 +65,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 			window,
 			[
 				Instruction::SetVal { offset: x, .. },
-				Instruction::IncVal { offset: y, value: Value::Constant(..) }
+				Instruction::IncVal { offset: y, .. }
 			] | [
 				Instruction::IncVal { offset: x, .. }
 					| Instruction::Super(SuperInstruction::ScaleAnd {

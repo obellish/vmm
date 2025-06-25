@@ -180,10 +180,8 @@ where
 	}
 
 	#[inline]
-	fn inc_val(&mut self, value: Value<i8>, offset: Offset) -> Result<(), RuntimeError> {
+	fn inc_val(&mut self, value: i8, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
-
-		let value = self.resolve_value(value);
 
 		WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(idx), value);
 

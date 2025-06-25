@@ -15,7 +15,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					value: Value::Constant(value),
+					value,
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),

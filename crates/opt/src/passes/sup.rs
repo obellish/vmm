@@ -32,11 +32,19 @@ impl PeepholePass for OptimizeSuperInstrPass {
 					action: ScaleAnd::Take,
 					offset,
 					..
-				}),
+				})
+				| Instruction::TakeVal(offset),
 				Instruction::SetVal {
 					value,
 					offset: Offset(0),
 				},
+			]
+			| [
+				Instruction::SetVal {
+					offset: Offset(0),
+					value,
+				},
+				Instruction::TakeVal(offset),
 			] => Some(Change::swap([
 				Instruction::clear_val(),
 				Instruction::move_ptr(offset),

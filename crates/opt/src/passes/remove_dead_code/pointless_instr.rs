@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, Value};
+use vmm_ir::{Instruction, Offset};
 
 use crate::{Change, PeepholePass};
 
@@ -18,10 +18,9 @@ impl PeepholePass for RemovePointlessInstrPass {
 		matches!(
 			window,
 			[Instruction::MovePtr(Offset(0))
-				| Instruction::IncVal {
-					value: Value::Constant(0),
-					..
-				}]
+				| Instruction::IncVal { value: 0, .. }
+				| Instruction::TakeVal(Offset(0))
+				| Instruction::MoveVal(Offset(0))]
 		)
 	}
 }
