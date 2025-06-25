@@ -9,7 +9,10 @@ version.workspace = true
 
 [dependencies]
 serde = { workspace = true, features = ["std"] }
-stacker = "0.1"
+# stacker = { git = "https://github.com/rust-lang/stacker.git" }
+
+[target.'cfg(not(miri))'.dependencies]
+stacker = { git = "https://github.com/rust-lang/stacker.git" }
 
 [dev-dependencies]
 serde_json = { workspace = true, features = ["unbounded_depth"] }

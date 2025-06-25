@@ -440,6 +440,22 @@ impl<T> SerializeSized<T> {
 }
 
 impl<T: SerdeSerialize> SerdeSerialize for SerializeSized<T> {
+	#[cfg(miri)]
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where
+		S: SerdeSerializer,
+	{
+		SerdeSerialize::serialize(
+			&self.value,
+			Serializer {
+				inner: serializer,
+				red_zone: self.param.red_zone,
+				stack_size: self.param.stack_size,
+			},
+		)
+	}
+
+	#[cfg(not(miri))]
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: SerdeSerializer,

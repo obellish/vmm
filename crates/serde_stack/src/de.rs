@@ -474,6 +474,19 @@ where
 		self.inner.visit_none()
 	}
 
+	#[cfg(miri)]
+	fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+	where
+		D: SerdeDeserializer<'de>,
+	{
+		self.inner.visit_some(Deserializer {
+			inner: deserializer,
+			red_zone: self.param.red_zone,
+			stack_size: self.param.stack_size,
+		})
+	}
+
+	#[cfg(not(miri))]
 	fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
 	where
 		D: SerdeDeserializer<'de>,
@@ -487,6 +500,19 @@ where
 		})
 	}
 
+	#[cfg(miri)]
+	fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+	where
+		D: SerdeDeserializer<'de>,
+	{
+		self.inner.visit_newtype_struct(Deserializer {
+			inner: deserializer,
+			red_zone: self.param.red_zone,
+			stack_size: self.param.stack_size,
+		})
+	}
+
+	#[cfg(not(miri))]
 	fn visit_newtype_struct<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
 	where
 		D: SerdeDeserializer<'de>,
@@ -500,6 +526,15 @@ where
 		})
 	}
 
+	#[cfg(miri)]
+	fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
+	where
+		A: SerdeSeqAccess<'de>,
+	{
+		self.inner.visit_seq(SeqAccess::new(seq, self.param))
+	}
+
+	#[cfg(not(miri))]
 	fn visit_seq<A>(self, seq: A) -> Result<Self::Value, A::Error>
 	where
 		A: SerdeSeqAccess<'de>,
@@ -509,6 +544,15 @@ where
 		})
 	}
 
+	#[cfg(miri)]
+	fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
+	where
+		A: SerdeMapAccess<'de>,
+	{
+		self.inner.visit_map(MapAccess::new(map, self.param))
+	}
+
+	#[cfg(not(miri))]
 	fn visit_map<A>(self, map: A) -> Result<Self::Value, A::Error>
 	where
 		A: SerdeMapAccess<'de>,
@@ -518,6 +562,15 @@ where
 		})
 	}
 
+	#[cfg(miri)]
+	fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>
+	where
+		A: SerdeEnumAccess<'de>,
+	{
+		self.inner.visit_enum(EnumAccess::new(data, self.param))
+	}
+
+	#[cfg(not(miri))]
 	fn visit_enum<A>(self, data: A) -> Result<Self::Value, A::Error>
 	where
 		A: SerdeEnumAccess<'de>,
