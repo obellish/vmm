@@ -1,4 +1,4 @@
-use vmm_ir::{Bytes, Instruction, Offset, Value};
+use vmm_ir::{Instruction, Offset, Value};
 use vmm_num::ops::WrappingAdd;
 use vmm_utils::GetOrZero as _;
 
