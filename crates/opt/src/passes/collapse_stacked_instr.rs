@@ -127,11 +127,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::IncVal {
 					offset: Offset(0),
-					..
+					value: Value::Constant(..)
 				},
 				Instruction::IncVal {
 					offset: Offset(0),
-					..
+					value: Value::Constant(..)
 				}
 			] | [Instruction::MovePtr(..), Instruction::MovePtr(..)]
 				| [
@@ -147,8 +147,8 @@ impl PeepholePass for CollapseStackedInstrPass {
 		) || matches!(
 			window,
 			[
-				Instruction::IncVal { offset: x, .. },
-				Instruction::IncVal { offset: y, .. }
+				Instruction::IncVal { offset: x, value: Value::Constant(..) },
+				Instruction::IncVal { offset: y, value: Value::Constant(..) }
 			] | [
 				Instruction::SetVal { offset: x, .. },
 				Instruction::SetVal { offset: y, .. }

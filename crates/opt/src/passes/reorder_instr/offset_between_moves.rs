@@ -53,18 +53,17 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 		matches!(
 			window,
 			[
-				Instruction::MovePtr(Offset(_)),
+				Instruction::MovePtr(..),
 				Instruction::IncVal {
-					offset: Offset(0),
-					..
+					value: Value::Constant(..),
+					offset: Offset(0)
 				} | Instruction::SetVal {
 					offset: Offset(0),
 					..
-				} | Instruction::MovePtr(Offset(_))
-					| Instruction::Write {
-						value: Value::CellAt(Offset(0)),
-						..
-					}
+				} | Instruction::Write {
+					value: Value::CellAt(Offset(0))
+				},
+				Instruction::MovePtr(..)
 			]
 		)
 	}

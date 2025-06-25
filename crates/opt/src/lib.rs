@@ -186,6 +186,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<UnrollConstantLoopsPass>(progress);
 		self.run_default_peephole_pass::<UnrollIncrementLoopsPass>(progress);
 		self.run_default_peephole_pass::<UnrollScaleAndPass>(progress);
+		self.run_default_peephole_pass::<UnrollMovePass>(progress);
 	}
 }
 

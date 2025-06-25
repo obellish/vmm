@@ -97,7 +97,7 @@ impl PeepholePass for RemoveRedundantChangeValBasicPass {
 				},
 				Instruction::IncVal {
 					offset: Offset(0),
-					..
+					value: Value::Constant(..)
 				} | Instruction::Read
 			] | [
 				Instruction::Block(BlockInstruction::DynamicLoop(..) | BlockInstruction::IfNz(..))

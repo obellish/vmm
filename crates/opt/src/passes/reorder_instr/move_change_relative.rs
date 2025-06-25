@@ -41,7 +41,7 @@ impl PeepholePass for ReorderMoveChangePass {
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					offset: y,
-					..
+					value: Value::Constant(..)
 				} | Instruction::SetVal {
 					offset: y,
 					..

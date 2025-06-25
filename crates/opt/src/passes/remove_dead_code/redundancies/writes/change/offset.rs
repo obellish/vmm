@@ -65,7 +65,7 @@ impl PeepholePass for RemoveRedundantChangeValOffsetPass {
 			window,
 			[
 				Instruction::SetVal { offset: x, .. },
-				Instruction::IncVal { offset: y, .. }
+				Instruction::IncVal { offset: y, value: Value::Constant(..) }
 			] | [
 				Instruction::IncVal { offset: x, .. }
 					| Instruction::Super(SuperInstruction::ScaleAnd {

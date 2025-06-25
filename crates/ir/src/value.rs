@@ -1,6 +1,10 @@
-use core::fmt::{Display, Formatter, Result as FmtResult};
+use core::{
+	fmt::{Display, Formatter, Result as FmtResult},
+	ops::Add,
+};
 
 use serde::{Deserialize, Serialize};
+use vmm_num::ops::CheckedAdd;
 
 use super::{Bytes, Offset};
 
@@ -15,6 +19,23 @@ impl<T> Value<T> {
 		match self {
 			Self::CellAt(offset) => Value::CellAt(offset),
 			Self::Constant(v) => Value::Constant(f(v)),
+		}
+	}
+}
+
+impl<T> CheckedAdd for Value<T>
+where
+	T: Add<Output = T>,
+{
+	type Output = Self;
+
+	fn checked_add(self, rhs: Self) -> Option<Self::Output> {
+		match (self, rhs) {
+			(Self::CellAt(left), Self::CellAt(right)) => Some(Self::CellAt(left + right)),
+			(Self::Constant(left), Self::Constant(right)) => {
+				Some(Self::Constant(Add::add(left, right)))
+			}
+			_ => None,
 		}
 	}
 }
@@ -59,5 +80,27 @@ impl FromCell for Bytes {
 impl FromCell for i8 {
 	fn from_cell(cell: u8) -> Self {
 		cell as Self
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use vmm_num::Checked;
+
+	use crate::Offset;
+
+use super::Value;
+
+	#[test]
+	fn checked_add_works() {
+		let left = Value::Constant(5u8);
+		let right = Value::Constant(4u8);
+
+		assert_eq!(Checked::add(left, right), Some(Value::Constant(9u8)));
+
+		let left = Value::Constant(5u8);
+		let right = Value::<u8>::CellAt(Offset(4));
+
+		assert!(Checked::add(left, right).is_none());
 	}
 }

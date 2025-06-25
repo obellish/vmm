@@ -51,7 +51,7 @@ impl PeepholePass for OptimizeSetZeroPass {
 				Instruction::FindZero(..),
 				Instruction::IncVal {
 					offset: Offset(0),
-					..
+					value: Value::Constant(..)
 				} | Instruction::SetVal {
 					offset: Offset(0),
 					..
