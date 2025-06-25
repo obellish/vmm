@@ -421,11 +421,7 @@ where
 	fn write_value(&mut self, value: &Value<Bytes>) -> Result<(), RuntimeError> {
 		let value = self.resolve_value(value.clone());
 
-		let last = value.last().copied().ok_or(RuntimeError::NoBytes)?;
-
 		self.write_many_to_output(value)?;
-
-		self.set_val(NonZeroU8::new(last), Offset(0))?;
 
 		Ok(())
 	}
