@@ -87,9 +87,8 @@ impl FromCell for i8 {
 mod tests {
 	use vmm_num::Checked;
 
+	use super::Value;
 	use crate::Offset;
-
-use super::Value;
 
 	#[test]
 	fn checked_add_works() {

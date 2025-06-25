@@ -16,6 +16,7 @@ mod scale_and_move_val;
 mod scale_and_set_val;
 mod scale_and_take_val;
 mod scale_val;
+mod set_move_by_inc;
 mod set_scale;
 mod set_until_zero;
 mod set_zero;
@@ -36,7 +37,8 @@ pub use self::{
 	combine_move_change::*, constant_sub::*, fetch_and_scale_val::*, fetch_val::*,
 	find_cell_by_zero::*, find_zero::*, if_nz::*, remove_dead_code::*, reorder_instr::*,
 	replace_val::*, scale_and_move_val::*, scale_and_set_val::*, scale_and_take_val::*,
-	scale_val::*, set_scale::*, set_until_zero::*, set_zero::*, shift_vals::*, sub_cell::*, sup::*,
-	take_to_fetch::*, take_val::*, unroll_constant_loops::*, unroll_increment_loops::*,
-	unroll_moves::*, unroll_super_scale::*, write::*, zeroed_cell_inc::*,
+	scale_val::*, set_move_by_inc::*, set_scale::*, set_until_zero::*, set_zero::*, shift_vals::*,
+	sub_cell::*, sup::*, take_to_fetch::*, take_val::*, unroll_constant_loops::*,
+	unroll_increment_loops::*, unroll_moves::*, unroll_super_scale::*, write::*,
+	zeroed_cell_inc::*,
 };
