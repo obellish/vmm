@@ -52,6 +52,9 @@ impl Drop for PtrTape {
 	}
 }
 
+unsafe impl Send for PtrTape {}
+unsafe impl Sync for PtrTape {}
+
 impl Tape for PtrTape {
 	fn as_slice(&self) -> &[Cell] {
 		unsafe { slice::from_raw_parts(self.cells.as_ptr(), TAPE_SIZE) }
