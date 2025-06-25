@@ -185,7 +185,7 @@ where
 
 		let value = self.resolve_value(value);
 
-		WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[idx], value);
+		WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(idx), value);
 
 		Ok(())
 	}
@@ -194,7 +194,7 @@ where
 	fn set_val(&mut self, value: Option<NonZeroU8>, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		self.tape_mut()[idx].set_value(value.get_or_zero());
+		self.tape_mut().get_mut(idx).set_value(value.get_or_zero());
 
 		Ok(())
 	}
@@ -240,7 +240,7 @@ where
 
 		let dst_offset = self.calculate_index(offset);
 
-		WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[dst_offset], src_value);
+		WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(dst_offset), src_value);
 
 		Ok(())
 	}
@@ -249,7 +249,7 @@ where
 	fn fetch_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
+		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(self.cell_mut(), value);
 
@@ -263,10 +263,10 @@ where
 
 		let tape = self.tape_mut();
 
-		let src_val = mem::take(tape[src_offset].as_mut_u8());
+		let src_val = mem::take(tape.get_mut(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
-			&mut tape[dst_offset],
+			tape.get_mut(dst_offset),
 			WrappingMul::wrapping_mul(src_val, factor),
 		);
 
@@ -277,7 +277,7 @@ where
 	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
+		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
 			self.cell_mut(),
@@ -299,10 +299,10 @@ where
 
 		let tape = self.tape_mut();
 
-		let src_val = mem::replace(tape[src_offset].as_mut_u8(), value.get());
+		let src_val = mem::replace(tape.get_mut(src_offset).as_mut_u8(), value.get());
 
 		WrappingAddAssign::wrapping_add_assign(
-			&mut tape[dst_offset],
+			tape.get_mut(dst_offset),
 			WrappingMul::wrapping_mul(src_val, factor),
 		);
 
@@ -336,7 +336,7 @@ where
 
 		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
-		WrappingSubAssign::wrapping_sub_assign(&mut self.tape_mut()[idx], current_value);
+		WrappingSubAssign::wrapping_sub_assign(self.tape_mut().get_mut(idx), current_value);
 
 		Ok(())
 	}
@@ -373,7 +373,7 @@ where
 		for offset in offsets {
 			let idx = self.calculate_index(*offset);
 
-			WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[idx], value);
+			WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(idx), value);
 		}
 
 		Ok(())
@@ -401,7 +401,7 @@ where
 	fn replace_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
+		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
 
 		_ = mem::replace(self.cell_mut().as_mut_u8(), value);
 
@@ -541,7 +541,7 @@ where
 	{
 		match value {
 			Value::CellAt(offset) => {
-				V::from_cell(self.tape()[self.calculate_index(offset)].value())
+				V::from_cell(self.tape().get(self.calculate_index(offset)).value())
 			}
 			Value::Constant(v) => v,
 		}

@@ -14,7 +14,7 @@ pub use self::{cell::*, impls::*, ptr::*};
 
 pub const TAPE_SIZE: usize = 30000;
 
-pub trait Tape: Default + IndexMut<usize, Output = Cell> {
+pub trait Tape: Default {
 	/// Initialize the tape, setting all cells indices and values.
 	fn init(&mut self) {
 		for (i, cell) in self.as_mut_slice().iter_mut().enumerate() {
@@ -32,22 +32,36 @@ pub trait Tape: Default + IndexMut<usize, Output = Cell> {
 
 	fn ptr_mut(&mut self) -> &mut TapePointer;
 
+	fn get(&self, ptr: usize) -> &Cell {
+		self.as_slice().get(ptr).unwrap()
+	}
+
+	fn get_mut(&mut self, ptr: usize) -> &mut Cell {
+		self.as_mut_slice().get_mut(ptr).unwrap()
+	}
+
 	fn current_cell(&self) -> &Cell {
-		&self.as_slice()[self.ptr().value()]
+		self.get(self.ptr().value())
 	}
 
 	fn current_cell_mut(&mut self) -> &mut Cell {
-		let idx = self.ptr().value();
-		&mut self.as_mut_slice()[idx]
+		self.get_mut(self.ptr().value())
 	}
 
 	unsafe fn current_cell_unchecked(&self) -> &Cell {
-		unsafe { self.as_slice().get_unchecked(self.ptr().value()) }
+		unsafe { self.get_unchecked(self.ptr().value()) }
 	}
 
 	unsafe fn current_cell_unchecked_mut(&mut self) -> &mut Cell {
-		let idx = self.ptr().value();
-		unsafe { self.as_mut_slice().get_unchecked_mut(idx) }
+		unsafe { self.get_unchecked_mut(self.ptr().value()) }
+	}
+
+	unsafe fn get_unchecked(&self, ptr: usize) -> &Cell {
+		unsafe { self.as_slice().get_unchecked(ptr) }
+	}
+
+	unsafe fn get_unchecked_mut(&mut self, ptr: usize) -> &mut Cell {
+		unsafe { self.as_mut_slice().get_unchecked_mut(ptr) }
 	}
 }
 

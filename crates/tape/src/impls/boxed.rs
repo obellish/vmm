@@ -1,5 +1,4 @@
 use alloc::boxed::Box;
-use core::ops::{Index, IndexMut};
 
 use crate::{Cell, TAPE_SIZE, Tape, TapePointer};
 
@@ -26,20 +25,6 @@ impl Default for BoxTape {
 	}
 }
 
-impl Index<usize> for BoxTape {
-	type Output = Cell;
-
-	fn index(&self, index: usize) -> &Self::Output {
-		&self.cells[index % TAPE_SIZE]
-	}
-}
-
-impl IndexMut<usize> for BoxTape {
-	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-		&mut self.cells[index % TAPE_SIZE]
-	}
-}
-
 impl Tape for BoxTape {
 	fn as_slice(&self) -> &[Cell] {
 		&*self.cells
@@ -57,12 +42,11 @@ impl Tape for BoxTape {
 		&mut self.ptr
 	}
 
-	unsafe fn current_cell_unchecked(&self) -> &Cell {
-		unsafe { self.cells.get_unchecked(self.ptr().value()) }
+	unsafe fn get_unchecked(&self, ptr: usize) -> &Cell {
+		unsafe { self.cells.get_unchecked(ptr) }
 	}
 
-	unsafe fn current_cell_unchecked_mut(&mut self) -> &mut Cell {
-		let idx = self.ptr().value();
-		unsafe { self.cells.get_unchecked_mut(idx) }
+	unsafe fn get_unchecked_mut(&mut self, ptr: usize) -> &mut Cell {
+		unsafe { self.cells.get_unchecked_mut(ptr) }
 	}
 }

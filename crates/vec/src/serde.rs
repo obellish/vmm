@@ -27,9 +27,8 @@ impl<T: Serialize, const N: usize> Serialize for SmallVec<T, N> {
 	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
 		let mut state = serializer.serialize_seq(Some(self.len()))?;
 
-		for item in self {
-			state.serialize_element(item)?;
-		}
+		self.iter()
+			.try_for_each(|item| state.serialize_element(item))?;
 
 		state.end()
 	}
