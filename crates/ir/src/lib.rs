@@ -446,6 +446,16 @@ impl From<SuperInstruction> for Instruction {
 impl IsZeroingCell for Instruction {
 	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
+		if let Self::Write {
+			value: Value::Constant(bytes),
+		} = self
+		{
+			return match bytes {
+				Bytes::Many(b) => b.last().is_some_and(|v| matches!(*v, 0)),
+				Bytes::Single(b) => matches!(b, 0),
+			};
+		}
+
 		match self {
 			Self::Block(l) => l.is_zeroing_cell(),
 			Self::Super(s) => s.is_zeroing_cell(),

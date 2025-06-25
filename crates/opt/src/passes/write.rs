@@ -1,4 +1,5 @@
 use vmm_ir::{Bytes, Instruction, Offset, Value};
+use vmm_num::ops::WrappingAdd;
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -19,19 +20,34 @@ impl PeepholePass for OptimizeWritePass {
 				Instruction::Write {
 					value: Value::CellAt(Offset(0)),
 				},
-			] => Some(Change::swap([
-				Instruction::set_val(value.get_or_zero()),
-				Instruction::write_byte(value.get_or_zero()),
-			])),
+			] => Some(Change::replace(Instruction::write_byte(
+				value.get_or_zero(),
+			))),
 			[
 				Instruction::Write {
-					value: Value::Constant(Bytes::Single(a)),
+					value: Value::Constant(b),
+				},
+				Instruction::IncVal {
+					value: Value::Constant(value),
+					offset: Offset(0),
+				},
+			] => {
+				let last = b.last().copied()?;
+
+				Some(Change::swap([
+					Instruction::write_value(Value::Constant(b.clone())),
+					Instruction::set_val(WrappingAdd::wrapping_add(last, value)),
+				]))
+			}
+			[
+				Instruction::Write {
+					value: Value::Constant(a),
 				},
 				Instruction::Write {
-					value: Value::Constant(Bytes::Single(b)),
+					value: Value::Constant(b),
 				},
 			] => Some(Change::replace(Instruction::write_value(Value::Constant(
-				[*a, *b],
+				a.clone() + b.clone(),
 			)))),
 			_ => None,
 		}
@@ -42,10 +58,13 @@ impl PeepholePass for OptimizeWritePass {
 			window,
 			[
 				Instruction::Write {
-					value: Value::Constant(..),
+					value: Value::Constant(..)
 				},
 				Instruction::Write {
-					value: Value::Constant(..),
+					value: Value::Constant(..)
+				} | Instruction::IncVal {
+					offset: Offset(0),
+					value: Value::Constant(..)
 				}
 			] | [
 				Instruction::SetVal {
@@ -53,7 +72,7 @@ impl PeepholePass for OptimizeWritePass {
 					..
 				},
 				Instruction::Write {
-					value: Value::CellAt(Offset(0)),
+					value: Value::CellAt(Offset(0))
 				}
 			]
 		)

@@ -421,7 +421,13 @@ where
 	fn write_value(&mut self, value: &Value<Bytes>) -> Result<(), RuntimeError> {
 		let value = self.resolve_value(value.clone());
 
-		self.write_many_to_output(value)
+		let last = value.last().copied().ok_or(RuntimeError::NoBytes)?;
+
+		self.write_many_to_output(value)?;
+
+		self.set_val(NonZeroU8::new(last), Offset(0))?;
+
+		Ok(())
 	}
 
 	#[inline]
@@ -561,6 +567,7 @@ pub enum RuntimeError {
 	Io(IoError),
 	Unimplemented(Instruction),
 	TooManyIterations(usize),
+	NoBytes,
 }
 
 impl Display for RuntimeError {
@@ -578,6 +585,7 @@ impl Display for RuntimeError {
 				f.write_str(" iterations at cell ")?;
 				Display::fmt(&i, f)
 			}
+			Self::NoBytes => f.write_str("called write with no bytes"),
 		}
 	}
 }
@@ -586,7 +594,7 @@ impl StdError for RuntimeError {
 	fn source(&self) -> Option<&(dyn StdError + 'static)> {
 		match self {
 			Self::Io(e) => Some(e),
-			Self::Unimplemented(_) | Self::TooManyIterations(_) => None,
+			Self::Unimplemented(_) | Self::TooManyIterations(_) | Self::NoBytes => None,
 		}
 	}
 }

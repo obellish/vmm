@@ -33,7 +33,7 @@ impl PtrTape {
 
 		Ok(Self {
 			cells: ptr,
-			ptr: TapePointer::zero()
+			ptr: TapePointer::zero(),
 		})
 	}
 }

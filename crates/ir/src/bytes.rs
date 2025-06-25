@@ -45,6 +45,15 @@ impl Bytes {
 			_ => {}
 		}
 	}
+
+	#[allow(clippy::missing_const_for_fn)]
+	#[must_use]
+	pub fn last(&self) -> Option<&u8> {
+		match self {
+			Self::Single(b) => Some(b),
+			Self::Many(b) => b.last(),
+		}
+	}
 }
 
 impl Add for Bytes {

@@ -14,7 +14,7 @@ impl BoxTape {
 	pub fn new() -> Self {
 		Self {
 			cells: Box::new([Cell::new(0); TAPE_SIZE]),
-			ptr: TapePointer::zero()
+			ptr: TapePointer::zero(),
 		}
 	}
 }
