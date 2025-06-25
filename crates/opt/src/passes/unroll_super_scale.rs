@@ -1,4 +1,5 @@
 use vmm_ir::{Instruction, ScaleAnd, SuperInstruction};
+use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
 
@@ -33,6 +34,37 @@ impl PeepholePass for UnrollScaleAndPass {
 				Instruction::move_val(*offset),
 				Instruction::set_val(value.get()),
 			])),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Move,
+					offset,
+					factor,
+				}),
+			] => Some(Change::swap([
+				Instruction::scale_val(*factor),
+				Instruction::move_val(offset),
+			])),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Take,
+					offset,
+					factor,
+				}),
+			] => Some(Change::swap([
+				Instruction::scale_val(*factor),
+				Instruction::take_val(offset),
+			])),
+			[
+				Instruction::Super(SuperInstruction::ScaleAnd {
+					action: ScaleAnd::Set(value),
+					offset,
+					factor,
+				}),
+			] => Some(Change::swap([
+				Instruction::scale_val(*factor),
+				Instruction::move_val(offset),
+				Instruction::set_val(value.get_or_zero()),
+			])),
 			_ => None,
 		}
 	}
@@ -41,10 +73,7 @@ impl PeepholePass for UnrollScaleAndPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,
-			[Instruction::Super(SuperInstruction::ScaleAnd {
-				factor: 1,
-				..
-			})]
+			[Instruction::Super(SuperInstruction::ScaleAnd { .. })]
 		)
 	}
 }

@@ -1,6 +1,5 @@
 use core::{
 	alloc::{Layout, LayoutError},
-	ops::{Index, IndexMut},
 	ptr::NonNull,
 	slice,
 };
@@ -53,19 +52,8 @@ impl Drop for PtrTape {
 	}
 }
 
-impl Index<usize> for PtrTape {
-	type Output = Cell;
-
-	fn index(&self, index: usize) -> &Self::Output {
-		&self.as_slice()[index % TAPE_SIZE]
-	}
-}
-
-impl IndexMut<usize> for PtrTape {
-	fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-		&mut self.as_mut_slice()[index % TAPE_SIZE]
-	}
-}
+unsafe impl Send for PtrTape {}
+unsafe impl Sync for PtrTape {}
 
 impl Tape for PtrTape {
 	fn as_slice(&self) -> &[Cell] {
@@ -82,21 +70,5 @@ impl Tape for PtrTape {
 
 	fn ptr_mut(&mut self) -> &mut TapePointer {
 		&mut self.ptr
-	}
-
-	fn current_cell(&self) -> &Cell {
-		unsafe { &*self.cells.as_ptr().add(self.ptr().value()) }
-	}
-
-	fn current_cell_mut(&mut self) -> &mut Cell {
-		unsafe { &mut *self.cells.as_ptr().add(self.ptr().value()) }
-	}
-
-	unsafe fn current_cell_unchecked(&self) -> &Cell {
-		self.current_cell()
-	}
-
-	unsafe fn current_cell_unchecked_mut(&mut self) -> &mut Cell {
-		self.current_cell_mut()
 	}
 }

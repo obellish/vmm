@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, IsZeroingCell as _, Offset};
+use vmm_ir::{Instruction, IsZeroingCell as _, Offset, Value};
 
 use crate::{Change, PeepholePass};
 
@@ -14,7 +14,7 @@ impl PeepholePass for OptimizeZeroedCellIncValPass {
 			[
 				i,
 				Instruction::IncVal {
-					value,
+					value: Value::Constant(value),
 					offset: Offset(0),
 				},
 			] if i.is_zeroing_cell() => Some(Change::swap([
@@ -27,6 +27,6 @@ impl PeepholePass for OptimizeZeroedCellIncValPass {
 
 	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [i, Instruction::IncVal { offset: Offset(0), .. }] if i.is_zeroing_cell())
+		matches!(window, [i, Instruction::IncVal { offset: Offset(0), value: Value::Constant(..) }] if i.is_zeroing_cell())
 	}
 }

@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, WriteInstruction};
+use vmm_ir::{Instruction, Offset, Value};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -15,7 +15,7 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			[
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
-					value,
+					value: Value::Constant(value),
 					offset: Offset(0),
 				},
 				Instruction::MovePtr(y),
@@ -33,12 +33,11 @@ impl PeepholePass for CollapseRelativeInstrPass {
 			))),
 			[
 				Instruction::MovePtr(x),
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
-					count,
-				}),
+				Instruction::Write {
+					value: Value::CellAt(Offset(0)),
+				},
 				Instruction::MovePtr(y),
-			] if *x == -y => Some(Change::replace(Instruction::write_many_at(*count, *x))),
+			] if *x == -y => Some(Change::replace(Instruction::write_once_at(*x))),
 			_ => None,
 		}
 	}
@@ -55,10 +54,10 @@ impl PeepholePass for CollapseRelativeInstrPass {
 				} | Instruction::SetVal {
 					offset: Offset(0),
 					..
-				} | Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
+				} | Instruction::Write {
+					value: Value::CellAt(Offset(0)),
 					..
-				}),
+				},
 				Instruction::MovePtr(y)
 			]
 			if *x == -y

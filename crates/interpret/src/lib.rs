@@ -11,7 +11,9 @@ use std::{
 	num::NonZeroU8,
 };
 
-use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction, WriteInstruction};
+use vmm_ir::{
+	BlockInstruction, Bytes, FromCell, Instruction, Offset, ScaleAnd, SuperInstruction, Value,
+};
 use vmm_num::ops::{WrappingAddAssign, WrappingMul, WrappingMulAssign, WrappingSubAssign};
 use vmm_program::Program;
 use vmm_tape::{Cell, Tape, TapePointer};
@@ -173,24 +175,17 @@ where
 	}
 
 	#[inline]
-	fn write_char(&mut self, count: usize, offset: Offset) -> Result<(), RuntimeError> {
-		let idx = self.calculate_index(offset);
-
-		let ch = self.tape()[idx].value();
-
-		self.write_to_output(ch, count)
-	}
-
-	#[inline]
 	const fn boundary(&self) -> Result<(), RuntimeError> {
 		Ok(())
 	}
 
 	#[inline]
-	fn inc_val(&mut self, value: i8, offset: Offset) -> Result<(), RuntimeError> {
+	fn inc_val(&mut self, value: Value<i8>, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[idx], value);
+		let value = self.resolve_value(value);
+
+		WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(idx), value);
 
 		Ok(())
 	}
@@ -199,7 +194,7 @@ where
 	fn set_val(&mut self, value: Option<NonZeroU8>, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		self.tape_mut()[idx].set_value(value.get_or_zero());
+		self.tape_mut().get_mut(idx).set_value(value.get_or_zero());
 
 		Ok(())
 	}
@@ -245,7 +240,7 @@ where
 
 		let dst_offset = self.calculate_index(offset);
 
-		WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[dst_offset], src_value);
+		WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(dst_offset), src_value);
 
 		Ok(())
 	}
@@ -254,7 +249,7 @@ where
 	fn fetch_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
+		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(self.cell_mut(), value);
 
@@ -268,10 +263,10 @@ where
 
 		let tape = self.tape_mut();
 
-		let src_val = mem::take(tape[src_offset].as_mut_u8());
+		let src_val = mem::take(tape.get_mut(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
-			&mut tape[dst_offset],
+			tape.get_mut(dst_offset),
 			WrappingMul::wrapping_mul(src_val, factor),
 		);
 
@@ -282,7 +277,7 @@ where
 	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
+		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
 			self.cell_mut(),
@@ -304,10 +299,10 @@ where
 
 		let tape = self.tape_mut();
 
-		let src_val = mem::replace(tape[src_offset].as_mut_u8(), value.get());
+		let src_val = mem::replace(tape.get_mut(src_offset).as_mut_u8(), value.get());
 
 		WrappingAddAssign::wrapping_add_assign(
-			&mut tape[dst_offset],
+			tape.get_mut(dst_offset),
 			WrappingMul::wrapping_mul(src_val, factor),
 		);
 
@@ -341,7 +336,7 @@ where
 
 		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
-		WrappingSubAssign::wrapping_sub_assign(&mut self.tape_mut()[idx], current_value);
+		WrappingSubAssign::wrapping_sub_assign(self.tape_mut().get_mut(idx), current_value);
 
 		Ok(())
 	}
@@ -378,7 +373,7 @@ where
 		for offset in offsets {
 			let idx = self.calculate_index(*offset);
 
-			WrappingAddAssign::wrapping_add_assign(&mut self.tape_mut()[idx], value);
+			WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(idx), value);
 		}
 
 		Ok(())
@@ -406,7 +401,7 @@ where
 	fn replace_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut()[src_offset].as_mut_u8());
+		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
 
 		_ = mem::replace(self.cell_mut().as_mut_u8(), value);
 
@@ -423,38 +418,10 @@ where
 		Ok(())
 	}
 
-	#[inline]
-	fn write_and_set(
-		&mut self,
-		count: usize,
-		offset: Offset,
-		value: Option<NonZeroU8>,
-	) -> Result<(), RuntimeError> {
-		let idx = self.calculate_index(offset);
+	fn write_value(&mut self, value: &Value<Bytes>) -> Result<(), RuntimeError> {
+		let value = self.resolve_value(value.clone());
 
-		let ch = mem::replace(self.tape_mut()[idx].as_mut_u8(), value.get_or_zero());
-
-		self.write_to_output(ch, count)
-	}
-
-	#[inline]
-	fn write_byte(&mut self, b: u8) -> Result<(), RuntimeError> {
-		self.write_to_output(b, 1)?;
-
-		self.set_val(NonZeroU8::new(b), Offset(0))?;
-
-		Ok(())
-	}
-
-	#[inline]
-	fn write_bytes(&mut self, bytes: &[u8]) -> Result<(), RuntimeError> {
-		self.write_many_to_output(bytes)?;
-
-		let Some(last) = bytes.last().copied() else {
-			return Ok(());
-		};
-
-		self.set_val(NonZeroU8::new(last), Offset(0))
+		self.write_many_to_output(value)
 	}
 
 	#[inline]
@@ -479,7 +446,7 @@ where
 			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
-			Instruction::Write(w) => self.execute_write_instruction(w)?,
+			Instruction::Write { value } => self.write_value(value)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -546,22 +513,6 @@ where
 		Ok(())
 	}
 
-	fn execute_write_instruction(&mut self, instr: &WriteInstruction) -> Result<(), RuntimeError> {
-		match instr {
-			WriteInstruction::Cell { count, offset } => self.write_char(*count, *offset)?,
-			WriteInstruction::CellAndSet {
-				count,
-				offset,
-				value,
-			} => self.write_and_set(*count, *offset, *value)?,
-			WriteInstruction::Byte(ch) => self.write_byte(*ch)?,
-			WriteInstruction::Bytes(s) => self.write_bytes(s)?,
-			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
-		}
-
-		Ok(())
-	}
-
 	#[inline]
 	#[allow(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Offset) -> usize {
@@ -571,22 +522,29 @@ where
 		}
 	}
 
-	#[inline]
-	fn write_to_output(&mut self, ch: u8, count: usize) -> Result<(), RuntimeError> {
-		let bytes = vec![ch; count];
-		self.write_many_to_output(&bytes)
-	}
+	fn write_many_to_output(&mut self, bytes: Bytes) -> Result<(), RuntimeError> {
+		let bytes = bytes.into_vec();
 
-	fn write_many_to_output(&mut self, bytes: &[u8]) -> Result<(), RuntimeError> {
-		if bytes
-			.iter()
-			.all(|ch| !cfg!(target_os = "windows") || *ch < 128)
-		{
-			self.output.write_all(bytes)?;
-			self.output.flush()?;
+		for byte in bytes {
+			if !cfg!(target_os = "windows") || byte < 128 {
+				self.output.write_all(&[byte])?;
+				self.output.flush()?;
+			}
 		}
 
 		Ok(())
+	}
+
+	fn resolve_value<V>(&self, value: Value<V>) -> V
+	where
+		V: FromCell,
+	{
+		match value {
+			Value::CellAt(offset) => {
+				V::from_cell(self.tape().get(self.calculate_index(offset)).value())
+			}
+			Value::Constant(v) => v,
+		}
 	}
 }
 

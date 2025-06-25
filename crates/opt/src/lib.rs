@@ -166,6 +166,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_dynamic_loop_pass::<OptimizeShiftValsPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSuperInstrPass>(progress);
 		self.run_default_peephole_pass::<OptimizeWritePass>(progress);
+		self.run_default_peephole_pass::<OptimizeSetIncByCellPass>(progress);
 
 		self.run_default_peephole_pass::<ReorderMoveChangePass>(progress);
 		self.run_default_peephole_pass::<ReorderOffsetBetweenMovesPass>(progress);
@@ -186,6 +187,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<UnrollConstantLoopsPass>(progress);
 		self.run_default_peephole_pass::<UnrollIncrementLoopsPass>(progress);
 		self.run_default_peephole_pass::<UnrollScaleAndPass>(progress);
+		self.run_default_peephole_pass::<UnrollMovePass>(progress);
 	}
 }
 

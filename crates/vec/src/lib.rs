@@ -689,15 +689,13 @@ impl<T, const N: usize> SmallVec<T, N> {
 		let mut del = 0;
 		let len = self.len();
 		let ptr = self.as_mut_ptr();
-		for i in 0..len {
-			unsafe {
-				if !f(&mut *ptr.add(i)) {
-					del += 1;
-				} else if del > 0 {
-					ptr::swap(ptr.add(i), ptr.add(i - del));
-				}
+		(0..len).for_each(|i| unsafe {
+			if !f(&mut *ptr.add(i)) {
+				del += 1;
+			} else if del > 0 {
+				ptr::swap(ptr.add(i), ptr.add(i - del));
 			}
-		}
+		});
 
 		self.truncate(len - del);
 	}
@@ -726,7 +724,7 @@ impl<T, const N: usize> SmallVec<T, N> {
 		let mut w = 1usize;
 
 		unsafe {
-			for r in 1..len {
+			(1..len).for_each(|r| {
 				let p_r = ptr.add(r);
 				let p_wm1 = ptr.add(w - 1);
 				if !same_bucket(&mut *p_r, &mut *p_wm1) {
@@ -737,7 +735,7 @@ impl<T, const N: usize> SmallVec<T, N> {
 
 					w += 1;
 				}
-			}
+			});
 		}
 
 		self.truncate(w);
@@ -750,9 +748,7 @@ impl<T, const N: usize> SmallVec<T, N> {
 			let mut f = f;
 			let additional = new_len - old_len;
 			self.reserve(additional);
-			for _ in 0..additional {
-				self.push(f());
-			}
+			(0..additional).for_each(|_| self.push(f()));
 		} else if old_len > new_len {
 			self.truncate(new_len);
 		}
@@ -843,10 +839,10 @@ impl<T: Clone, const N: usize> SmallVec<T, N> {
 				let ptr = v.raw.as_mut_inline_ptr();
 				let mut guard = DropGuard { ptr, len: 0 };
 
-				for i in 0..n {
+				(0..n).for_each(|i| {
 					guard.len = i;
 					ptr.add(i).write(elem.clone());
-				}
+				});
 
 				mem::forget(guard);
 				v.set_len(n);

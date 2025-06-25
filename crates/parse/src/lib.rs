@@ -100,7 +100,7 @@ fn parse(
 					}
 					OpCode::JumpLeft => return Err(ParseError::UnmatchedBracket(i)),
 				} {
-					trace!(parent: &span, "got instruction {instr}");
+					trace!(parent: &span, "got instruction {op}");
 					program.push(instr);
 				}
 			} else {

@@ -1,8 +1,4 @@
 use alloc::vec::Vec;
-use core::{
-	ops::{Index, IndexMut},
-	slice::SliceIndex,
-};
 
 use crate::{Cell, TAPE_SIZE, Tape, TapePointer};
 
@@ -18,9 +14,7 @@ impl VecTape {
 		Self {
 			cells: {
 				let mut cells = Vec::with_capacity(TAPE_SIZE);
-				for i in 0..TAPE_SIZE {
-					cells.push(Cell::with_index(0, i));
-				}
+				cells.extend((0..TAPE_SIZE).map(|i| Cell::with_index(0, i)));
 
 				cells.shrink_to_fit();
 
@@ -37,30 +31,10 @@ impl Default for VecTape {
 	}
 }
 
-impl<I> Index<I> for VecTape
-where
-	I: SliceIndex<[Cell]>,
-{
-	type Output = I::Output;
-
-	fn index(&self, index: I) -> &Self::Output {
-		self.cells.index(index)
-	}
-}
-
-impl<I> IndexMut<I> for VecTape
-where
-	I: SliceIndex<[Cell]>,
-{
-	fn index_mut(&mut self, index: I) -> &mut Self::Output {
-		self.cells.index_mut(index)
-	}
-}
-
 impl Tape for VecTape {
-	fn init(&mut self) {}
-
-	// We don't need to init, as we do it in `new`
+	fn init(&mut self) {
+		// We don't need to init, as we do it in `new`
+	}
 
 	fn as_slice(&self) -> &[Cell] {
 		self.cells.as_slice()

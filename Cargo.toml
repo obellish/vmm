@@ -57,12 +57,12 @@ ron = "0.10"
 serde = { version = "1", default-features = false }
 serde_array = { path = "crates/serde_array" }
 serde_json = "1"
+tap = { path = "crates/tap" }
 tracing = { version = "0.1", features = ["attributes"] }
 vmm_ir = { path = "crates/ir" }
 vmm_num = { path = "crates/num" }
 vmm_program = { path = "crates/program" }
 vmm_span = { path = "crates/span" }
-tap = { path = "crates/tap" }
 vmm_tape = { path = "crates/tape" }
 vmm_testing = { path = "crates/testing" }
 vmm_utils = { path = "crates/utils" }

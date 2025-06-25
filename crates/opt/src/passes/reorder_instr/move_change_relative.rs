@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{Instruction, Value};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -14,7 +14,10 @@ impl PeepholePass for ReorderMoveChangePass {
 		match window {
 			[
 				Instruction::MovePtr(x),
-				Instruction::IncVal { value, offset: y },
+				Instruction::IncVal {
+					value: Value::Constant(value),
+					offset: y,
+				},
 			] if *x == -y => Some(Change::swap([
 				Instruction::inc_val(*value),
 				Instruction::move_ptr(*x),
@@ -38,7 +41,7 @@ impl PeepholePass for ReorderMoveChangePass {
 				Instruction::MovePtr(x),
 				Instruction::IncVal {
 					offset: y,
-					..
+					value: Value::Constant(..)
 				} | Instruction::SetVal {
 					offset: y,
 					..

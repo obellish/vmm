@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, WriteInstruction};
+use vmm_ir::{Instruction, Offset, Value};
 use vmm_num::ops::{WrappingAdd, WrappingMul};
 use vmm_utils::GetOrZero as _;
 
@@ -16,21 +16,21 @@ impl PeepholePass for CollapseStackedInstrPass {
 		match window {
 			[
 				Instruction::IncVal {
-					value: i1,
+					value: Value::Constant(i1),
 					offset: Offset(0),
 				},
 				Instruction::IncVal {
-					value: i2,
+					value: Value::Constant(i2),
 					offset: Offset(0),
 				},
 			] if *i1 == -i2 => Some(Change::remove()),
 			[
 				Instruction::IncVal {
-					value: i1,
+					value: Value::Constant(i1),
 					offset: Offset(0),
 				},
 				Instruction::IncVal {
-					value: i2,
+					value: Value::Constant(i2),
 					offset: Offset(0),
 				},
 			] => Some(Change::replace(Instruction::inc_val(
@@ -53,21 +53,21 @@ impl PeepholePass for CollapseStackedInstrPass {
 			] => Some(Change::replace(Instruction::set_val(x.get()))),
 			[
 				Instruction::IncVal {
-					value: i1,
+					value: Value::Constant(i1),
 					offset: x,
 				},
 				Instruction::IncVal {
-					value: i2,
+					value: Value::Constant(i2),
 					offset: y,
 				},
 			] if *i1 == -i2 && x == y => Some(Change::remove()),
 			[
 				Instruction::IncVal {
-					value: i1,
+					value: Value::Constant(i1),
 					offset: x,
 				},
 				Instruction::IncVal {
-					value: i2,
+					value: Value::Constant(i2),
 					offset: y,
 				},
 			] if x == y => Some(Change::replace(Instruction::inc_val_at(
@@ -111,26 +111,6 @@ impl PeepholePass for CollapseStackedInstrPass {
 				},
 			] => Some(Change::replace(Instruction::set_val(value.get_or_zero()))),
 			[
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
-					count: a,
-				}),
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
-					count: b,
-				}),
-			] => Some(Change::replace(Instruction::write_many(a + b))),
-			[
-				Instruction::Write(WriteInstruction::Cell {
-					count: a,
-					offset: x,
-				}),
-				Instruction::Write(WriteInstruction::Cell {
-					count: b,
-					offset: y,
-				}),
-			] if *x == *y => Some(Change::replace(Instruction::write_many_at(*a + *b, x))),
-			[
 				Instruction::ScaleVal { factor: x },
 				Instruction::ScaleVal { factor: y },
 			] => Some(Change::Replace(Instruction::scale_val(
@@ -147,11 +127,11 @@ impl PeepholePass for CollapseStackedInstrPass {
 			[
 				Instruction::IncVal {
 					offset: Offset(0),
-					..
+					value: Value::Constant(..)
 				},
 				Instruction::IncVal {
 					offset: Offset(0),
-					..
+					value: Value::Constant(..)
 				}
 			] | [Instruction::MovePtr(..), Instruction::MovePtr(..)]
 				| [
@@ -163,27 +143,15 @@ impl PeepholePass for CollapseStackedInstrPass {
 						offset: Offset(0),
 						..
 					}
-				] | [
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
-					..
-				}),
-				Instruction::Write(WriteInstruction::Cell {
-					offset: Offset(0),
-					..
-				})
-			] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
+				] | [Instruction::ScaleVal { .. }, Instruction::ScaleVal { .. }]
 		) || matches!(
 			window,
 			[
-				Instruction::IncVal { offset: x, .. },
-				Instruction::IncVal { offset: y, .. }
+				Instruction::IncVal { offset: x, value: Value::Constant(..) },
+				Instruction::IncVal { offset: y, value: Value::Constant(..) }
 			] | [
 				Instruction::SetVal { offset: x, .. },
 				Instruction::SetVal { offset: y, .. }
-			] | [
-				Instruction::Write(WriteInstruction::Cell { offset: x, .. }),
-				Instruction::Write(WriteInstruction::Cell { offset: y, .. })
 			]
 			if *x == *y
 		)

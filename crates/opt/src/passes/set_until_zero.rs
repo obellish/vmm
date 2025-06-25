@@ -38,6 +38,12 @@ impl LoopPass for OptimizeSetUntilZeroPass {
 					..
 				},
 				Instruction::MovePtr(Offset(..))
+			] | [
+				Instruction::MovePtr(..),
+				Instruction::SetVal {
+					offset: Offset(0),
+					..
+				}
 			]
 		)
 	}
