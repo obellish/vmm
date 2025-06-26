@@ -30,7 +30,7 @@ anyhow = "1"
 
 [workspace]
 members = [
-    "crates/alloc", "crates/gc",
+    "crates/alloc",
     "crates/interpret",
     "crates/ir",
     "crates/num",
