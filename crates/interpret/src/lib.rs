@@ -11,6 +11,7 @@ use std::{
 	num::NonZeroU8,
 };
 
+use tap::prelude::*;
 use vmm_ir::{
 	BlockInstruction, Bytes, FromCell, Instruction, Offset, ScaleAnd, SuperInstruction, Value,
 };
@@ -468,7 +469,7 @@ where
 
 				mem::take(self.cell_mut().as_mut_u8());
 			}
-			i => return Err(RuntimeError::Unimplemented(i.clone().into())),
+			i => return Err(RuntimeError::Unimplemented(i.clone().convert())),
 		}
 
 		Ok(())
@@ -507,7 +508,7 @@ where
 				self.find_cell_by_zero(jump_by, offset)?;
 			}
 			SuperInstruction::ShiftVals(offset) => self.shift_vals(offset)?,
-			i => return Err(RuntimeError::Unimplemented((i).into())),
+			i => return Err(RuntimeError::Unimplemented((i).convert())),
 		}
 
 		Ok(())

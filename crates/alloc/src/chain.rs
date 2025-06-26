@@ -42,7 +42,7 @@ where
 	}
 
 	unsafe fn deallocate(&self, ptr: NonNull<u8>, layout: Layout) {
-		if self.0.addr_in_bounds(ptr.addr().into()) {
+		if self.0.addr_in_bounds(ptr.addr().convert()) {
 			unsafe {
 				self.0.deallocate(ptr, layout);
 			}
@@ -57,7 +57,7 @@ where
 		old_layout: Layout,
 		new_layout: Layout,
 	) -> Result<NonNull<[u8]>, AllocError> {
-		if self.0.addr_in_bounds(ptr.addr().into()) {
+		if self.0.addr_in_bounds(ptr.addr().convert()) {
 			let res_a = unsafe { self.0.grow(ptr, old_layout, new_layout) };
 			if res_a.is_ok() {
 				return res_a;
@@ -99,7 +99,7 @@ where
 		old_layout: Layout,
 		new_layout: Layout,
 	) -> Result<NonNull<[u8]>, AllocError> {
-		if self.0.addr_in_bounds(ptr.addr().into()) {
+		if self.0.addr_in_bounds(ptr.addr().convert()) {
 			let res_a = unsafe { self.0.shrink(ptr, old_layout, new_layout) };
 			if res_a.is_ok() {
 				return res_a;

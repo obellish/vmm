@@ -1057,6 +1057,7 @@ version = "0.1.0"
 dependencies = [
  "arbitrary",
  "serde",
+ "tap",
  "vmm_num",
  "vmm_span",
  "vmm_utils",

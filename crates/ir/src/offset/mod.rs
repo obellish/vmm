@@ -6,6 +6,7 @@ use core::{
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use tap::prelude::*;
 use vmm_span::Walk;
 use vmm_utils::GetOrZero;
 
@@ -71,7 +72,7 @@ impl From<isize> for Offset {
 
 impl From<&isize> for Offset {
 	fn from(value: &isize) -> Self {
-		(*value).into()
+		(*value).convert::<Self>()
 	}
 }
 
