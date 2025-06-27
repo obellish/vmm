@@ -53,7 +53,7 @@ where
 	where
 		Self: Deref<Target = T>,
 	{
-		func(Deref::deref(&self));
+		func(&*self);
 		self
 	}
 
@@ -61,7 +61,7 @@ where
 	where
 		Self: DerefMut<Target = T>,
 	{
-		func(DerefMut::deref_mut(&mut self));
+		func(&mut *self);
 		self
 	}
 

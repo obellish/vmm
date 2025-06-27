@@ -96,11 +96,11 @@ impl<T: Walk> DoubleEndedIterator for SpannedIter<T> {
 		let end = &self.span.end.0;
 		let start = &self.span.start.0;
 
-		if let Some(minus_n) = Walk::backward_checked(end.clone(), n) {
-			if minus_n > *start {
-				self.span.end.0 = Walk::backward_checked(minus_n, 1)?;
-				return Some(self.span.end.0.clone());
-			}
+		if let Some(minus_n) = Walk::backward_checked(end.clone(), n)
+			&& minus_n > *start
+		{
+			self.span.end.0 = Walk::backward_checked(minus_n, 1)?;
+			return Some(self.span.end.0.clone());
 		}
 
 		self.span.end.0 = self.span.start.0.clone();
@@ -155,12 +155,12 @@ impl<T: Walk> Iterator for SpannedIter<T> {
 		let start = &mut self.span.start.0;
 		let end = &self.span.end.0;
 
-		if let Some(plus_n) = Walk::forward_checked(start.clone(), n) {
-			if plus_n < *end {
-				self.span.start.0 = Walk::forward_checked(plus_n.clone(), 1)?;
+		if let Some(plus_n) = Walk::forward_checked(start.clone(), n)
+			&& plus_n < *end
+		{
+			self.span.start.0 = Walk::forward_checked(plus_n.clone(), 1)?;
 
-				return Some(plus_n);
-			}
+			return Some(plus_n);
 		}
 
 		self.span.start.0 = self.span.end.0.clone();

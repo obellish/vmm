@@ -24,11 +24,12 @@ fn arbitrary_regex(u: &mut arbitrary::Unstructured<'_>) -> arbitrary::Result<Str
 fn main() {
 	_ = run_test(|u| {
 		let r = arbitrary_regex(u)?;
-		if let Ok(regex) = Regex::new(&format!("^({r})$")) {
-			if regex.is_match("abba") && !regex.is_match("baab") {
-				eprintln!("{r}");
-				panic!()
-			}
+		if let Ok(regex) = Regex::new(&format!("^({r})$"))
+			&& regex.is_match("abba")
+			&& !regex.is_match("baab")
+		{
+			eprintln!("{r}");
+			panic!()
 		}
 
 		Ok(())

@@ -57,12 +57,11 @@ impl<S: MetadataStore> Optimizer<S> {
 				self.store.get_program_snapshot(iteration)?,
 			);
 
-			if let Some((first_program, last_program)) = Option::zip(first_program, last_program) {
-				if first_program.into_iter().collect::<RawProgram>()
+			if let Some((first_program, last_program)) = Option::zip(first_program, last_program)
+				&& first_program.into_iter().collect::<RawProgram>()
 					!= last_program.into_iter().collect::<RawProgram>()
-				{
-					warn!("program instructions do not match, semantics may be different");
-				}
+			{
+				warn!("program instructions do not match, semantics may be different");
 			}
 		}
 

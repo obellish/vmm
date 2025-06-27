@@ -56,7 +56,7 @@ pub trait Pipe {
 		Self: Deref<Target = T>,
 		T: ?Sized + 'a,
 	{
-		func(Deref::deref(self))
+		func(&**self)
 	}
 
 	fn pipe_deref_mut<'a, T, R>(&'a mut self, func: impl FnOnce(&'a mut T) -> R) -> R
@@ -64,7 +64,7 @@ pub trait Pipe {
 		Self: DerefMut<Target = T>,
 		T: ?Sized + 'a,
 	{
-		func(DerefMut::deref_mut(self))
+		func(&mut **self)
 	}
 }
 

@@ -54,11 +54,11 @@ where
 				self.idx += 1;
 				if drained {
 					self.del += 1;
-					return Some(ptr::read(&v[i]));
+					return Some(ptr::read(&raw const v[i]));
 				} else if self.del > 0 {
 					let del = self.del;
-					let src: *const T = &v[i];
-					let dst: *mut T = &mut v[i - del];
+					let src: *const T = &raw const v[i];
+					let dst: *mut T = &raw mut v[i - del];
 					ptr::copy_nonoverlapping(src, dst, 1);
 				}
 			}
