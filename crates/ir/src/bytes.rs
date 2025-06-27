@@ -42,7 +42,8 @@ impl Bytes {
 	pub fn shrink(&mut self) {
 		match self {
 			Self::Many(b) if matches!(b.len(), 1) => *self = Self::Single(b[0]),
-			_ => {}
+			Self::Many(b) => b.shrink_to_fit(),
+			Self::Single(_) => {}
 		}
 	}
 

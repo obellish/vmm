@@ -6,6 +6,7 @@ use core::{
 };
 
 use serde::{Deserialize, Serialize};
+use tap::prelude::*;
 
 pub use self::scale::*;
 use super::{IsZeroingCell, Offset, PtrMovement};
@@ -66,7 +67,7 @@ impl SuperInstruction {
 	#[must_use]
 	pub fn find_and_set_zero(value: NonZeroU8, offset: impl Into<Offset>) -> Self {
 		Self::FindAndSetZero {
-			offset: offset.into(),
+			offset: offset.convert::<Offset>(),
 			value,
 		}
 	}
@@ -75,21 +76,21 @@ impl SuperInstruction {
 	pub fn set_until_zero(value: u8, offset: impl Into<Offset>) -> Self {
 		Self::SetUntilZero {
 			value: NonZeroU8::new(value),
-			offset: offset.into(),
+			offset: offset.convert(),
 		}
 	}
 
 	#[must_use]
 	pub fn find_cell_by_zero(jump_by: impl Into<Offset>, offset: impl Into<Offset>) -> Self {
 		Self::FindCellByZero {
-			jump_by: jump_by.into(),
-			offset: offset.into(),
+			jump_by: jump_by.convert(),
+			offset: offset.convert(),
 		}
 	}
 
 	#[must_use]
 	pub fn shift_vals(offset: impl Into<Offset>) -> Self {
-		Self::ShiftVals(offset.into())
+		Self::ShiftVals(offset.convert())
 	}
 }
 

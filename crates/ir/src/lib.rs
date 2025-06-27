@@ -17,6 +17,7 @@ use core::{
 };
 
 use serde::{Deserialize, Serialize};
+use tap::prelude::*;
 use vmm_utils::GetOrZero as _;
 
 pub use self::{block_instr::*, bytes::*, offset::*, super_instr::*, utils::*, value::*};
@@ -90,13 +91,13 @@ impl Instruction {
 	#[must_use]
 	pub fn sub_cell(offset: impl Into<Offset>) -> Self {
 		Self::SubCell {
-			offset: offset.into(),
+			offset: offset.convert(),
 		}
 	}
 
 	#[must_use]
 	pub fn scale_and_take_val(factor: u8, offset: impl Into<Offset>) -> Self {
-		SuperInstruction::scale_and_take_val(factor, offset).into()
+		SuperInstruction::scale_and_take_val(factor, offset).convert()
 	}
 
 	#[must_use]
@@ -107,8 +108,8 @@ impl Instruction {
 	#[must_use]
 	pub fn inc_val_at(v: i8, offset: impl Into<Offset>) -> Self {
 		Self::IncVal {
-			value: v.into(),
-			offset: offset.into(),
+			value: v.convert(),
+			offset: offset.convert(),
 		}
 	}
 
@@ -126,7 +127,7 @@ impl Instruction {
 	pub fn set_val_at(v: u8, offset: impl Into<Offset>) -> Self {
 		Self::SetVal {
 			value: NonZeroU8::new(v),
-			offset: offset.into(),
+			offset: offset.convert(),
 		}
 	}
 
@@ -139,43 +140,43 @@ impl Instruction {
 	pub fn clear_val_at(offset: impl Into<Offset>) -> Self {
 		Self::SetVal {
 			value: None,
-			offset: offset.into(),
+			offset: offset.convert(),
 		}
 	}
 
 	#[must_use]
 	pub fn move_val(offset: impl Into<Offset>) -> Self {
-		Self::MoveVal(offset.into())
+		Self::MoveVal(offset.convert())
 	}
 
 	#[must_use]
 	pub fn fetch_val(offset: impl Into<Offset>) -> Self {
-		Self::FetchVal(offset.into())
+		Self::FetchVal(offset.convert())
 	}
 
 	#[must_use]
 	pub fn take_val(offset: impl Into<Offset>) -> Self {
-		Self::TakeVal(offset.into())
+		Self::TakeVal(offset.convert())
 	}
 
 	#[must_use]
 	pub fn replace_val(offset: impl Into<Offset>) -> Self {
-		Self::ReplaceVal(offset.into())
+		Self::ReplaceVal(offset.convert())
 	}
 
 	#[must_use]
 	pub fn scale_and_move_val(factor: u8, offset: impl Into<Offset>) -> Self {
-		SuperInstruction::scale_and_move_val(factor, offset).into()
+		SuperInstruction::scale_and_move_val(factor, offset).convert()
 	}
 
 	#[must_use]
 	pub fn fetch_and_scale_val(factor: u8, offset: impl Into<Offset>) -> Self {
-		SuperInstruction::fetch_and_scale_val(factor, offset).into()
+		SuperInstruction::fetch_and_scale_val(factor, offset).convert()
 	}
 
 	#[must_use]
 	pub fn scale_and_set_val(factor: u8, offset: impl Into<Offset>, value: NonZeroU8) -> Self {
-		SuperInstruction::scale_and_set_val(factor, offset, value).into()
+		SuperInstruction::scale_and_set_val(factor, offset, value).convert()
 	}
 
 	#[must_use]
@@ -190,7 +191,7 @@ impl Instruction {
 
 	#[must_use]
 	pub fn move_ptr(offset: impl Into<Offset>) -> Self {
-		Self::MovePtr(offset.into())
+		Self::MovePtr(offset.convert())
 	}
 
 	#[must_use]
@@ -200,7 +201,7 @@ impl Instruction {
 
 	#[must_use]
 	pub fn find_zero(jump_by: impl Into<Offset>) -> Self {
-		Self::FindZero(jump_by.into())
+		Self::FindZero(jump_by.convert())
 	}
 
 	#[must_use]
@@ -215,7 +216,7 @@ impl Instruction {
 
 	#[must_use]
 	pub fn write_once_at(offset: impl Into<Offset>) -> Self {
-		Self::write_value(Value::<Bytes>::CellAt(offset.into()))
+		Self::write_value(Value::<Bytes>::CellAt(offset.convert()))
 	}
 
 	#[must_use]
@@ -235,12 +236,12 @@ impl Instruction {
 
 	#[must_use]
 	pub fn dynamic_loop(instructions: impl IntoIterator<Item = Self>) -> Self {
-		BlockInstruction::dynamic(instructions).into()
+		BlockInstruction::dynamic(instructions).convert()
 	}
 
 	#[must_use]
 	pub fn if_nz(instructions: impl IntoIterator<Item = Self>) -> Self {
-		BlockInstruction::if_nz(instructions).into()
+		BlockInstruction::if_nz(instructions).convert()
 	}
 
 	#[must_use]

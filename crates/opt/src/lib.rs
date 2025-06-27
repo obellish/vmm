@@ -226,16 +226,6 @@ where
 	*progress |= pass.run_pass(v);
 
 	if pass.should_run_on_dyn_loop() {
-		// v.iter_mut()
-		// 	.filter_map(|i| {
-		// 		if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = i {
-		// 			Some(i.to_vec())
-		// 		} else {
-		// 			None
-		// 		}
-		// 	})
-		// 	.for_each(|i| run_pass(pass, i, progress));
-
 		for i in v.iter_mut() {
 			if let Instruction::Block(BlockInstruction::DynamicLoop(i)) = i {
 				let mut v = i.to_vec();

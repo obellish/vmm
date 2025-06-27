@@ -2,6 +2,7 @@ use alloc::boxed::Box;
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
 	ops::Deref,
+	slice,
 };
 
 use serde::{Deserialize, Serialize};
@@ -59,6 +60,15 @@ impl Display for BlockInstruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl<'a> IntoIterator for &'a BlockInstruction {
+	type IntoIter = slice::Iter<'a, Instruction>;
+	type Item = &'a Instruction;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.deref().iter()
 	}
 }
 
