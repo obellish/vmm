@@ -17,7 +17,7 @@ use tracing_subscriber::{
 	prelude::*,
 };
 use vmm::{
-	alloc::{AllocChain, SyncStalloc},
+	alloc::{AllocChain, UnsafeStalloc},
 	interpret::{Interpreter, Profiler},
 	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
 	parse::Parser as BfParser,
@@ -28,8 +28,8 @@ use vmm::{
 use vmm_tape::{BoxTape, VecTape};
 
 #[global_allocator]
-static ALLOC: AllocChain<'static, SyncStalloc<65535, 4>, System> =
-	SyncStalloc::new().chain(&System);
+static ALLOC: AllocChain<'static, UnsafeStalloc<65535, 4>, System> =
+	unsafe { UnsafeStalloc::new() }.chain(&System);
 
 fn main() -> Result<()> {
 	_ = fs::remove_dir_all("./out");
