@@ -61,7 +61,10 @@ impl Cell {
 	#[inline]
 	const fn create(value: u8, index: Option<usize>) -> Self {
 		Self {
-			value: NonZeroU8::new(value),
+			value: match value {
+				0 => None,
+				i => Some(unsafe { NonZeroU8::new_unchecked(i) }),
+			},
 			index,
 		}
 	}

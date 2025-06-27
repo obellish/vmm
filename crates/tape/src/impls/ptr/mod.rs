@@ -1,14 +1,16 @@
+mod unique;
+
 use core::{
 	alloc::{Layout, LayoutError},
-	ptr::NonNull,
 	slice,
 };
 
+use self::unique::Unique;
 use crate::{Cell, TAPE_SIZE, Tape, TapePointer};
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct PtrTape {
-	cells: NonNull<Cell>,
+	cells: Unique<Cell>,
 	ptr: TapePointer,
 }
 
@@ -28,11 +30,10 @@ impl PtrTape {
 				alloc::alloc::handle_alloc_error(layout);
 			}
 
-			let raw = raw.cast::<Cell>();
+			let p = Unique::new_unchecked(raw.cast::<Cell>());
 
-			(0..TAPE_SIZE).for_each(|i| raw.add(i).write(Cell::with_index(0, i)));
-
-			NonNull::new_unchecked(raw.cast())
+			(0..TAPE_SIZE).for_each(|i| p.add(i).write(Cell::with_index(0, i)));
+			p
 		};
 
 		Ok(Self {
