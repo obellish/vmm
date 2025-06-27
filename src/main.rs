@@ -1,6 +1,12 @@
-use std::{alloc::System, fmt::Debug, fs, path::PathBuf};
+use std::{
+	alloc::System,
+	fmt::{Display, Formatter, Result as FmtResult},
+	fs,
+	io::empty,
+	path::PathBuf,
+};
 
-use clap::Parser;
+use clap::{Parser, ValueEnum, builder::PossibleValue};
 use color_eyre::eyre::Result;
 use tracing::info;
 use tracing_error::ErrorLayer;
@@ -19,6 +25,7 @@ use vmm::{
 	tape::PtrTape,
 	utils::HeapSize as _,
 };
+use vmm_tape::{BoxTape, VecTape};
 
 #[global_allocator]
 static ALLOC: AllocChain<'static, SyncStalloc<65535, 4>, System> =
@@ -31,7 +38,14 @@ fn main() -> Result<()> {
 	let _guard = install_tracing();
 	color_eyre::install()?;
 
-	let args = Args::parse();
+	// let args = Args::parse();
+	let args = match Args::try_parse() {
+		Ok(args) => args,
+		Err(e) => {
+			eprintln!("{e}");
+			return Ok(());
+		}
+	};
 
 	let raw_data = fs::read_to_string(args.file)?;
 
@@ -76,20 +90,55 @@ fn main() -> Result<()> {
 
 	fs::write("./out/ir.txt", ir)?;
 
-	let profiler = if program.needs_input() {
-		let mut vm = Interpreter::<PtrTape>::stdio(program).and_with_profiler();
+	let profiler = match (program.needs_input(), args.tape) {
+		(true, TapeType::Ptr) => {
+			let mut vm = Interpreter::<PtrTape>::stdio(program).and_with_profiler();
 
-		vm.run()?;
+			vm.run()?;
 
-		vm.profiler()
-	} else {
-		let mut vm = Interpreter::<PtrTape>::stdio(program)
-			.with_input(std::io::empty())
-			.and_with_profiler();
+			vm.profiler()
+		}
+		(true, TapeType::Box) => {
+			let mut vm = Interpreter::<BoxTape>::stdio(program).and_with_profiler();
 
-		vm.run()?;
+			vm.run()?;
 
-		vm.profiler()
+			vm.profiler()
+		}
+		(true, TapeType::Vec) => {
+			let mut vm = Interpreter::<VecTape>::stdio(program).and_with_profiler();
+
+			vm.run()?;
+
+			vm.profiler()
+		}
+		(false, TapeType::Ptr) => {
+			let mut vm = Interpreter::<PtrTape>::stdio(program)
+				.with_input(empty())
+				.and_with_profiler();
+
+			vm.run()?;
+
+			vm.profiler()
+		}
+		(false, TapeType::Box) => {
+			let mut vm = Interpreter::<BoxTape>::stdio(program)
+				.with_input(empty())
+				.and_with_profiler();
+
+			vm.run()?;
+
+			vm.profiler()
+		}
+		(false, TapeType::Vec) => {
+			let mut vm = Interpreter::<VecTape>::stdio(program)
+				.with_input(empty())
+				.and_with_profiler();
+
+			vm.run()?;
+
+			vm.profiler()
+		}
 	};
 
 	write_profiler(profiler)?;
@@ -102,6 +151,39 @@ struct Args {
 	pub file: PathBuf,
 	#[arg(short, long)]
 	pub optimize: bool,
+	#[arg(short, long)]
+	pub tape: TapeType,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum TapeType {
+	Box,
+	Vec,
+	Ptr,
+}
+
+impl Display for TapeType {
+	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+		f.write_str(match self {
+			Self::Box => "box",
+			Self::Vec => "vec",
+			Self::Ptr => "ptr",
+		})
+	}
+}
+
+impl ValueEnum for TapeType {
+	fn value_variants<'a>() -> &'a [Self] {
+		&[Self::Box, Self::Vec, Self::Ptr]
+	}
+
+	fn to_possible_value(&self) -> Option<PossibleValue> {
+		Some(PossibleValue::new(match self {
+			Self::Box => "box",
+			Self::Vec => "vec",
+			Self::Ptr => "ptr",
+		}))
+	}
 }
 
 fn install_tracing() -> impl Drop {
