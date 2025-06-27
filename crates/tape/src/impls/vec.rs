@@ -12,14 +12,7 @@ impl VecTape {
 	#[must_use]
 	pub fn new() -> Self {
 		Self {
-			cells: {
-				let mut cells = Vec::with_capacity(TAPE_SIZE);
-				cells.extend((0..TAPE_SIZE).map(|i| Cell::with_index(0, i)));
-
-				cells.shrink_to_fit();
-
-				cells
-			},
+			cells: alloc::vec![Cell::new(0); TAPE_SIZE],
 			ptr: TapePointer::zero(),
 		}
 	}
@@ -32,10 +25,6 @@ impl Default for VecTape {
 }
 
 impl Tape for VecTape {
-	fn init(&mut self) {
-		// We don't need to init, as we do it in `new`
-	}
-
 	fn as_slice(&self) -> &[Cell] {
 		self.cells.as_slice()
 	}
