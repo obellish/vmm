@@ -98,6 +98,14 @@ impl<T: Tape, R, W> Interpreter<T, R, W> {
 		unsafe { self.tape_mut().current_cell_unchecked_mut() }
 	}
 
+	pub fn get_cell(&self, idx: usize) -> &Cell {
+		unsafe { self.tape().get_unchecked(idx) }
+	}
+
+	pub fn get_mut_cell(&mut self, idx: usize) -> &mut Cell {
+		unsafe { self.tape_mut().get_unchecked_mut(idx) }
+	}
+
 	#[inline]
 	pub fn ptr(&self) -> &TapePointer {
 		self.tape().ptr()
@@ -184,7 +192,7 @@ where
 	fn inc_val(&mut self, value: i8, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(idx), value);
+		WrappingAddAssign::wrapping_add_assign(self.get_mut_cell(idx), value);
 
 		Ok(())
 	}
@@ -193,7 +201,7 @@ where
 	fn set_val(&mut self, value: Option<NonZeroU8>, offset: Offset) -> Result<(), RuntimeError> {
 		let idx = self.calculate_index(offset);
 
-		self.tape_mut().get_mut(idx).set_value(value.get_or_zero());
+		self.get_mut_cell(idx).set_value(value.get_or_zero());
 
 		Ok(())
 	}
@@ -239,7 +247,7 @@ where
 
 		let dst_offset = self.calculate_index(offset);
 
-		WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(dst_offset), src_value);
+		WrappingAddAssign::wrapping_add_assign(self.get_mut_cell(dst_offset), src_value);
 
 		Ok(())
 	}
@@ -248,7 +256,7 @@ where
 	fn fetch_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
+		let value = mem::take(self.get_mut_cell(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(self.cell_mut(), value);
 
@@ -260,12 +268,10 @@ where
 		let src_offset = self.ptr().value();
 		let dst_offset = self.calculate_index(offset);
 
-		let tape = self.tape_mut();
-
-		let src_val = mem::take(tape.get_mut(src_offset).as_mut_u8());
+		let src_val = mem::take(self.get_mut_cell(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
-			tape.get_mut(dst_offset),
+			self.get_mut_cell(dst_offset),
 			WrappingMul::wrapping_mul(src_val, factor),
 		);
 
@@ -276,7 +282,7 @@ where
 	fn fetch_and_scale_val(&mut self, factor: u8, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
+		let value = mem::take(self.get_mut_cell(src_offset).as_mut_u8());
 
 		WrappingAddAssign::wrapping_add_assign(
 			self.cell_mut(),
@@ -296,12 +302,10 @@ where
 		let src_offset = self.ptr().value();
 		let dst_offset = self.calculate_index(offset);
 
-		let tape = self.tape_mut();
-
-		let src_val = mem::replace(tape.get_mut(src_offset).as_mut_u8(), value.get());
+		let src_val = mem::replace(self.get_mut_cell(src_offset).as_mut_u8(), value.get());
 
 		WrappingAddAssign::wrapping_add_assign(
-			tape.get_mut(dst_offset),
+			self.get_mut_cell(dst_offset),
 			WrappingMul::wrapping_mul(src_val, factor),
 		);
 
@@ -335,7 +339,7 @@ where
 
 		let current_value = mem::take(self.cell_mut().as_mut_u8());
 
-		WrappingSubAssign::wrapping_sub_assign(self.tape_mut().get_mut(idx), current_value);
+		WrappingSubAssign::wrapping_sub_assign(self.get_mut_cell(idx), current_value);
 
 		Ok(())
 	}
@@ -372,7 +376,7 @@ where
 		for offset in offsets {
 			let idx = self.calculate_index(*offset);
 
-			WrappingAddAssign::wrapping_add_assign(self.tape_mut().get_mut(idx), value);
+			WrappingAddAssign::wrapping_add_assign(self.get_mut_cell(idx), value);
 		}
 
 		Ok(())
@@ -400,7 +404,7 @@ where
 	fn replace_val(&mut self, offset: Offset) -> Result<(), RuntimeError> {
 		let src_offset = self.calculate_index(offset);
 
-		let value = mem::take(self.tape_mut().get_mut(src_offset).as_mut_u8());
+		let value = mem::take(self.get_mut_cell(src_offset).as_mut_u8());
 
 		_ = mem::replace(self.cell_mut().as_mut_u8(), value);
 
@@ -529,9 +533,10 @@ where
 		for byte in bytes {
 			if !cfg!(target_os = "windows") || byte < 128 {
 				self.output.write_all(&[byte])?;
-				self.output.flush()?;
 			}
 		}
+
+		self.output.flush()?;
 
 		Ok(())
 	}
