@@ -12,31 +12,37 @@ fn run<T: Tape>(opt: bool) -> Result<()> {
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn unoptimized_box_tape() -> Result<()> {
 	run::<BoxTape>(false)
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn unoptimized_ptr_tape() -> Result<()> {
 	run::<PtrTape>(false)
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn unoptimized_vec_tape() -> Result<()> {
 	run::<VecTape>(false)
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn optimized_box_tape() -> Result<()> {
 	run::<BoxTape>(true)
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn optimized_ptr_tape() -> Result<()> {
 	run::<PtrTape>(true)
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn optimized_vec_tape() -> Result<()> {
 	run::<VecTape>(true)
 }
