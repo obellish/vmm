@@ -179,6 +179,7 @@ impl Instruction {
 		SuperInstruction::scale_and_set_val(factor, offset, value).convert()
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn write_value<B>(value: Value<B>) -> Self
 	where
@@ -209,21 +210,25 @@ impl Instruction {
 		Self::Read
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn write_once() -> Self {
 		Self::write_once_at(0)
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn write_once_at(offset: impl Into<Offset>) -> Self {
 		Self::write_value(Value::<Bytes>::CellAt(offset.convert()))
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn write_byte(ch: u8) -> Self {
 		Self::write_value(Value::Constant(ch))
 	}
 
+	#[inline]
 	#[must_use]
 	pub fn write_string(s: impl IntoIterator<Item = u8>) -> Self {
 		Self::write_value(Value::<Bytes>::Constant(s.into_iter().collect()))

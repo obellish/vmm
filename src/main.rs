@@ -151,7 +151,7 @@ struct Args {
 	pub file: PathBuf,
 	#[arg(short, long)]
 	pub optimize: bool,
-	#[arg(short, long)]
+	#[arg(short, long, default_value_t = TapeType::Ptr)]
 	pub tape: TapeType,
 }
 
