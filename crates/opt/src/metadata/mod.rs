@@ -1,3 +1,4 @@
+mod noop;
 #[cfg(feature = "output")]
 mod output;
 
@@ -13,6 +14,7 @@ use serde::{Deserialize, Serialize};
 use serde_value::Value;
 use vmm_ir::Instruction;
 
+pub use self::noop::*;
 #[cfg(feature = "output")]
 pub use self::output::*;
 

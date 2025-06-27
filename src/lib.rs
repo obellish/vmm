@@ -10,7 +10,7 @@ mod tests {
 
 	use super::{
 		interpret::Interpreter,
-		opt::{HashMetadataStore, Optimizer},
+		opt::{NoopStore, Optimizer},
 		parse::{ParseError, Parser},
 		program::Program,
 		tape::{BoxTape, PtrTape, Tape},
@@ -40,7 +40,7 @@ mod tests {
 
 		let output = {
 			let program = if optimized {
-				Optimizer::new(program, HashMetadataStore::new()).optimize()?
+				Optimizer::new(program, NoopStore::new()).optimize()?
 			} else {
 				program
 			};

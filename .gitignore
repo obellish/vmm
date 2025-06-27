@@ -2,3 +2,5 @@
 expanded.rs
 mutants.out*/
 /out
+/crox
+chrome_profiler.json
