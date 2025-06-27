@@ -12,7 +12,7 @@ impl VecTape {
 	#[must_use]
 	pub fn new() -> Self {
 		Self {
-			cells: alloc::vec![Cell::new(0); TAPE_SIZE],
+			cells: (0..TAPE_SIZE).map(|i| Cell::with_index(0, i)).collect(),
 			ptr: TapePointer::zero(),
 		}
 	}
@@ -25,6 +25,8 @@ impl Default for VecTape {
 }
 
 impl Tape for VecTape {
+	fn init(&mut self) {}
+
 	fn as_slice(&self) -> &[Cell] {
 		self.cells.as_slice()
 	}

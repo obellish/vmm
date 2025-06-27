@@ -27,16 +27,19 @@ fn unoptimized_vec_tape() -> Result<()> {
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn optimized_box_tape() -> Result<()> {
 	run::<BoxTape>(true)
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn optimized_ptr_tape() -> Result<()> {
 	run::<PtrTape>(true)
 }
 
 #[test]
+#[cfg_attr(miri, ignore)]
 fn optimized_vec_tape() -> Result<()> {
 	run::<VecTape>(true)
 }
