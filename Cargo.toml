@@ -67,6 +67,7 @@ vmm_utils = { path = "crates/utils" }
 elided_lifetimes_in_paths = "warn"
 
 [workspace.lints.clippy]
+borrow_as_ptr = "deny"
 cast_possible_truncation = "allow"
 cast_possible_wrap = "allow"
 cast_precision_loss = "allow"
@@ -91,7 +92,6 @@ redundant_pub_crate = "allow"
 redundant_type_annotations = "warn"
 significant_drop_tightening = "allow"
 similar_names = "allow"
-borrow_as_ptr = "deny"
 str_to_string = "deny"
 struct_excessive_bools = "allow"
 style = { level = "warn", priority = -1 }
