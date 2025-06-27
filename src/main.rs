@@ -8,7 +8,7 @@ use std::{
 
 use clap::{Parser, ValueEnum, builder::PossibleValue};
 use color_eyre::eyre::Result;
-use tracing::info;
+use tracing::{info, info_span};
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
 use tracing_subscriber::{
@@ -18,6 +18,7 @@ use tracing_subscriber::{
 };
 use vmm::{
 	alloc::{AllocChain, UnsafeStalloc},
+	alloc_stats::{Region, StatsAlloc},
 	interpret::{Interpreter, Profiler},
 	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
 	parse::Parser as BfParser,
@@ -28,17 +29,20 @@ use vmm::{
 use vmm_tape::{BoxTape, VecTape};
 
 #[global_allocator]
-static ALLOC: AllocChain<'static, UnsafeStalloc<65535, 4>, System> =
-	unsafe { UnsafeStalloc::new() }.chain(&System);
+static ALLOC: StatsAlloc<AllocChain<'static, UnsafeStalloc<65535, 4>, System>> =
+	StatsAlloc::new(unsafe { UnsafeStalloc::new() }.chain(&System));
 
 fn main() -> Result<()> {
+	let mut region = Region::new(&ALLOC);
+
 	_ = fs::remove_dir_all("./out");
 
 	fs::create_dir_all("./out")?;
 	let _guard = install_tracing();
 	color_eyre::install()?;
 
-	// let args = Args::parse();
+	info_span!("after_install").in_scope(|| report_alloc_stats(&mut region));
+
 	let args = match Args::try_parse() {
 		Ok(args) => args,
 		Err(e) => {
@@ -47,6 +51,8 @@ fn main() -> Result<()> {
 		}
 	};
 
+	region.reset();
+
 	let raw_data = fs::read_to_string(args.file)?;
 
 	let filtered_data = raw_data
@@ -54,11 +60,15 @@ fn main() -> Result<()> {
 		.filter(|c| matches!(c, '+'..='.' | '>' | '<' | '[' | ']'))
 		.collect::<String>();
 
+	info_span!("after_read_and_filter").in_scope(|| report_alloc_stats(&mut region));
+
 	let program = {
 		let unoptimized = BfParser::new(&filtered_data)
 			.scan()?
 			.into_iter()
 			.collect::<Program>();
+
+		info_span!("after_parse").in_scope(|| report_alloc_stats(&mut region));
 
 		info!(
 			"size of raw: {} bytes (len: {})",
@@ -71,7 +81,11 @@ fn main() -> Result<()> {
 				OutputMetadataStore::new(HashMetadataStore::new(), PathBuf::new().join("./out"))?,
 			);
 
-			optimizer.optimize()?
+			let out = optimizer.optimize()?;
+
+			info_span!("after optimize").in_scope(|| report_alloc_stats(&mut region));
+
+			out
 		} else {
 			unoptimized
 		}
@@ -89,6 +103,8 @@ fn main() -> Result<()> {
 		.collect::<String>();
 
 	fs::write("./out/ir.txt", ir)?;
+
+	region.reset();
 
 	let profiler = match (program.needs_input(), args.tape) {
 		(true, TapeType::Ptr) => {
@@ -140,6 +156,10 @@ fn main() -> Result<()> {
 			vm.profiler()
 		}
 	};
+
+	println!("\n");
+
+	info_span!("after_run").in_scope(|| report_alloc_stats(&mut region));
 
 	write_profiler(profiler)?;
 
@@ -235,4 +255,19 @@ fn write_profiler(p: Profiler) -> Result<()> {
 	)?;
 
 	Ok(())
+}
+
+fn report_alloc_stats<T>(region: &mut Region<'_, T>) {
+	info!("allocation stats");
+
+	let stats = region.stat_diff();
+
+	info!("allocations: {}", stats.allocations);
+	info!("deallocations: {}", stats.deallocations);
+	info!("reallocations: {}", stats.reallocations);
+	info!("bytes allocated: {}", stats.bytes_allocated);
+	info!("bytes deallocated: {}", stats.bytes_deallocated);
+	info!("bytes reallocated: {}", stats.bytes_reallocated);
+
+	region.reset();
 }

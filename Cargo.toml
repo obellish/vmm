@@ -16,6 +16,7 @@ tracing-error = "0.2.1"
 tracing-flame = "0.2.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 vmm_alloc = { path = "crates/alloc" }
+vmm_alloc_stats = { path = "crates/alloc_stats" }
 vmm_interpret = { path = "crates/interpret" }
 vmm_ir.workspace = true
 vmm_opt = { path = "crates/opt", features = ["output"] }
@@ -27,6 +28,7 @@ vmm_utils = { workspace = true, features = ["heap_size"] }
 [workspace]
 members = [
     "crates/alloc",
+    "crates/alloc_stats",
     "crates/interpret",
     "crates/ir",
     "crates/num",
