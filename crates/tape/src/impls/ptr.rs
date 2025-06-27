@@ -22,11 +22,15 @@ impl PtrTape {
 		let layout = Layout::array::<Cell>(TAPE_SIZE)?;
 
 		let ptr = unsafe {
-			let raw = alloc::alloc::alloc_zeroed(layout);
+			let raw = alloc::alloc::alloc(layout);
 
 			if raw.is_null() {
 				alloc::alloc::handle_alloc_error(layout);
 			}
+
+			let raw = raw.cast::<Cell>();
+
+			(0..TAPE_SIZE).for_each(|i| raw.add(i).write(Cell::with_index(0, i)));
 
 			NonNull::new_unchecked(raw.cast())
 		};
@@ -56,6 +60,8 @@ unsafe impl Send for PtrTape {}
 unsafe impl Sync for PtrTape {}
 
 impl Tape for PtrTape {
+	fn init(&mut self) {}
+
 	fn as_slice(&self) -> &[Cell] {
 		unsafe { slice::from_raw_parts(self.cells.as_ptr(), TAPE_SIZE) }
 	}

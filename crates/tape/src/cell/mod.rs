@@ -14,11 +14,13 @@ pub struct Cell {
 }
 
 impl Cell {
+	#[inline]
 	#[must_use]
 	pub const fn new(value: u8) -> Self {
 		Self::create(value, None)
 	}
 
+	#[inline]
 	#[must_use]
 	pub const fn with_index(value: u8, index: usize) -> Self {
 		Self::create(value, Some(index))
@@ -56,6 +58,7 @@ impl Cell {
 		matches!(self.value(), 0)
 	}
 
+	#[inline]
 	const fn create(value: u8, index: Option<usize>) -> Self {
 		Self {
 			value: NonZeroU8::new(value),
