@@ -1,8 +1,11 @@
+mod range;
+
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
 use tracing::warn;
 use vmm_ir::Instruction;
 
+pub use self::range::*;
 use crate::{Pass, PeepholePass};
 
 #[repr(transparent)]

@@ -116,6 +116,15 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_pass(&mut pass, progress);
 	}
 
+	fn run_default_range_peephole_pass<P>(&mut self, progress: &mut bool)
+	where
+		P: Debug + Default + RangePeepholePass,
+	{
+		let mut pass = RangePeepholeRunner::<P>::default();
+
+		self.run_pass(&mut pass, progress);
+	}
+
 	fn run_default_block_pass<P>(&mut self, progress: &mut bool)
 	where
 		P: Debug + Default + LoopPass,
@@ -142,6 +151,8 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<CollapseStackedInstrPass>(progress);
 		self.run_default_peephole_pass::<CollapseRelativeInstrPass>(progress);
 
+		self.run_default_range_peephole_pass::<InsertKnownValueHintPass>(progress);
+
 		self.run_default_block_pass::<OptimizeClearCellPass>(progress);
 		self.run_default_dynamic_loop_pass::<OptimizeClearLoopPass>(progress);
 		self.run_default_block_pass::<OptimizeFindZeroPass>(progress);
@@ -164,6 +175,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<OptimizeFindCellByZeroPass>(progress);
 		self.run_default_dynamic_loop_pass::<OptimizeShiftValsPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSuperInstrPass>(progress);
+		self.run_default_peephole_pass::<OptimizeKnownValueHintPass>(progress);
 
 		self.run_default_peephole_pass::<ReorderMoveChangePass>(progress);
 		self.run_default_peephole_pass::<ReorderOffsetBetweenMovesPass>(progress);
@@ -176,6 +188,7 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_peephole_pass::<RemovePointlessInstrPass>(progress);
 		self.run_default_peephole_pass::<RemoveRedundantScaleValInstrBasicPass>(progress);
 		self.run_default_peephole_pass::<RemoveRedundantShiftsPass>(progress);
+		self.run_default_peephole_pass::<RemoveRedundantCompilerHintsPass>(progress);
 
 		self.run_default_dynamic_loop_pass::<RemoveEmptyLoopsPass>(progress);
 		self.run_default_peephole_pass::<RemoveUnreachableLoopsPass>(progress);

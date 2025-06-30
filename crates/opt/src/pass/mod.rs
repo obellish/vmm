@@ -1,6 +1,6 @@
 mod runners;
 
-use std::fmt::Debug;
+use std::{fmt::Debug, ops::RangeInclusive};
 
 use vmm_ir::Instruction;
 
@@ -21,6 +21,25 @@ pub trait Pass: Debug {
 
 pub trait PeepholePass {
 	const SIZE: usize;
+
+	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
+
+	#[allow(unused)]
+	fn should_run(&self, window: &[Instruction]) -> bool {
+		true
+	}
+
+	fn should_run_on_dyn_loop(&self) -> bool {
+		true
+	}
+
+	fn should_run_on_if(&self) -> bool {
+		true
+	}
+}
+
+pub trait RangePeepholePass {
+	const RANGE: RangeInclusive<usize>;
 
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change>;
 

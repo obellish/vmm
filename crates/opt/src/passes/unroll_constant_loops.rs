@@ -30,7 +30,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 				match &**inner {
 					[
 						Instruction::IncVal {
-							value: -1,
+							value,
 							offset: Offset(0),
 						},
 						rest @ ..,
@@ -38,14 +38,15 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					| [
 						rest @ ..,
 						Instruction::IncVal {
-							value: -1,
+							value,
 							offset: Offset(0),
 						},
-					] => {
+					] if *value < 0 => {
 						let mut output = Vec::with_capacity((i.get() as usize) * rest.len());
 
 						Span::from(0..i.get())
 							.into_iter()
+							.step_by(value.unsigned_abs() as usize)
 							.for_each(|_| output.extend_from_slice(rest));
 
 						Some(Change::swap(output))
@@ -82,16 +83,17 @@ impl PeepholePass for UnrollConstantLoopsPass {
 			[
 				Instruction::IncVal {
 					offset: Offset(0),
-					value: -1
+					value
 				},
 				..
 			] | [
 				..,
 				Instruction::IncVal {
 					offset: Offset(0),
-					value: -1
+					value
 				}
 			]
+			if *value < 0
 		)
 	}
 }

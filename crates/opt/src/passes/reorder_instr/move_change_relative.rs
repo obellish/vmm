@@ -33,6 +33,13 @@ impl PeepholePass for ReorderMoveChangePass {
 				Instruction::move_ptr(x),
 				Instruction::set_val(value.get_or_zero()),
 			])),
+			[
+				Instruction::IncVal { value, offset: x },
+				Instruction::MovePtr(y),
+			] if *x == *y => Some(Change::swap([
+				Instruction::move_ptr(x),
+				Instruction::inc_val(*value),
+			])),
 			_ => None,
 		}
 	}
