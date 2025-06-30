@@ -76,6 +76,8 @@ fn main() -> Result<()> {
 			unoptimized.len()
 		);
 		if args.optimize {
+			region.reset();
+
 			let mut optimizer = Optimizer::new(
 				unoptimized,
 				OutputMetadataStore::new(HashMetadataStore::new(), PathBuf::new().join("./out"))?,
@@ -83,7 +85,7 @@ fn main() -> Result<()> {
 
 			let out = optimizer.optimize()?;
 
-			info_span!("after optimize").in_scope(|| report_alloc_stats(&mut region));
+			info_span!("after_optimize").in_scope(|| report_alloc_stats(&mut region));
 
 			out
 		} else {
@@ -104,9 +106,9 @@ fn main() -> Result<()> {
 
 	fs::write("./out/ir.txt", ir)?;
 
-	region.reset();
-
 	let output = CopyWriter::new(stdout(), Vec::<u8>::new());
+
+	region.reset();
 
 	let (profiler, output) = match (program.needs_input(), args.tape) {
 		(true, TapeType::Ptr) => {
