@@ -23,6 +23,7 @@ use vmm::{
 	alloc::{AllocChain, UnsafeStalloc},
 	alloc_stats::{Region, StatsAlloc},
 	interpret::{Interpreter, Profiler},
+	ir::MinimumOutputs as _,
 	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
 	parse::Parser as BfParser,
 	program::Program,
@@ -38,6 +39,7 @@ static ALLOC: StatsAlloc<AllocChain<'static, UnsafeStalloc<65535, 4>, System>> =
 
 fn main() -> Result<()> {
 	let mut region = Region::new(&ALLOC);
+	let mut total = Region::new(&ALLOC);
 
 	_ = fs::remove_dir_all("./out");
 
@@ -110,7 +112,7 @@ fn main() -> Result<()> {
 
 	fs::write("./out/ir.txt", ir)?;
 
-	let output = CopyWriter::new(stdout(), Vec::<u8>::new());
+	let output = CopyWriter::new(stdout(), Vec::<u8>::with_capacity(program.min_outputs()));
 
 	region.reset();
 
@@ -180,6 +182,8 @@ fn main() -> Result<()> {
 	info_span!("after_run").in_scope(|| report_alloc_stats(&mut region));
 
 	write_profiler(profiler)?;
+
+	info_span!("total").in_scope(|| report_alloc_stats(&mut total));
 
 	Ok(())
 }

@@ -1,6 +1,6 @@
 use crate::Offset;
 
-pub trait PtrMovement {
+pub trait PtrMovement: super::sealed::Sealed {
 	fn ptr_movement(&self) -> Option<Offset>;
 
 	fn might_move_ptr(&self) -> bool {

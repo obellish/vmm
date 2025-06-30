@@ -478,6 +478,17 @@ impl IsZeroingCell for Instruction {
 	}
 }
 
+impl MinimumOutputs for Instruction {
+	fn min_outputs(&self) -> usize {
+		match self {
+			Self::Block(b) => b.min_outputs(),
+			Self::Super(s) => s.min_outputs(),
+			Self::Write { .. } => 1,
+			_ => 0,
+		}
+	}
+}
+
 impl PtrMovement for Instruction {
 	#[inline]
 	fn ptr_movement(&self) -> Option<Offset> {

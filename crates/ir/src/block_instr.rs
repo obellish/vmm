@@ -7,7 +7,7 @@ use core::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{Instruction, IsZeroingCell, Offset, PtrMovement};
+use super::{Instruction, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -76,6 +76,12 @@ impl IsZeroingCell for BlockInstruction {
 	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
 		true
+	}
+}
+
+impl MinimumOutputs for BlockInstruction {
+	fn min_outputs(&self) -> usize {
+		self.deref().min_outputs()
 	}
 }
 

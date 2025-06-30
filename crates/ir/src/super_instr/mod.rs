@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use tap::prelude::*;
 
 pub use self::scale::*;
-use super::{IsZeroingCell, Offset, PtrMovement};
+use super::{IsZeroingCell, Offset, PtrMovement, MinimumOutputs};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -130,6 +130,12 @@ impl IsZeroingCell for SuperInstruction {
 			} | Self::SetUntilZero { .. }
 				| Self::ShiftVals(..)
 		)
+	}
+}
+
+impl MinimumOutputs for SuperInstruction {
+	fn min_outputs(&self) -> usize {
+		0
 	}
 }
 
