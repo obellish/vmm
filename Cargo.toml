@@ -28,7 +28,7 @@ vmm_utils = { workspace = true, features = ["copy_writer", "heap_size"] }
 members = [
     "crates/alloc_stats",
     "crates/interpret",
-    "crates/ir",
+    "crates/ir", "crates/iter",
     "crates/num",
     "crates/opt",
     "crates/parse",

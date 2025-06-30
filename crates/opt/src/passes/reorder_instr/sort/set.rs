@@ -1,7 +1,7 @@
 use std::num::NonZeroU8;
 
-use itertools::Itertools as _;
 use vmm_ir::{Instruction, Offset};
+use vmm_iter::IteratorExt as _;
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};

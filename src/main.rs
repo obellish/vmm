@@ -11,7 +11,7 @@ use std::{
 
 use clap::Parser as _;
 use color_eyre::eyre::Result;
-use tracing::{info, info_span};
+use tracing::{debug, debug_span, info};
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
 use tracing_subscriber::{
@@ -45,7 +45,7 @@ fn main() -> Result<()> {
 	let _guard = install_tracing();
 	color_eyre::install()?;
 
-	info_span!("after_install").in_scope(|| report_alloc_stats(&mut region));
+	debug_span!("after_install").in_scope(|| report_alloc_stats(&mut region));
 
 	let Args {
 		file,
@@ -68,7 +68,7 @@ fn main() -> Result<()> {
 		.filter(|c| matches!(c, '+'..='.' | '>' | '<' | '[' | ']'))
 		.collect::<String>();
 
-	info_span!("after_read_and_filter").in_scope(|| report_alloc_stats(&mut region));
+	debug_span!("after_read_and_filter").in_scope(|| report_alloc_stats(&mut region));
 
 	let program = {
 		let unoptimized = BfParser::new(&filtered_data)
@@ -76,7 +76,7 @@ fn main() -> Result<()> {
 			.into_iter()
 			.collect::<Program>();
 
-		info_span!("after_parse").in_scope(|| report_alloc_stats(&mut region));
+		debug_span!("after_parse").in_scope(|| report_alloc_stats(&mut region));
 
 		info!(
 			"size of raw: {} bytes (len: {})",
@@ -93,7 +93,7 @@ fn main() -> Result<()> {
 
 			let out = optimizer.optimize()?;
 
-			info_span!("after_optimize").in_scope(|| report_alloc_stats(&mut region));
+			debug_span!("after_optimize").in_scope(|| report_alloc_stats(&mut region));
 
 			out
 		} else {
@@ -181,11 +181,11 @@ fn main() -> Result<()> {
 		println!();
 	}
 
-	info_span!("after_run").in_scope(|| report_alloc_stats(&mut region));
+	debug_span!("after_run").in_scope(|| report_alloc_stats(&mut region));
 
 	write_profiler(profiler)?;
 
-	info_span!("total").in_scope(|| report_alloc_stats(&mut total));
+	debug_span!("total").in_scope(|| report_alloc_stats(&mut total));
 
 	Ok(())
 }
@@ -242,16 +242,16 @@ fn write_profiler(p: Profiler) -> Result<()> {
 }
 
 fn report_alloc_stats<T>(region: &mut Region<'_, T>) {
-	info!("allocation stats");
+	debug!("allocation stats");
 
 	let stats = region.stat_diff();
 
-	info!("allocations: {}", stats.allocations);
-	info!("deallocations: {}", stats.deallocations);
-	info!("reallocations: {}", stats.reallocations);
-	info!("bytes allocated: {}", stats.bytes_allocated);
-	info!("bytes deallocated: {}", stats.bytes_deallocated);
-	info!("bytes reallocated: {}", stats.bytes_reallocated);
+	debug!("allocations: {}", stats.allocations);
+	debug!("deallocations: {}", stats.deallocations);
+	debug!("reallocations: {}", stats.reallocations);
+	debug!("bytes allocated: {}", stats.bytes_allocated);
+	debug!("bytes deallocated: {}", stats.bytes_deallocated);
+	debug!("bytes reallocated: {}", stats.bytes_reallocated);
 
 	region.reset();
 }

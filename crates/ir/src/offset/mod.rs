@@ -3,6 +3,7 @@ mod ops;
 use core::{
 	cmp::Ordering,
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	iter::{Product, Sum},
 };
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -115,9 +116,45 @@ impl PartialOrd<Offset> for isize {
 	}
 }
 
+impl Product for Offset {
+	fn product<I>(iter: I) -> Self
+	where
+		I: Iterator<Item = Self>,
+	{
+		iter.fold(Self(0), |a, b| a * b)
+	}
+}
+
+impl<'a> Product<&'a Self> for Offset {
+	fn product<I>(iter: I) -> Self
+	where
+		I: Iterator<Item = &'a Self>,
+	{
+		iter.fold(Self(0), |a, b| a * b)
+	}
+}
+
 impl Serialize for Offset {
 	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
 		Serialize::serialize(&self.0, serializer)
+	}
+}
+
+impl Sum for Offset {
+	fn sum<I>(iter: I) -> Self
+	where
+		I: Iterator<Item = Self>,
+	{
+		iter.fold(Self(0), |a, b| a + b)
+	}
+}
+
+impl<'a> Sum<&'a Self> for Offset {
+	fn sum<I>(iter: I) -> Self
+	where
+		I: Iterator<Item = &'a Self>,
+	{
+		iter.fold(Self(0), |a, b| a + b)
 	}
 }
 

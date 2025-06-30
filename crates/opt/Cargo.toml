@@ -8,7 +8,6 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-itertools = "0.14"
 ron = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive", "std"] }
 serde-value = "0.7.0"
@@ -17,6 +16,7 @@ serde_stack = { path = "../serde_stack", optional = true }
 tap.workspace = true
 tracing = "0.1"
 vmm_ir.workspace = true
+vmm_iter = { path = "../iter" }
 vmm_num.workspace = true
 vmm_program.workspace = true
 vmm_span.workspace = true

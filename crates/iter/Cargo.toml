@@ -1,0 +1,16 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_iter"
+rust-version.workspace = true
+version.workspace = true
+
+[dev-dependencies]
+vmm_testing.workspace = true
+
+[features]
+alloc = []
+default = ["std"]
+std = ["alloc"]

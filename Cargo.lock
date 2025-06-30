@@ -408,15 +408,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1059,6 +1050,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "vmm_iter"
+version = "0.1.0"
+dependencies = [
+ "vmm_testing",
+]
+
+[[package]]
 name = "vmm_num"
 version = "0.1.0"
 dependencies = [
@@ -1070,7 +1068,6 @@ dependencies = [
 name = "vmm_opt"
 version = "0.1.0"
 dependencies = [
- "itertools 0.14.0",
  "ron",
  "serde",
  "serde-value",
@@ -1079,6 +1076,7 @@ dependencies = [
  "tap",
  "tracing",
  "vmm_ir",
+ "vmm_iter",
  "vmm_num",
  "vmm_program",
  "vmm_span",
