@@ -28,39 +28,6 @@ impl ClapArgs for Args {
 			Arg::new("file")
 				.value_name("FILE")
 				.value_parser(ValueParser::path_buf())
-				.required(false)
-				.action(ArgAction::Set),
-		)
-		.arg(
-			Arg::new("optimize")
-				.value_name("OPTIMIZE")
-				.required(false)
-				.value_parser(ValueParser::bool())
-				.action(ArgAction::SetTrue)
-				.short('o')
-				.long("optimize"),
-		)
-		.arg(
-			Arg::new("tape_type")
-				.value_name("TAPE_TYPE")
-				.required(false)
-				.action(ArgAction::Set)
-				.value_parser(EnumValueParser::<TapeType>::new())
-				.short('t')
-				.long("tape"),
-		)
-	}
-
-	fn augment_args_for_update(cmd: Command) -> Command {
-		cmd.group(ArgGroup::new("Args").multiple(true).args([
-			clap::Id::from("file"),
-			clap::Id::from("optimize"),
-			clap::Id::from("tape_type"),
-		]))
-		.arg(
-			Arg::new("file")
-				.value_name("FILE")
-				.value_parser(ValueParser::path_buf())
 				.required(ArgAction::Set.takes_values())
 				.action(ArgAction::Set),
 		)
@@ -76,7 +43,41 @@ impl ClapArgs for Args {
 		.arg(
 			Arg::new("tape_type")
 				.value_name("TAPE_TYPE")
-				.required(ArgAction::Set.takes_values())
+				.required(false)
+				.action(ArgAction::Set)
+				.value_parser(EnumValueParser::<TapeType>::new())
+				.short('t')
+				.default_value("ptr")
+				.long("tape"),
+		)
+	}
+
+	fn augment_args_for_update(cmd: Command) -> Command {
+		cmd.group(ArgGroup::new("Args").multiple(true).args([
+			clap::Id::from("file"),
+			clap::Id::from("optimize"),
+			clap::Id::from("tape_type"),
+		]))
+		.arg(
+			Arg::new("file")
+				.value_name("FILE")
+				.value_parser(ValueParser::path_buf())
+				.required(false)
+				.action(ArgAction::Set),
+		)
+		.arg(
+			Arg::new("optimize")
+				.value_name("OPTIMIZE")
+				.required(false)
+				.value_parser(ValueParser::bool())
+				.action(ArgAction::SetTrue)
+				.short('o')
+				.long("optimize"),
+		)
+		.arg(
+			Arg::new("tape_type")
+				.value_name("TAPE_TYPE")
+				.required(false)
 				.action(ArgAction::Set)
 				.value_parser(EnumValueParser::<TapeType>::new())
 				.short('t')
