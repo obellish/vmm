@@ -1,9 +1,11 @@
+#![allow(clippy::large_stack_frames)]
+
 mod args;
 
 use std::{
 	alloc::System,
 	fs,
-	io::{empty, stdin, stdout},
+	io::{Stdout, empty, stdin, stdout},
 	path::PathBuf,
 };
 
@@ -24,10 +26,9 @@ use vmm::{
 	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
 	parse::Parser as BfParser,
 	program::Program,
-	tape::PtrTape,
+	tape::{BoxTape, PtrTape, StackTape, Tape, VecTape},
 	utils::{CopyWriter, HeapSize as _},
 };
-use vmm_tape::{BoxTape, VecTape};
 
 use self::args::{Args, TapeType};
 
@@ -119,45 +120,56 @@ fn main() -> Result<()> {
 
 			vm.run()?;
 
-			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
+			(vm.profiler(), get_interpreter_output(&vm))
 		}
 		(true, TapeType::Box) => {
 			let mut vm = Interpreter::<BoxTape, _, _>::with_profiler(program, stdin(), output);
 
 			vm.run()?;
 
-			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
+			(vm.profiler(), get_interpreter_output(&vm))
 		}
 		(true, TapeType::Vec) => {
 			let mut vm = Interpreter::<VecTape, _, _>::with_profiler(program, stdin(), output);
 
 			vm.run()?;
 
-			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
+			(vm.profiler(), get_interpreter_output(&vm))
 		}
 		(true, TapeType::Stack) => {
-			todo!()
+			let mut vm = Interpreter::<StackTape, _, _>::with_profiler(program, stdin(), output);
+
+			vm.run()?;
+
+			(vm.profiler(), get_interpreter_output(&vm))
 		}
 		(false, TapeType::Ptr) => {
 			let mut vm = Interpreter::<PtrTape, _, _>::with_profiler(program, empty(), output);
 
 			vm.run()?;
 
-			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
+			(vm.profiler(), get_interpreter_output(&vm))
 		}
 		(false, TapeType::Box) => {
 			let mut vm = Interpreter::<BoxTape, _, _>::with_profiler(program, empty(), output);
 
 			vm.run()?;
 
-			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
+			(vm.profiler(), get_interpreter_output(&vm))
 		}
 		(false, TapeType::Vec) => {
 			let mut vm = Interpreter::<VecTape, _, _>::with_profiler(program, empty(), output);
 
 			vm.run()?;
 
-			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
+			(vm.profiler(), get_interpreter_output(&vm))
+		}
+		(false, TapeType::Stack) => {
+			let mut vm = Interpreter::<StackTape, _, _>::with_profiler(program, empty(), output);
+
+			vm.run()?;
+
+			(vm.profiler(), get_interpreter_output(&vm))
 		}
 	};
 
@@ -238,3 +250,8 @@ fn report_alloc_stats<T>(region: &mut Region<'_, T>) {
 	region.reset();
 }
 
+fn get_interpreter_output<T: Tape, R>(
+	interpreter: &Interpreter<T, R, CopyWriter<Stdout, Vec<u8>>>,
+) -> Vec<u8> {
+	interpreter.output().as_ref().into_inner().1.clone()
+}
