@@ -4,11 +4,9 @@
 extern crate alloc;
 
 mod block_instr;
-mod bytes;
 mod offset;
 mod super_instr;
 mod utils;
-mod value;
 
 use alloc::string::ToString;
 use core::{
@@ -20,7 +18,7 @@ use serde::{Deserialize, Serialize};
 use tap::prelude::*;
 use vmm_utils::GetOrZero as _;
 
-pub use self::{block_instr::*, bytes::*, offset::*, super_instr::*, utils::*, value::*};
+pub use self::{block_instr::*, offset::*, super_instr::*, utils::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -57,7 +55,7 @@ pub enum Instruction {
 	Read,
 	/// Write the value to an output
 	Write {
-		value: Value<Bytes>,
+		offset: Offset,
 	},
 	/// A block of instructions
 	Block(BlockInstruction),
@@ -171,17 +169,6 @@ impl Instruction {
 		SuperInstruction::scale_and_set_val(factor, offset, value).convert()
 	}
 
-	#[inline]
-	#[must_use]
-	pub fn write_value<B>(value: Value<B>) -> Self
-	where
-		B: Into<Bytes>,
-	{
-		Self::Write {
-			value: value.map(Into::into),
-		}
-	}
-
 	#[must_use]
 	pub fn move_ptr(offset: impl Into<Offset>) -> Self {
 		Self::MovePtr(offset.convert())
@@ -211,19 +198,10 @@ impl Instruction {
 	#[inline]
 	#[must_use]
 	pub fn write_once_at(offset: impl Into<Offset>) -> Self {
-		Self::write_value(Value::<Bytes>::CellAt(offset.convert()))
-	}
-
-	#[inline]
-	#[must_use]
-	pub fn write_byte(ch: u8) -> Self {
-		Self::write_value(Value::Constant(ch))
-	}
-
-	#[inline]
-	#[must_use]
-	pub fn write_string(s: impl IntoIterator<Item = u8>) -> Self {
-		Self::write_value(Value::<Bytes>::Constant(s.into_iter().collect()))
+		// Self::write_value(Value::<Bytes>::CellAt(offset.convert()))
+		Self::Write {
+			offset: offset.into(),
+		}
 	}
 
 	#[must_use]
@@ -444,16 +422,6 @@ impl From<SuperInstruction> for Instruction {
 impl IsZeroingCell for Instruction {
 	#[inline]
 	fn is_zeroing_cell(&self) -> bool {
-		if let Self::Write {
-			value: Value::Constant(bytes),
-		} = self
-		{
-			return match bytes {
-				Bytes::Many(b) => b.last().is_some_and(|v| matches!(*v, 0)),
-				Bytes::Single(b) => matches!(b, 0),
-			};
-		}
-
 		match self {
 			Self::Block(l) => l.is_zeroing_cell(),
 			Self::Super(s) => s.is_zeroing_cell(),

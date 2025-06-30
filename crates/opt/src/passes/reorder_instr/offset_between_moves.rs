@@ -1,4 +1,4 @@
-use vmm_ir::{Instruction, Offset, Value};
+use vmm_ir::{Instruction, Offset};
 use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
@@ -36,9 +36,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			])),
 			[
 				Instruction::MovePtr(x),
-				Instruction::Write {
-					value: Value::CellAt(Offset(0)),
-				},
+				Instruction::Write { offset: Offset(0) },
 				Instruction::MovePtr(y),
 			] => Some(Change::swap([
 				Instruction::write_once_at(x),
@@ -46,9 +44,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			])),
 			[
 				Instruction::MovePtr(x),
-				Instruction::Write {
-					value: Value::CellAt(y),
-				},
+				Instruction::Write { offset: y },
 				Instruction::MovePtr(z),
 			] => Some(Change::swap([
 				Instruction::write_once_at(x + y),
@@ -64,11 +60,7 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 			window,
 			[
 				Instruction::MovePtr(..),
-				Instruction::IncVal { .. }
-					| Instruction::SetVal { .. }
-					| Instruction::Write {
-						value: Value::CellAt(..)
-					},
+				Instruction::IncVal { .. } | Instruction::SetVal { .. } | Instruction::Write { .. },
 				Instruction::MovePtr(..)
 			]
 		)

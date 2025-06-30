@@ -12,9 +12,7 @@ use std::{
 };
 
 use tap::prelude::*;
-use vmm_ir::{
-	BlockInstruction, Bytes, FromCell, Instruction, Offset, ScaleAnd, SuperInstruction, Value,
-};
+use vmm_ir::{BlockInstruction, Instruction, Offset, ScaleAnd, SuperInstruction};
 use vmm_num::ops::{WrappingAddAssign, WrappingMul, WrappingMulAssign, WrappingSubAssign};
 use vmm_program::Program;
 use vmm_tape::{Cell, Tape, TapePointer};
@@ -408,12 +406,12 @@ where
 		Ok(())
 	}
 
-	fn write_value(&mut self, value: &Value<Bytes>) -> Result<(), RuntimeError> {
-		let value = self.resolve_value(value.clone());
+	fn write(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+		let idx = self.calculate_index(offset);
 
-		self.write_many_to_output(value)?;
+		let byte = self.get_cell(idx).value();
 
-		Ok(())
+		self.write_to_output(byte)
 	}
 
 	#[inline]
@@ -437,7 +435,7 @@ where
 			Instruction::MoveVal(offset) => self.move_val(*offset)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
-			Instruction::Write { value } => self.write_value(value)?,
+			Instruction::Write { offset } => self.write(*offset)?,
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 
@@ -513,30 +511,14 @@ where
 		}
 	}
 
-	fn write_many_to_output(&mut self, bytes: Bytes) -> Result<(), RuntimeError> {
-		let bytes = bytes.into_vec();
-
-		for byte in bytes {
-			if !cfg!(target_os = "windows") || byte < 128 {
-				self.output.write_all(&[byte])?;
-			}
+	fn write_to_output(&mut self, byte: u8) -> Result<(), RuntimeError> {
+		if !cfg!(target_os = "windows") || byte < 128 {
+			self.output.write_all(&[byte])?;
 		}
 
 		self.output.flush()?;
 
 		Ok(())
-	}
-
-	fn resolve_value<V>(&self, value: Value<V>) -> V
-	where
-		V: FromCell,
-	{
-		match value {
-			Value::CellAt(offset) => {
-				V::from_cell(self.tape().get(self.calculate_index(offset)).value())
-			}
-			Value::Constant(v) => v,
-		}
 	}
 }
 
