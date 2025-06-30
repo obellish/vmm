@@ -12,7 +12,7 @@ use core::ops::IndexMut;
 
 pub use self::{cell::*, impls::*, ptr::*};
 
-pub const TAPE_SIZE: usize = 30000;
+pub const TAPE_SIZE: usize = 5000;
 
 pub trait Tape: Default {
 	/// Initialize the tape, setting all cells indices and values.
