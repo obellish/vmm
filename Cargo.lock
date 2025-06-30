@@ -1018,7 +1018,6 @@ dependencies = [
  "tracing-error",
  "tracing-flame",
  "tracing-subscriber",
- "vmm_alloc",
  "vmm_alloc_stats",
  "vmm_interpret",
  "vmm_ir",
@@ -1027,13 +1026,6 @@ dependencies = [
  "vmm_program",
  "vmm_tape",
  "vmm_utils",
-]
-
-[[package]]
-name = "vmm_alloc"
-version = "0.1.0"
-dependencies = [
- "tap",
 ]
 
 [[package]]

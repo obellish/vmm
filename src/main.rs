@@ -20,7 +20,6 @@ use tracing_subscriber::{
 	prelude::*,
 };
 use vmm::{
-	alloc::{AllocChain, UnsafeStalloc},
 	alloc_stats::{Region, StatsAlloc},
 	interpret::{Interpreter, Profiler},
 	ir::MinimumOutputs as _,
@@ -34,8 +33,7 @@ use vmm::{
 use self::args::{Args, TapeType};
 
 #[global_allocator]
-static ALLOC: StatsAlloc<AllocChain<'static, UnsafeStalloc<65535, 4>, System>> =
-	StatsAlloc::new(unsafe { UnsafeStalloc::new() }.chain(&System));
+static ALLOC: StatsAlloc<System> = StatsAlloc::system();
 
 fn main() -> Result<()> {
 	let mut region = Region::new(&ALLOC);

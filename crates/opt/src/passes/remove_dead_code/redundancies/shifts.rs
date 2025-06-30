@@ -19,6 +19,12 @@ impl PeepholePass for RemoveRedundantShiftsPass {
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [Instruction::TakeVal(..), Instruction::MoveVal(..)])
+		matches!(
+			window,
+			[
+				Instruction::TakeVal(..) | Instruction::MoveVal(..),
+				Instruction::MoveVal(..)
+			]
+		)
 	}
 }
