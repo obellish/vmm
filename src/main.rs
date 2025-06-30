@@ -49,7 +49,11 @@ fn main() -> Result<()> {
 
 	info_span!("after_install").in_scope(|| report_alloc_stats(&mut region));
 
-	let args = match Args::try_parse() {
+	let Args {
+		file,
+		optimize,
+		tape,
+	} = match Args::try_parse() {
 		Ok(args) => args,
 		Err(e) => {
 			eprintln!("{e}");
@@ -59,7 +63,7 @@ fn main() -> Result<()> {
 
 	region.reset();
 
-	let raw_data = fs::read_to_string(args.file)?;
+	let raw_data = fs::read_to_string(file)?;
 
 	let filtered_data = raw_data
 		.chars()
@@ -81,7 +85,7 @@ fn main() -> Result<()> {
 			unoptimized.heap_size(),
 			unoptimized.len()
 		);
-		if args.optimize {
+		if optimize {
 			region.reset();
 
 			let mut optimizer = Optimizer::new(
@@ -116,7 +120,7 @@ fn main() -> Result<()> {
 
 	region.reset();
 
-	let (profiler, output) = match (program.needs_input(), args.tape) {
+	let (profiler, output) = match (program.needs_input(), tape) {
 		(true, TapeType::Ptr) => {
 			let mut vm = Interpreter::<PtrTape, _, _>::with_profiler(program, stdin(), output);
 
@@ -257,5 +261,9 @@ fn report_alloc_stats<T>(region: &mut Region<'_, T>) {
 fn get_interpreter_output<T: Tape, R>(
 	interpreter: &Interpreter<T, R, CopyWriter<Stdout, Vec<u8>>>,
 ) -> Vec<u8> {
-	interpreter.output().as_ref().into_inner().1.clone()
+	let mut out = interpreter.output().as_ref().into_inner().1.clone();
+
+	out.shrink_to_fit();
+
+	out
 }
