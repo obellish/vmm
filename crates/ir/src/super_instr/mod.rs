@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use tap::prelude::*;
 
 pub use self::scale::*;
-use super::{IsZeroingCell, Offset, PtrMovement, MinimumOutputs};
+use super::{IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]

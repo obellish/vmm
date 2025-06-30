@@ -370,19 +370,6 @@ where
 	}
 
 	#[inline]
-	fn dupe_val(&mut self, offsets: &[Offset]) -> Result<(), RuntimeError> {
-		let value = mem::take(self.cell_mut().as_mut_u8());
-
-		for offset in offsets {
-			let idx = self.calculate_index(*offset);
-
-			WrappingAddAssign::wrapping_add_assign(self.get_mut_cell(idx), value);
-		}
-
-		Ok(())
-	}
-
-	#[inline]
 	fn find_and_set_zero(&mut self, offset: Offset, value: NonZeroU8) -> Result<(), RuntimeError> {
 		self.find_zero(offset)?;
 
@@ -448,7 +435,6 @@ where
 			Instruction::Super(s) => self.execute_super_instruction(*s)?,
 			Instruction::FetchVal(offset) => self.fetch_val(*offset)?,
 			Instruction::MoveVal(offset) => self.move_val(*offset)?,
-			Instruction::DuplicateVal { offsets } => self.dupe_val(offsets)?,
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
 			Instruction::Write { value } => self.write_value(value)?,

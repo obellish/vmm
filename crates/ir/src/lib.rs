@@ -10,7 +10,7 @@ mod super_instr;
 mod utils;
 mod value;
 
-use alloc::{string::ToString, vec::Vec};
+use alloc::string::ToString;
 use core::{
 	fmt::{Debug, Display, Formatter, Result as FmtResult, Write as _},
 	num::NonZeroU8,
@@ -49,9 +49,6 @@ pub enum Instruction {
 	FetchVal(Offset),
 	TakeVal(Offset),
 	ReplaceVal(Offset),
-	DuplicateVal {
-		offsets: Vec<Offset>,
-	},
 	/// Move the pointer along the tape
 	MovePtr(Offset),
 	/// Find the next zero, jumping by the value
@@ -98,11 +95,6 @@ impl Instruction {
 	#[must_use]
 	pub fn scale_and_take_val(factor: u8, offset: impl Into<Offset>) -> Self {
 		SuperInstruction::scale_and_take_val(factor, offset).convert()
-	}
-
-	#[must_use]
-	pub const fn dupe_val(offsets: Vec<Offset>) -> Self {
-		Self::DuplicateVal { offsets }
 	}
 
 	#[must_use]
@@ -470,7 +462,6 @@ impl IsZeroingCell for Instruction {
 				offset: Offset(0),
 			}
 			| Self::MoveVal(..)
-			| Self::DuplicateVal { .. }
 			| Self::FindZero(..)
 			| Self::SubCell { .. } => true,
 			_ => false,
@@ -503,7 +494,6 @@ impl PtrMovement for Instruction {
 			| Self::SubCell { .. }
 			| Self::FetchVal(..)
 			| Self::MoveVal(..)
-			| Self::DuplicateVal { .. }
 			| Self::ReplaceVal(..)
 			| Self::Write { .. } => Some(Offset(0)),
 			Self::MovePtr(offset) | Self::TakeVal(offset) => Some(*offset),
