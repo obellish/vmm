@@ -26,6 +26,11 @@ impl Cell {
 		Self::create(value, Some(index))
 	}
 
+	#[must_use]
+	pub const fn index(self) -> Option<usize> {
+		self.index
+	}
+
 	pub const fn set_index(&mut self, index: usize) {
 		self.index = Some(index);
 	}

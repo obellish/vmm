@@ -1,12 +1,13 @@
+mod args;
+
 use std::{
 	alloc::System,
-	fmt::{Display, Formatter, Result as FmtResult},
 	fs,
 	io::{empty, stdin, stdout},
 	path::PathBuf,
 };
 
-use clap::{Parser, ValueEnum, builder::PossibleValue};
+use clap::Parser as _;
 use color_eyre::eyre::Result;
 use tracing::{info, info_span};
 use tracing_error::ErrorLayer;
@@ -27,6 +28,8 @@ use vmm::{
 	utils::{CopyWriter, HeapSize as _},
 };
 use vmm_tape::{BoxTape, VecTape};
+
+use self::args::{Args, TapeType};
 
 #[global_allocator]
 static ALLOC: StatsAlloc<AllocChain<'static, UnsafeStalloc<65535, 4>, System>> =
@@ -132,6 +135,9 @@ fn main() -> Result<()> {
 
 			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
 		}
+		(true, TapeType::Stack) => {
+			todo!()
+		}
 		(false, TapeType::Ptr) => {
 			let mut vm = Interpreter::<PtrTape, _, _>::with_profiler(program, empty(), output);
 
@@ -164,46 +170,6 @@ fn main() -> Result<()> {
 	write_profiler(profiler)?;
 
 	Ok(())
-}
-
-#[derive(Debug, Parser)]
-struct Args {
-	pub file: PathBuf,
-	#[arg(short, long)]
-	pub optimize: bool,
-	#[arg(short, long, default_value_t = TapeType::Ptr)]
-	pub tape: TapeType,
-}
-
-#[derive(Debug, Clone, Copy)]
-enum TapeType {
-	Box,
-	Vec,
-	Ptr,
-}
-
-impl Display for TapeType {
-	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-		f.write_str(match self {
-			Self::Box => "box",
-			Self::Vec => "vec",
-			Self::Ptr => "ptr",
-		})
-	}
-}
-
-impl ValueEnum for TapeType {
-	fn value_variants<'a>() -> &'a [Self] {
-		&[Self::Box, Self::Vec, Self::Ptr]
-	}
-
-	fn to_possible_value(&self) -> Option<PossibleValue> {
-		Some(PossibleValue::new(match self {
-			Self::Box => "box",
-			Self::Vec => "vec",
-			Self::Ptr => "ptr",
-		}))
-	}
 }
 
 fn install_tracing() -> impl Drop {
@@ -271,3 +237,4 @@ fn report_alloc_stats<T>(region: &mut Region<'_, T>) {
 
 	region.reset();
 }
+
