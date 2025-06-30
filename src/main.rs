@@ -2,7 +2,7 @@ use std::{
 	alloc::System,
 	fmt::{Display, Formatter, Result as FmtResult},
 	fs,
-	io::empty,
+	io::{empty, stdin, stdout},
 	path::PathBuf,
 };
 
@@ -24,7 +24,7 @@ use vmm::{
 	parse::Parser as BfParser,
 	program::Program,
 	tape::PtrTape,
-	utils::HeapSize as _,
+	utils::{CopyWriter, HeapSize as _},
 };
 use vmm_tape::{BoxTape, VecTape};
 
@@ -106,58 +106,56 @@ fn main() -> Result<()> {
 
 	region.reset();
 
-	let profiler = match (program.needs_input(), args.tape) {
+	let output = CopyWriter::new(stdout(), Vec::<u8>::new());
+
+	let (profiler, output) = match (program.needs_input(), args.tape) {
 		(true, TapeType::Ptr) => {
-			let mut vm = Interpreter::<PtrTape>::stdio(program).and_with_profiler();
+			let mut vm = Interpreter::<PtrTape, _, _>::with_profiler(program, stdin(), output);
 
 			vm.run()?;
 
-			vm.profiler()
+			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
 		}
 		(true, TapeType::Box) => {
-			let mut vm = Interpreter::<BoxTape>::stdio(program).and_with_profiler();
+			let mut vm = Interpreter::<BoxTape, _, _>::with_profiler(program, stdin(), output);
 
 			vm.run()?;
 
-			vm.profiler()
+			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
 		}
 		(true, TapeType::Vec) => {
-			let mut vm = Interpreter::<VecTape>::stdio(program).and_with_profiler();
+			let mut vm = Interpreter::<VecTape, _, _>::with_profiler(program, stdin(), output);
 
 			vm.run()?;
 
-			vm.profiler()
+			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
 		}
 		(false, TapeType::Ptr) => {
-			let mut vm = Interpreter::<PtrTape>::stdio(program)
-				.with_input(empty())
-				.and_with_profiler();
+			let mut vm = Interpreter::<PtrTape, _, _>::with_profiler(program, empty(), output);
 
 			vm.run()?;
 
-			vm.profiler()
+			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
 		}
 		(false, TapeType::Box) => {
-			let mut vm = Interpreter::<BoxTape>::stdio(program)
-				.with_input(empty())
-				.and_with_profiler();
+			let mut vm = Interpreter::<BoxTape, _, _>::with_profiler(program, empty(), output);
 
 			vm.run()?;
 
-			vm.profiler()
+			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
 		}
 		(false, TapeType::Vec) => {
-			let mut vm = Interpreter::<VecTape>::stdio(program)
-				.with_input(empty())
-				.and_with_profiler();
+			let mut vm = Interpreter::<VecTape, _, _>::with_profiler(program, empty(), output);
 
 			vm.run()?;
 
-			vm.profiler()
+			(vm.profiler(), vm.output().as_ref().into_inner().1.clone())
 		}
 	};
 
-	println!("\n");
+	if !matches!(output.last(), Some(b'\n')) {
+		println!();
+	}
 
 	info_span!("after_run").in_scope(|| report_alloc_stats(&mut region));
 

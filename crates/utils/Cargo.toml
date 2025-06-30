@@ -9,9 +9,11 @@ version.workspace = true
 
 [features]
 alloc = []
+copy_writer = ["std"]
 get_or_zero = []
 heap_size = ["alloc"]
 insert_or_push = ["alloc"]
+std = []
 
 [dev-dependencies]
 vmm_testing.workspace = true
