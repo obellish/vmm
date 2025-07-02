@@ -62,7 +62,6 @@ pub enum Instruction {
 	Block(BlockInstruction),
 	/// A "Super" instruction, which is an instruction that does more than one action
 	Super(SuperInstruction),
-	Hint(CompilerHint),
 }
 
 impl Instruction {
@@ -195,11 +194,6 @@ impl Instruction {
 	#[must_use]
 	pub fn write_once() -> Self {
 		Self::write_once_at(0)
-	}
-
-	#[must_use]
-	pub const fn is_hint(&self) -> bool {
-		matches!(self, Self::Hint(..))
 	}
 
 	#[inline]
@@ -417,12 +411,6 @@ impl Display for Instruction {
 impl From<BlockInstruction> for Instruction {
 	fn from(value: BlockInstruction) -> Self {
 		Self::Block(value)
-	}
-}
-
-impl From<CompilerHint> for Instruction {
-	fn from(value: CompilerHint) -> Self {
-		Self::Hint(value)
 	}
 }
 

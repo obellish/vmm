@@ -436,7 +436,6 @@ where
 			Instruction::TakeVal(offset) => self.take_val(*offset)?,
 			Instruction::ReplaceVal(offset) => self.replace_val(*offset)?,
 			Instruction::Write { offset } => self.write(*offset)?,
-			Instruction::Hint(..) => return Ok(()),
 			i => return Err(RuntimeError::Unimplemented(i.clone())),
 		}
 

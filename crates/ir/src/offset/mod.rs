@@ -30,6 +30,16 @@ impl Offset {
 	pub const fn new(value: isize) -> Self {
 		Self(value)
 	}
+
+	#[must_use]
+	pub const fn is_positive(self) -> bool {
+		self.0.is_positive()
+	}
+
+	#[must_use]
+	pub const fn is_negative(self) -> bool {
+		self.0.is_negative()
+	}
 }
 
 impl<'de> Deserialize<'de> for Offset {
