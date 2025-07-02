@@ -1,13 +1,13 @@
 use alloc::boxed::Box;
 use core::{
 	fmt::{Display, Formatter, Result as FmtResult, Write as _},
-	ops::Deref,
+	ops::{Deref, DerefMut},
 	slice,
 };
 
 use serde::{Deserialize, Serialize};
 
-use super::{Instruction, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
+use super::{Instruction, IsOffsetable, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -32,6 +32,14 @@ impl Deref for BlockInstruction {
 	type Target = [Instruction];
 
 	fn deref(&self) -> &Self::Target {
+		match self {
+			Self::DynamicLoop(block) | Self::IfNz(block) => block,
+		}
+	}
+}
+
+impl DerefMut for BlockInstruction {
+	fn deref_mut(&mut self) -> &mut Self::Target {
 		match self {
 			Self::DynamicLoop(block) | Self::IfNz(block) => block,
 		}
@@ -69,6 +77,20 @@ impl<'a> IntoIterator for &'a BlockInstruction {
 
 	fn into_iter(self) -> Self::IntoIter {
 		self.deref().iter()
+	}
+}
+
+impl IsOffsetable for BlockInstruction {
+	fn is_offsetable(&self) -> bool {
+		self.deref().is_offsetable()
+	}
+
+	fn offset(&self) -> Option<Offset> {
+		self.deref().offset()
+	}
+
+	fn set_offset(&mut self, offset: Offset) {
+		self.deref_mut().set_offset(offset);
 	}
 }
 

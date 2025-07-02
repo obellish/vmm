@@ -420,6 +420,43 @@ impl From<SuperInstruction> for Instruction {
 	}
 }
 
+impl IsOffsetable for Instruction {
+	fn is_offsetable(&self) -> bool {
+		// matches!(self, Self::IncVal { .. } | Self::SetVal { .. })
+		match self {
+			Self::Block(b) => b.is_offsetable(),
+			Self::Super(s) => s.is_offsetable(),
+			Self::IncVal { .. } | Self::SetVal { .. } => true,
+			_ => false,
+		}
+	}
+
+	fn offset(&self) -> Option<Offset> {
+		match self {
+			Self::Block(b) => b.offset(),
+			Self::Super(s) => s.offset(),
+			Self::IncVal { offset, .. } | Self::SetVal { offset, .. } => Some(*offset),
+			_ => None,
+		}
+	}
+
+	fn set_offset(&mut self, offset: Offset) {
+		match self {
+			Self::IncVal {
+				offset: self_offset,
+				..
+			}
+			| Self::SetVal {
+				offset: self_offset,
+				..
+			} => *self_offset = offset,
+			Self::Block(b) => b.set_offset(offset),
+			Self::Super(s) => s.set_offset(offset),
+			_ => {}
+		}
+	}
+}
+
 impl IsZeroingCell for Instruction {
 	#[inline]
 	fn is_zeroing_cell(&self) -> bool {

@@ -28,7 +28,8 @@ vmm_utils = { workspace = true, features = ["copy_writer", "heap_size"] }
 members = [
     "crates/alloc_stats",
     "crates/interpret",
-    "crates/ir", "crates/iter",
+    "crates/ir",
+    "crates/iter",
     "crates/num",
     "crates/opt",
     "crates/parse",
@@ -83,6 +84,7 @@ missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 missing_safety_doc = "allow"
 module_name_repetitions = "allow"
+needless_for_each = "allow"
 needless_pass_by_value = "allow"
 nursery = { level = "warn", priority = -1 }
 option_if_let_else = "allow"

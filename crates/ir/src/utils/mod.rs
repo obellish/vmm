@@ -1,7 +1,7 @@
 mod min_outputs;
-mod offset_of;
+mod offsetable;
 mod ptr_movement;
 mod sealed;
 mod zero_cell;
 
-pub use self::{min_outputs::*, offset_of::*, ptr_movement::*, zero_cell::*};
+pub use self::{min_outputs::*, offsetable::*, ptr_movement::*, zero_cell::*};

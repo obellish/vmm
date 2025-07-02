@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use tap::prelude::*;
 
 pub use self::scale::*;
-use super::{IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
+use super::{IsOffsetable, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -117,6 +117,22 @@ impl Display for SuperInstruction {
 
 		Ok(())
 	}
+}
+
+impl IsOffsetable for SuperInstruction {
+	fn is_offsetable(&self) -> bool {
+		false
+	}
+
+	fn offset(&self) -> Option<Offset> {
+		None
+	}
+
+	unsafe fn offset_unchecked(&self) -> Offset {
+		unsafe { core::hint::unreachable_unchecked() }
+	}
+
+	fn set_offset(&mut self, _: Offset) {}
 }
 
 impl IsZeroingCell for SuperInstruction {
