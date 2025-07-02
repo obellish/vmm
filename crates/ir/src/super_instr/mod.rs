@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use tap::prelude::*;
 
 pub use self::scale::*;
-use super::{IsOffsetable, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
+use super::{HasIo, IsOffsetable, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -116,6 +116,20 @@ impl Display for SuperInstruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl HasIo for SuperInstruction {
+	fn has_io(&self) -> bool {
+		false
+	}
+
+	fn has_read(&self) -> bool {
+		false
+	}
+
+	fn has_write(&self) -> bool {
+		false
 	}
 }
 

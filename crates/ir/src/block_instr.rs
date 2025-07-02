@@ -7,7 +7,7 @@ use core::{
 
 use serde::{Deserialize, Serialize};
 
-use super::{Instruction, IsOffsetable, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
+use super::{HasIo, Instruction, IsOffsetable, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[non_exhaustive]
@@ -68,6 +68,16 @@ impl Display for BlockInstruction {
 		}
 
 		Ok(())
+	}
+}
+
+impl HasIo for BlockInstruction {
+	fn has_read(&self) -> bool {
+		self.deref().has_read()
+	}
+
+	fn has_write(&self) -> bool {
+		self.deref().has_write()
 	}
 }
 

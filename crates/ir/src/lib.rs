@@ -308,21 +308,6 @@ impl Instruction {
 		matches!(self, Self::Block(BlockInstruction::DynamicLoop(l)) if l.is_empty())
 	}
 
-	#[must_use]
-	pub const fn is_io(&self) -> bool {
-		self.is_read() || self.is_write()
-	}
-
-	#[must_use]
-	pub const fn is_read(&self) -> bool {
-		matches!(self, Self::Read)
-	}
-
-	#[must_use]
-	pub const fn is_write(&self) -> bool {
-		matches!(self, Self::Write { .. })
-	}
-
 	pub fn rough_estimate(&self) -> usize {
 		match self {
 			Self::Block(BlockInstruction::DynamicLoop(l)) => {
@@ -417,6 +402,26 @@ impl From<BlockInstruction> for Instruction {
 impl From<SuperInstruction> for Instruction {
 	fn from(value: SuperInstruction) -> Self {
 		Self::Super(value)
+	}
+}
+
+impl HasIo for Instruction {
+	fn has_read(&self) -> bool {
+		match self {
+			Self::Block(b) => b.has_read(),
+			Self::Super(s) => s.has_read(),
+			Self::Read => true,
+			_ => false,
+		}
+	}
+
+	fn has_write(&self) -> bool {
+		match self {
+			Self::Block(b) => b.has_write(),
+			Self::Super(s) => s.has_write(),
+			Self::Write { .. } => true,
+			_ => false,
+		}
 	}
 }
 
