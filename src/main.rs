@@ -2,8 +2,9 @@
 
 mod args;
 
+#[cfg(not(feature = "mimalloc"))]
+use std::alloc::System as Alloc;
 use std::{
-	alloc::System,
 	fs,
 	io::{Stdout, empty, stdin, stdout},
 	path::PathBuf,
@@ -11,6 +12,8 @@ use std::{
 
 use clap::Parser as _;
 use color_eyre::eyre::Result;
+#[cfg(feature = "mimalloc")]
+use mimalloc::MiMalloc as Alloc;
 use tracing::{debug, debug_span, info};
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
@@ -33,7 +36,7 @@ use vmm::{
 use self::args::{Args, TapeType};
 
 #[global_allocator]
-static ALLOC: StatsAlloc<System> = StatsAlloc::system();
+static ALLOC: StatsAlloc<Alloc> = StatsAlloc::new(Alloc);
 
 fn main() -> Result<()> {
 	let mut region = Region::new(&ALLOC);

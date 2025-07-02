@@ -10,6 +10,7 @@ version.workspace = true
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 color-eyre = { version = "0.6", features = ["capture-spantrace"] }
+mimalloc = { version = "0.1", optional = true }
 ron.workspace = true
 tracing.workspace = true
 tracing-error = "0.2.1"
@@ -23,6 +24,9 @@ vmm_parse = { path = "crates/parse" }
 vmm_program.workspace = true
 vmm_tape.workspace = true
 vmm_utils = { workspace = true, features = ["copy_writer", "heap_size"] }
+
+[features]
+mimalloc = ["dep:mimalloc"]
 
 [workspace]
 members = [
