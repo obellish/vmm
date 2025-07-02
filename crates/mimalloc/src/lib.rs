@@ -11,7 +11,7 @@ use core::{
 	ffi::c_void,
 };
 
-use ffi::*;
+use ffi::{mi_free, mi_malloc_aligned, mi_realloc_aligned, mi_zalloc_aligned};
 
 pub struct MiMalloc;
 
