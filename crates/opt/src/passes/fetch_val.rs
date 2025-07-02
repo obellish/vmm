@@ -16,6 +16,10 @@ impl PeepholePass for OptimizeFetchValPass {
 				Instruction::move_ptr(*x),
 				Instruction::clear_val(),
 			])),
+			[Instruction::MovePtr(x), Instruction::TakeVal(y)] => Some(Change::swap([
+				Instruction::move_ptr(x + y),
+				Instruction::fetch_val(-y),
+			])),
 			_ => None,
 		}
 	}
@@ -29,6 +33,6 @@ impl PeepholePass for OptimizeFetchValPass {
 				Instruction::MoveVal(y)
 			]
 			if *x == -y
-		)
+		) || matches!(window, [Instruction::MovePtr(..), Instruction::TakeVal(..)])
 	}
 }

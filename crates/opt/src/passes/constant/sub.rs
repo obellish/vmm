@@ -8,7 +8,6 @@ pub struct OptimizeConstantSubPass;
 impl PeepholePass for OptimizeConstantSubPass {
 	const SIZE: usize = 2;
 
-	#[inline]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[
@@ -21,14 +20,13 @@ impl PeepholePass for OptimizeConstantSubPass {
 				let value = i8::try_from(value.get()).ok()?;
 				Some(Change::swap([
 					Instruction::clear_val(),
-					Instruction::inc_val_at(-value, *offset),
+					Instruction::inc_val_at(-value, offset),
 				]))
 			}
 			_ => None,
 		}
 	}
 
-	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		matches!(
 			window,

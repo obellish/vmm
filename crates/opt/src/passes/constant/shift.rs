@@ -1,5 +1,5 @@
 use vmm_ir::{Instruction, Offset};
-use vmm_utils::GetOrZero;
+use vmm_utils::GetOrZero as _;
 
 use crate::{Change, PeepholePass};
 
@@ -21,16 +21,6 @@ impl PeepholePass for OptimizeConstantShiftPass {
 				Instruction::clear_val(),
 				Instruction::move_ptr(offset),
 				Instruction::inc_val(value.get_or_zero() as i8),
-			])),
-			[
-				Instruction::SetVal {
-					value,
-					offset: Offset(0),
-				},
-				Instruction::MoveVal(offset),
-			] => Some(Change::swap([
-				Instruction::clear_val(),
-				Instruction::inc_val_at(value.get_or_zero() as i8, offset),
 			])),
 			_ => None,
 		}
