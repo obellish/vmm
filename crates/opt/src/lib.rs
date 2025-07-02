@@ -175,12 +175,14 @@ impl<S: MetadataStore> Optimizer<S> {
 		self.run_default_dynamic_loop_pass::<OptimizeShiftValsPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSuperInstrPass>(progress);
 		self.run_default_peephole_pass::<OptimizeSetWriteIncPass>(progress);
+		self.run_default_peephole_pass::<OptimizeConstantShiftPass>(progress);
 
 		self.run_default_peephole_pass::<ReorderMoveChangePass>(progress);
 		self.run_default_peephole_pass::<ReorderOffsetBetweenMovesPass>(progress);
 		self.run_default_peephole_pass::<CombineMoveChangePass>(progress);
 		self.run_default_peephole_pass::<SortIncInstrPass>(progress);
 		self.run_default_peephole_pass::<SortSetInstrPass>(progress);
+		self.run_default_peephole_pass::<ReorderSetIncPass>(progress);
 
 		self.run_default_peephole_pass::<RemoveRedundantChangeValBasicPass>(progress);
 		self.run_default_peephole_pass::<RemoveRedundantChangeValOffsetPass>(progress);

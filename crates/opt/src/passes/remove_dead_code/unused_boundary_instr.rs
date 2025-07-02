@@ -14,7 +14,8 @@ impl PeepholePass for RemoveUnusedBoundaryInstrPass {
 			[
 				Instruction::Boundary,
 				Instruction::Block(BlockInstruction::DynamicLoop(..))
-				| Instruction::SetVal { value: None, .. },
+				| Instruction::SetVal { value: None, .. }
+				| Instruction::FetchVal(..),
 			] => Some(Change::remove_offset(1)),
 			[
 				Instruction::Boundary,
@@ -43,6 +44,7 @@ impl PeepholePass for RemoveUnusedBoundaryInstrPass {
 				Instruction::Block(BlockInstruction::DynamicLoop(..))
 					| Instruction::SetVal { value: None, .. }
 					| Instruction::IncVal { .. }
+					| Instruction::FetchVal(..)
 			] | [
 				Instruction::MovePtr(..) | Instruction::SetVal { .. },
 				Instruction::Boundary

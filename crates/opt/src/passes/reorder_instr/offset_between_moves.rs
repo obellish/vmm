@@ -50,6 +50,14 @@ impl PeepholePass for ReorderOffsetBetweenMovesPass {
 				Instruction::write_once_at(x + y),
 				Instruction::move_ptr(x + z),
 			])),
+			[
+				Instruction::MovePtr(x),
+				Instruction::IncVal { value, offset: y },
+				Instruction::MovePtr(z),
+			] => Some(Change::swap([
+				Instruction::inc_val_at(*value, x + y),
+				Instruction::move_ptr(x + z),
+			])),
 			_ => None,
 		}
 	}
