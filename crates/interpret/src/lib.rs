@@ -505,9 +505,10 @@ where
 	#[inline]
 	#[allow(clippy::missing_const_for_fn)]
 	fn calculate_index(&self, offset: Offset) -> usize {
-		match offset.0 {
-			0 => self.ptr().value(),
-			x => (self.ptr() + x).value(),
+		if matches!(offset, Offset(0)) {
+			self.ptr().value()
+		} else {
+			(self.ptr() + offset.0).value()
 		}
 	}
 

@@ -10,7 +10,7 @@ pub struct OptimizeSetWriteIncPass;
 impl PeepholePass for OptimizeSetWriteIncPass {
 	const SIZE: usize = 3;
 
-    #[allow(clippy::many_single_char_names)]
+	#[allow(clippy::many_single_char_names)]
 	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
 		match window {
 			[

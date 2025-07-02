@@ -63,7 +63,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 		let [
 			Instruction::SetVal {
 				offset: Offset(0),
-				value: Some(i)
+				value: Some(i),
 			},
 			Instruction::Block(BlockInstruction::DynamicLoop(inner)),
 		] = window
