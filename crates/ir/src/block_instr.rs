@@ -1,6 +1,6 @@
 use alloc::boxed::Box;
 use core::{
-	fmt::{Display, Formatter, Result as FmtResult, Write as _},
+	fmt::{Display, Formatter, Result as FmtResult},
 	ops::{Deref, DerefMut},
 	slice,
 };
@@ -50,20 +50,18 @@ impl Display for BlockInstruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
 			Self::DynamicLoop(instrs) => {
-				f.write_str("dylop\n")?;
+				writeln!(f, "dylop")?;
 				for i in instrs {
-					Display::fmt(&i, f)?;
-					f.write_char('\n')?;
+					writeln!(f, "{i}")?;
 				}
-				f.write_str("end dylop")?;
+				write!(f, "end dylop")?;
 			}
 			Self::IfNz(instrs) => {
-				f.write_str("ifnz\n")?;
+				writeln!(f, "ifnz")?;
 				for i in instrs {
-					Display::fmt(&i, f)?;
-					f.write_char('\n')?;
+					writeln!(f, "{i}")?;
 				}
-				f.write_str("end ifnz")?;
+				write!(f, "end ifnz")?;
 			}
 		}
 
