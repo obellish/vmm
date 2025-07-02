@@ -41,7 +41,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 							value,
 							offset: Offset(0),
 						},
-					] if *value < 0 => {
+					] if *value < 0 && matches!(i.get() % value.unsigned_abs(), 0) => {
 						let mut output = Vec::with_capacity((i.get() as usize) * rest.len());
 
 						Span::from(0..i.get())
@@ -62,7 +62,8 @@ impl PeepholePass for UnrollConstantLoopsPass {
 	fn should_run(&self, window: &[Instruction]) -> bool {
 		let [
 			Instruction::SetVal {
-				offset: Offset(0), ..
+				offset: Offset(0),
+				value: Some(i)
 			},
 			Instruction::Block(BlockInstruction::DynamicLoop(inner)),
 		] = window
@@ -93,7 +94,7 @@ impl PeepholePass for UnrollConstantLoopsPass {
 					value
 				}
 			]
-			if *value < 0
+			if *value < 0 && matches!(i.get() % value.unsigned_abs(), 0)
 		)
 	}
 }
