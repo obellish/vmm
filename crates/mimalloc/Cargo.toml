@@ -1,0 +1,21 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_mimalloc"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+libmimalloc-sys = { version = "0.1", default-features = false }
+
+[features]
+debug = ["libmimalloc-sys/debug"]
+debug_in_debug = ["libmimalloc-sys/debug_in_debug"]
+default = []
+extended = ["libmimalloc-sys/extended"]
+local_dynamic_tls = ["libmimalloc-sys/local_dynamic_tls"]
+no_thp = ["libmimalloc-sys/no_thp"]
+override = ["libmimalloc-sys/override"]
+secure = ["libmimalloc-sys/secure"]
