@@ -1,4 +1,4 @@
-use vmm_ir::Instruction;
+use vmm_ir::{CompilerHint, Instruction};
 
 use crate::{Change, PeepholePass};
 
@@ -8,14 +8,15 @@ pub struct RemoveRedundantCompilerHintsPass;
 impl PeepholePass for RemoveRedundantCompilerHintsPass {
 	const SIZE: usize = 2;
 
-	fn run_pass(&mut self, window: &[Instruction]) -> Option<Change> {
-		match window {
-			[Instruction::MoveVal(..), Instruction::Hint(..)] => Some(Change::remove_offset(1)),
-			_ => None,
-		}
+	fn run_pass(&mut self, _: &[Instruction]) -> Option<Change> {
+		Some(Change::remove_offset(1))
 	}
 
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [Instruction::MoveVal(..), Instruction::Hint(..)])
+		matches!(
+			window,
+			[i, Instruction::Hint(CompilerHint::KnownValue { .. })]
+			if !matches!(i, Instruction::Block(..))
+		)
 	}
 }
