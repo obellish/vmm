@@ -1,12 +1,13 @@
 mod scale;
 
 use core::{
-	fmt::{Debug, Display, Formatter, Result as FmtResult, Write as _},
+	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	num::NonZeroU8,
 };
 
 use serde::{Deserialize, Serialize};
 use tap::prelude::*;
+use vmm_utils::GetOrZero as _;
 
 pub use self::scale::*;
 use super::{HasIo, IsOffsetable, IsZeroingCell, MinimumOutputs, Offset, PtrMovement};
@@ -103,14 +104,24 @@ impl Display for SuperInstruction {
 				offset,
 				factor,
 			} => {
-				f.write_str("scaleand")?;
-				Display::fmt(&action, f)?;
-				f.write_char(' ')?;
-				Display::fmt(&factor, f)?;
-				let offset = offset.value();
-				f.write_str(" [")?;
-				Display::fmt(&offset, f)?;
-				f.write_char(']')?;
+				// f.write_str("scaleand")?;
+				// Display::fmt(&action, f)?;
+				// f.write_char(' ')?;
+				// Display::fmt(&factor, f)?;
+				// let offset = offset.value();
+				// f.write_str(" [")?;
+				// Display::fmt(&offset, f)?;
+				// f.write_char(']')?;
+				write!(f, "super(scale, {action}) {factor} {offset:#}")?;
+			}
+			Self::FindAndSetZero { offset, value } => {
+				write!(f, "super(findz, set) {} {offset:#}", value.get_or_zero())?;
+			}
+			Self::FindCellByZero { jump_by, offset } => {
+				write!(f, "super(findz, mov(ptr)) {jump_by} {offset:#}")?;
+			}
+			Self::SetUntilZero { value, offset } => {
+				write!(f, "super(set, findz) {} {offset:#}", value.get_or_zero())?;
 			}
 			i => Debug::fmt(&i, f)?,
 		}

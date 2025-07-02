@@ -1,4 +1,4 @@
-use vmm_ir::{BlockInstruction, Instruction, Offset, PtrMovement};
+use vmm_ir::{BlockInstruction, HasIo as _, Instruction, Offset, PtrMovement as _};
 use vmm_span::Span;
 
 use crate::{Change, PeepholePass};

@@ -40,6 +40,11 @@ impl Offset {
 	pub const fn is_negative(self) -> bool {
 		self.0.is_negative()
 	}
+
+	#[must_use]
+	pub const fn is_zero(self) -> bool {
+		matches!(self, Self(0))
+	}
 }
 
 impl<'de> Deserialize<'de> for Offset {

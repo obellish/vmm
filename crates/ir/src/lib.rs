@@ -11,7 +11,7 @@ mod utils;
 
 use alloc::string::ToString;
 use core::{
-	fmt::{Debug, Display, Formatter, Result as FmtResult, Write as _},
+	fmt::{Debug, Display, Formatter, Result as FmtResult},
 	num::NonZeroU8,
 };
 
@@ -251,27 +251,6 @@ impl Instruction {
 		)
 	}
 
-	pub fn needs_input(&self) -> bool {
-		match self {
-			Self::Read => true,
-			Self::Block(BlockInstruction::DynamicLoop(instrs) | BlockInstruction::IfNz(instrs)) => {
-				instrs.iter().any(Self::needs_input)
-			}
-			_ => false,
-		}
-	}
-
-	#[inline]
-	pub fn has_io(&self) -> bool {
-		match self {
-			Self::Read | Self::Write { .. } => true,
-			Self::Block(BlockInstruction::DynamicLoop(instrs) | BlockInstruction::IfNz(instrs)) => {
-				instrs.iter().any(Self::has_io)
-			}
-			_ => false,
-		}
-	}
-
 	#[must_use]
 	pub const fn is_change_val(&self) -> bool {
 		matches!(self, Self::IncVal { .. })
@@ -355,37 +334,47 @@ impl Display for Instruction {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		match self {
 			Self::IncVal { value, offset } => {
-				f.write_str("inc ")?;
-				Display::fmt(&value, f)?;
-				let Offset(offset) = *offset;
-				f.write_char(' ')?;
-				write!(f, "{offset:#}")?;
+				write!(f, "inc {value}")?;
+				if !offset.is_zero() {
+					write!(f, " {offset:#}")?;
+				}
 			}
 			Self::SetVal { value, offset } => {
-				f.write_str("set ")?;
-				Display::fmt(&value.get_or_zero(), f)?;
-				let Offset(offset) = *offset;
-				f.write_char(' ')?;
-				write!(f, "{offset:#}")?;
+				write!(f, "set {}", value.get_or_zero())?;
+
+				if !offset.is_zero() {
+					write!(f, " {offset:#}")?;
+				}
 			}
 			Self::MovePtr(offset) => {
-				f.write_str("movby ")?;
-				write!(f, "{offset:#}")?;
+				write!(f, "mov(ptr) {offset:#}")?;
 			}
 			Self::ScaleVal { factor } => {
-				f.write_str("scale ")?;
-				Display::fmt(&factor, f)?;
+				write!(f, "scale {factor}")?;
 			}
 			Self::FindZero(offset) => {
-				f.write_str("findz [")?;
-				Display::fmt(&offset, f)?;
-				f.write_char(']')?;
+				write!(f, "findz {offset:#}")?;
+			}
+			Self::MoveVal(offset) => {
+				write!(f, "mov(val) {offset:#}")?;
+			}
+			Self::FetchVal(offset) => {
+				write!(f, "fetch(val) {offset:#}")?;
+			}
+			Self::TakeVal(offset) => {
+				write!(f, "take(val) {offset:#}")?;
 			}
 			Self::Read => f.write_str("getc")?,
 			Self::Boundary => f.write_str("boundary")?,
 			Self::Super(s) => Display::fmt(&s, f)?,
 			Self::Block(l) => Display::fmt(&l, f)?,
-			// _ => f.write_char('*')?,
+			Self::Write { offset } => {
+				f.write_str("putc")?;
+
+				if !offset.is_zero() {
+					write!(f, " {offset:#}")?;
+				}
+			}
 			i => Debug::fmt(&i, f)?,
 		}
 

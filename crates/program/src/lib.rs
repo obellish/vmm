@@ -12,7 +12,7 @@ use core::{
 
 use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
-use vmm_ir::Instruction;
+use vmm_ir::{HasIo, Instruction};
 use vmm_utils::HeapSize;
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,7 +54,7 @@ impl Program {
 
 	#[inline]
 	pub fn needs_input(&self) -> bool {
-		self.iter().any(Instruction::needs_input)
+		self.iter().any(Instruction::has_read)
 	}
 }
 
