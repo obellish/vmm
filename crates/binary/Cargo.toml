@@ -1,0 +1,15 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_binary"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+serde = { workspace = true, default-features = false, features = ["alloc", "derive"] }
+
+[features]
+default = ["std"]
+std = []
