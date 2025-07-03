@@ -68,6 +68,7 @@ vmm_span = { path = "crates/span" }
 vmm_tape = { path = "crates/tape" }
 vmm_testing = { path = "crates/testing" }
 vmm_utils = { path = "crates/utils" }
+vmm_vec = { path = "crates/vec" }
 
 [workspace.lints.rust]
 elided_lifetimes_in_paths = "warn"
