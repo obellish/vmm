@@ -18,6 +18,6 @@ impl PeepholePass for RemoveUnreachableLoopsPass {
 
 	#[inline]
 	fn should_run(&self, window: &[Instruction]) -> bool {
-		matches!(window, [i, Instruction::Block(..) | Instruction::Super(SuperInstruction::ShiftVals(..))] if i.is_zeroing_cell())
+		matches!(window, [i, Instruction::Block(..) | Instruction::Super(SuperInstruction::ShiftVals { .. })] if i.is_zeroing_cell())
 	}
 }

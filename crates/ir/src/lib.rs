@@ -231,8 +231,8 @@ impl Instruction {
 	}
 
 	#[must_use]
-	pub fn shift_vals(offset: impl Into<Offset>) -> Self {
-		Self::Super(SuperInstruction::shift_vals(offset))
+	pub fn shift_vals(jump_by: impl Into<Offset>, offset: impl Into<Offset>) -> Self {
+		Self::Super(SuperInstruction::shift_vals(jump_by, offset))
 	}
 
 	#[must_use]

@@ -397,10 +397,10 @@ where
 	}
 
 	#[inline]
-	fn shift_vals(&mut self, offset: Offset) -> Result<(), RuntimeError> {
+	fn shift_vals(&mut self, jump_by: Offset, offset: Offset) -> Result<(), RuntimeError> {
 		while !self.current_cell().is_zero() {
 			self.move_val(offset)?;
-			self.move_ptr(-offset)?;
+			self.move_ptr(jump_by)?;
 		}
 
 		Ok(())
@@ -495,7 +495,7 @@ where
 			SuperInstruction::FindCellByZero { jump_by, offset } => {
 				self.find_cell_by_zero(jump_by, offset)?;
 			}
-			SuperInstruction::ShiftVals(offset) => self.shift_vals(offset)?,
+			SuperInstruction::ShiftVals { jump_by, offset } => self.shift_vals(jump_by, offset)?,
 			i => return Err(RuntimeError::Unimplemented((i).convert())),
 		}
 

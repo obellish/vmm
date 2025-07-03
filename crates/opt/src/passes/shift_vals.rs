@@ -9,10 +9,8 @@ impl LoopPass for OptimizeShiftValsPass {
 	fn run_pass(&mut self, loop_values: &[Instruction]) -> Option<Change> {
 		match loop_values {
 			[Instruction::MovePtr(x), Instruction::MoveVal(y)]
-			| [Instruction::MoveVal(y), Instruction::MovePtr(x)]
-				if *x == -y =>
-			{
-				Some(Change::Replace(Instruction::shift_vals(y)))
+			| [Instruction::MoveVal(y), Instruction::MovePtr(x)] => {
+				Some(Change::Replace(Instruction::shift_vals(x, y)))
 			}
 			_ => None,
 		}
@@ -25,9 +23,8 @@ impl LoopPass for OptimizeShiftValsPass {
 	fn should_run(&self, loop_values: &[Instruction]) -> bool {
 		matches!(
 			loop_values,
-			[Instruction::MovePtr(x), Instruction::MoveVal(y)]
-				| [Instruction::MoveVal(y), Instruction::MovePtr(x)]
-			if *x == -y
+			[Instruction::MovePtr(..), Instruction::MoveVal(..)]
+				| [Instruction::MoveVal(..), Instruction::MovePtr(..)]
 		)
 	}
 }

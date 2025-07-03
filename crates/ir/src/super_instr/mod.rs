@@ -32,7 +32,10 @@ pub enum SuperInstruction {
 		jump_by: Offset,
 		offset: Offset,
 	},
-	ShiftVals(Offset),
+	ShiftVals {
+		jump_by: Offset,
+		offset: Offset,
+	},
 }
 
 impl SuperInstruction {
@@ -90,8 +93,11 @@ impl SuperInstruction {
 	}
 
 	#[must_use]
-	pub fn shift_vals(offset: impl Into<Offset>) -> Self {
-		Self::ShiftVals(offset.convert())
+	pub fn shift_vals(jump_by: impl Into<Offset>, offset: impl Into<Offset>) -> Self {
+		Self::ShiftVals {
+			jump_by: jump_by.convert(),
+			offset: offset.convert(),
+		}
 	}
 }
 
@@ -104,14 +110,6 @@ impl Display for SuperInstruction {
 				offset,
 				factor,
 			} => {
-				// f.write_str("scaleand")?;
-				// Display::fmt(&action, f)?;
-				// f.write_char(' ')?;
-				// Display::fmt(&factor, f)?;
-				// let offset = offset.value();
-				// f.write_str(" [")?;
-				// Display::fmt(&offset, f)?;
-				// f.write_char(']')?;
 				write!(f, "super(scale, {action}) {factor} {offset:#}")?;
 			}
 			Self::FindAndSetZero { offset, value } => {
@@ -169,7 +167,7 @@ impl IsZeroingCell for SuperInstruction {
 				action: ScaleAnd::Move,
 				..
 			} | Self::SetUntilZero { .. }
-				| Self::ShiftVals(..)
+				| Self::ShiftVals { .. }
 		)
 	}
 }
