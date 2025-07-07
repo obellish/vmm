@@ -1,11 +1,14 @@
 mod error;
 
 use alloc::{string::String, vec::Vec};
-use core::fmt::Debug;
+use core::{fmt::Debug, marker::PhantomData};
 
 use serde::{
 	Deserializer as SerdeDeserializer,
-	de::{Error as DeError, Unexpected, value::BytesDeserializer},
+	de::{
+		DeserializeSeed, EnumAccess, Error as DeError, IntoDeserializer, MapAccess, SeqAccess,
+		Unexpected, VariantAccess, value::BytesDeserializer,
+	},
 };
 use vmm_binary_io::Read;
 use vmm_binary_ll::{Decoder, Header, simple, tag};
@@ -144,8 +147,152 @@ where
 	R::Error: Debug,
 {
 	type Error = Error<R::Error>;
+}
 
+struct Access<'a, 'b, R>(&'a mut Deserializer<'b, R>, Option<usize>);
 
+impl<'de, 'a, 'b, R> EnumAccess<'de> for Access<'a, 'b, R>
+where
+	R: Read,
+	R::Error: Debug,
+{
+	type Error = Error<R::Error>;
+	type Variant = Self;
+
+	fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
+	where
+		V: DeserializeSeed<'de>,
+	{
+		let variant = seed.deserialize(&mut *self.0)?;
+		Ok((variant, self))
+	}
+}
+
+impl<'de, 'a, 'b, R> MapAccess<'de> for Access<'a, 'b, R>
+where
+	R: Read,
+	R::Error: Debug,
+{
+	type Error = Error<R::Error>;
+
+	fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
+	where
+		K: DeserializeSeed<'de>,
+	{
+		match self.1 {
+			Some(0) => return Ok(None),
+			Some(x) => self.1 = Some(x - 1),
+			None => match self.0.decoder.pull()? {
+				Header::Break => return Ok(None),
+				header => self.0.decoder.push(header),
+			},
+		}
+
+		seed.deserialize(&mut *self.0).map(Some)
+	}
+
+	fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value, Self::Error>
+	where
+		V: DeserializeSeed<'de>,
+	{
+		seed.deserialize(&mut *self.0)
+	}
+
+	fn size_hint(&self) -> Option<usize> {
+		self.1
+	}
+}
+
+impl<'de, 'a, 'b, R> SeqAccess<'de> for Access<'a, 'b, R>
+where
+	R: Read,
+	R::Error: Debug,
+{
+	type Error = Error<R::Error>;
+
+	fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+	where
+		T: DeserializeSeed<'de>,
+	{
+		match self.1 {
+			Some(0) => return Ok(None),
+			Some(x) => self.1 = Some(x - 1),
+			None => match self.0.decoder.pull()? {
+				Header::Break => return Ok(None),
+				header => self.0.decoder.push(header),
+			},
+		}
+
+		seed.deserialize(&mut *self.0).map(Some)
+	}
+
+	fn size_hint(&self) -> Option<usize> {
+		self.1
+	}
+}
+
+impl<'de, 'a, 'b, R> VariantAccess<'de> for Access<'a, 'b, R>
+where
+	R: Read,
+	R::Error: Debug,
+{
+	type Error = Error<R::Error>;
+
+	fn unit_variant(self) -> Result<(), Self::Error> {
+		Ok(())
+	}
+
+	fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
+	where
+		T: DeserializeSeed<'de>,
+	{
+		seed.deserialize(&mut *self.0)
+	}
+
+	fn tuple_variant<V>(self, _: usize, visitor: V) -> Result<V::Value, Self::Error>
+	where
+		V: serde::de::Visitor<'de>,
+	{
+		self.0.deserialize_any(visitor)
+	}
+
+	fn struct_variant<V>(
+		self,
+		_: &'static [&'static str],
+		visitor: V,
+	) -> Result<V::Value, Self::Error>
+	where
+		V: serde::de::Visitor<'de>,
+	{
+		self.0.deserialize_any(visitor)
+	}
+}
+
+struct BytesAccess<R>(usize, Vec<u8>, PhantomData<R>);
+
+impl<'de, R> SeqAccess<'de> for BytesAccess<R>
+where
+	R: Read,
+	R::Error: Debug,
+{
+	type Error = Error<R::Error>;
+
+	fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>, Self::Error>
+	where
+		T: DeserializeSeed<'de>,
+	{
+		if self.0 < self.1.len() {
+			let byte = self.1[self.0];
+			self.0 += 1;
+			seed.deserialize(byte.into_deserializer()).map(Some)
+		} else {
+			Ok(None)
+		}
+	}
+
+	fn size_hint(&self) -> Option<usize> {
+		Some(self.1.len() - self.0)
+	}
 }
 
 const fn noop(_: u8) {}
