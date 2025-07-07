@@ -1,6 +1,9 @@
-use serde::{
-	de::{Error as DeError, Visitor}, forward_to_deserialize_any, Deserialize, Deserializer, Serialize, Serializer
-};
+mod de;
+mod ser;
+
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as DeError};
+
+pub use self::{de::*, ser::*};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Captured<V>(pub Option<u64>, pub V);
@@ -51,56 +54,6 @@ where
 impl<V: Serialize, const TAG: u64> Serialize for Required<V, TAG> {
 	fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
 		Internal::Tagged(TAG, &self.0).serialize(serializer)
-	}
-}
-
-pub(crate) struct TagAccess<D> {
-	parent: Option<D>,
-	state: usize,
-	tag: Option<u64>,
-}
-
-impl<D> TagAccess<D> {
-	pub const fn new(parent: D, tag: Option<u64>) -> Self {
-		Self {
-			parent: Some(parent),
-			state: 0,
-			tag,
-		}
-	}
-}
-
-impl<'de, D> Deserializer<'de> for &mut TagAccess<D>
-where
-	D: Deserializer<'de>,
-{
-	type Error = D::Error;
-
-	fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
-	where
-		V: Visitor<'de>,
-	{
-		self.state += 1;
-
-		match self.state {
-			1 => visitor.visit_str(match self.tag {
-				Some(..) => "@@TAGGED@@",
-				None => "@@UNTAGGED@@",
-			}),
-			_ => visitor.visit_u64(self.tag.unwrap()),
-		}
-	}
-
-	forward_to_deserialize_any! {
-		i8 i16 i32 i64 i128
-		u8 u16 u32 u64 u128
-		bool f32 f64
-		char str string
-		bytes byte_buf
-		seq map
-		struct tuple tuple_struct
-		identifier ignored_any
-		option unit unit_struct newtype_struct enum
 	}
 }
 

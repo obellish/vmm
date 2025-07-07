@@ -6,6 +6,9 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+pub mod de;
+pub mod ser;
 mod tag;
+mod value;
 
-pub use self::tag::*;
+pub use self::{tag::*, value::*};

@@ -30,7 +30,10 @@ mimalloc = ["dep:vmm_mimalloc"]
 
 [workspace]
 members = [
-    "crates/alloc_stats", "crates/binary",
+    "crates/alloc_stats",
+    "crates/binary",
+    "crates/binary_io",
+    "crates/binary_ll",
     "crates/interpret",
     "crates/ir",
     "crates/iter",
@@ -61,6 +64,7 @@ serde_array = { path = "crates/serde_array" }
 serde_json = "1"
 tap = { path = "crates/tap" }
 tracing = { version = "0.1", features = ["attributes"] }
+vmm_binary_io = { path = "crates/binary_io" }
 vmm_ir = { path = "crates/ir" }
 vmm_num = { path = "crates/num" }
 vmm_program = { path = "crates/program" }

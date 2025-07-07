@@ -1,0 +1,13 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_binary_io"
+rust-version.workspace = true
+version.workspace = true
+
+[features]
+alloc = []
+default = []
+std = ["alloc"]
