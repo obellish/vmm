@@ -31,7 +31,6 @@ mimalloc = ["dep:vmm_mimalloc"]
 [workspace]
 members = [
     "crates/alloc_stats",
-    "crates/binary",
     "crates/interpret",
     "crates/ir",
     "crates/iter",
@@ -41,6 +40,7 @@ members = [
     "crates/parse",
     "crates/program",
     "crates/serde_array",
+    "crates/serde_binary",
     "crates/serde_stack",
     "crates/span",
     "crates/tap",

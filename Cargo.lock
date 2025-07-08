@@ -798,6 +798,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_binary"
+version = "0.1.0"
+
+[[package]]
 name = "serde_derive"
 version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1039,10 +1043,6 @@ dependencies = [
 
 [[package]]
 name = "vmm_alloc_stats"
-version = "0.1.0"
-
-[[package]]
-name = "vmm_binary"
 version = "0.1.0"
 
 [[package]]

@@ -1,11 +1,8 @@
+lints.workspace = true
+
 [package]
-name = "vmm_binary"
 edition.workspace = true
 license.workspace = true
+name = "serde_binary"
 rust-version.workspace = true
 version.workspace = true
-
-[dependencies]
-
-[lints]
-workspace = true
