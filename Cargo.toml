@@ -32,8 +32,6 @@ mimalloc = ["dep:vmm_mimalloc"]
 members = [
     "crates/alloc_stats",
     "crates/binary",
-    "crates/binary_io",
-    "crates/binary_ll",
     "crates/interpret",
     "crates/ir",
     "crates/iter",

@@ -1,14 +1,14 @@
-#![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
-#![no_std]
+pub fn add(left: u64, right: u64) -> u64 {
+	left + right
+}
 
-extern crate alloc;
+#[cfg(test)]
+mod tests {
+	use super::*;
 
-#[cfg(feature = "std")]
-extern crate std;
-
-pub mod de;
-pub mod ser;
-mod tag;
-mod value;
-
-pub use self::{tag::*, value::*};
+	#[test]
+	fn it_works() {
+		let result = add(2, 2);
+		assert_eq!(result, 4);
+	}
+}

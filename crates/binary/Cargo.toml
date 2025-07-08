@@ -1,20 +1,11 @@
-lints.workspace = true
-
 [package]
+name = "vmm_binary"
 edition.workspace = true
 license.workspace = true
-name = "vmm_binary"
 rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-serde = { workspace = true, default-features = false, features = [
-    "alloc",
-    "derive"
-] }
-vmm_binary_io = { workspace = true, features = ["alloc"] }
-vmm_binary_ll = { path = "../binary_ll", features = ["alloc"] }
 
-[features]
-default = ["std"]
-std = ["serde/std", "vmm_binary_io/std", "vmm_binary_ll/std"]
+[lints]
+workspace = true
