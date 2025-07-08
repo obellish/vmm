@@ -6,3 +6,11 @@ license.workspace = true
 name = "serde_binary"
 rust-version.workspace = true
 version.workspace = true
+
+[dependencies]
+serde = { workspace = true, default-features = false }
+
+[features]
+alloc = ["serde/alloc"]
+default = []
+std = ["alloc", "serde/std"]
