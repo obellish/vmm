@@ -1,14 +1,11 @@
 use core::{mem::size_of, str};
 
-use serde::{
-	de::{
-		DeserializeSeed, Deserializer as SerdeDeserializer, EnumAccess, Error as DeError,
-		IntoDeserializer, MapAccess, SeqAccess, Unexpected, VariantAccess, Visitor,
-	},
-	forward_to_deserialize_any,
+use serde::de::{
+	DeserializeSeed, Deserializer as SerdeDeserializer, EnumAccess, Error as DeError,
+	IntoDeserializer, MapAccess, SeqAccess, Unexpected, VariantAccess, Visitor,
 };
 
-use super::{Buffer, Error, Result, Type, VarInt, io::Input};
+use super::{Buffer, Error, Result, Type, format::VarInt as _, io::Input};
 
 #[derive(Debug)]
 pub struct Deserializer<I, B = ()> {
@@ -703,8 +700,8 @@ where
 
 	fn deserialize_enum<V>(
 		self,
-		name: &'static str,
-		variants: &'static [&'static str],
+		_: &'static str,
+		_: &'static [&'static str],
 		visitor: V,
 	) -> core::result::Result<V::Value, Self::Error>
 	where
@@ -769,18 +766,30 @@ where
 			Type::Float128 => {
 				self.input.skip_bytes(17)?;
 			}
-            Type::Bytes | Type::String => {
-                _ = self.input.read_byte()?;
-                let len = usize::decode(&mut self.input)?;
-                self.input.skip_bytes(len)?;
-            }
-            Type::SeqStart => return self.deserialize_seq(visitor),
-            Type::MapStart => return self.deserialize_map(visitor),
-            Type::SeqEnd | Type::MapEnd => {
-                return Err(Error::WrongType(t, &[
-                    Type::Null, Type::False, Type::True, Type::UnsignedInt, Type::SignedInt, Type::Float16, Type::Float32, Type::Float64, Type::Float128, Type::Bytes
-                ]))
-            }
+			Type::Bytes | Type::String => {
+				_ = self.input.read_byte()?;
+				let len = usize::decode(&mut self.input)?;
+				self.input.skip_bytes(len)?;
+			}
+			Type::SeqStart => return self.deserialize_seq(visitor),
+			Type::MapStart => return self.deserialize_map(visitor),
+			Type::SeqEnd | Type::MapEnd => {
+				return Err(Error::WrongType(
+					t,
+					&[
+						Type::Null,
+						Type::False,
+						Type::True,
+						Type::UnsignedInt,
+						Type::SignedInt,
+						Type::Float16,
+						Type::Float32,
+						Type::Float64,
+						Type::Float128,
+						Type::Bytes,
+					],
+				));
+			}
 		}
 
 		visitor.visit_unit()

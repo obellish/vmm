@@ -74,7 +74,7 @@ pub trait VarInt: Sized {
 macro_rules! impl_varint_unsigned {
 	($($ty:ty)*) => {
 		$(
-			impl $crate::VarInt for $ty {
+			impl $crate::format::VarInt for $ty {
 				fn encode<O: $crate::Output>(&self, output: &mut O) -> $crate::Result<()> {
 					let mut value = *self;
 
@@ -123,7 +123,7 @@ macro_rules! impl_varint_unsigned {
 macro_rules! impl_varint_signed {
 	($($u:ty => $t:ty),*) => {
 		$(
-			impl $crate::VarInt for $t {
+			impl $crate::format::VarInt for $t {
 				fn encode<O: $crate::Output>(&self, output: &mut O) -> $crate::Result<()> {
 					let value = if self.is_negative() {
 						self.rotate_left(1).wrapping_neg()

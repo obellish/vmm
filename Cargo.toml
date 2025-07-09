@@ -40,7 +40,7 @@ members = [
     "crates/parse",
     "crates/program",
     "crates/serde_array",
-    "crates/serde_binary",
+    "crates/serde_binary", "crates/serde_bytes",
     "crates/serde_stack",
     "crates/span",
     "crates/tap",

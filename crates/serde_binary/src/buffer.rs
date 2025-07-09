@@ -81,9 +81,10 @@ mod tests {
 		_ = buffer.reserve_slice(usize::MAX);
 	}
 
+	#[cfg(feature = "alloc")]
 	fn basic_buffer_works(mut buffer: impl Buffer) -> Result<()> {
 		buffer.clear();
-		assert_eq!(buffer.as_slice(), []);
+		assert_eq!(buffer.as_slice(), [0u8; 0]);
 		buffer.push(1)?;
 		assert_eq!(buffer.as_slice(), [1]);
 		buffer.push(2)?;
@@ -93,9 +94,9 @@ mod tests {
 		buffer.push(5)?;
 		assert_eq!(buffer.as_slice(), [1, 2, 3, 4, 5]);
 		buffer.clear();
-		assert_eq!(buffer.as_slice(), []);
+		assert_eq!(buffer.as_slice(), [0u8; 0]);
 		buffer.extend_from_slice(&[])?;
-		assert_eq!(buffer.as_slice(), []);
+		assert_eq!(buffer.as_slice(), [0u8; 0]);
 		buffer.extend_from_slice(&[1])?;
 		assert_eq!(buffer.as_slice(), [1]);
 		buffer.extend_from_slice(&[2, 3, 4, 5])?;
@@ -104,10 +105,11 @@ mod tests {
 		Ok(())
 	}
 
+	#[cfg(feature = "alloc")]
 	fn reserve_slice_works(mut buffer: impl Buffer) -> Result<()> {
 		buffer.clear();
 		let slice = buffer.reserve_slice(0)?;
-		assert_eq!(slice, []);
+		assert_eq!(slice, [0u8; 0]);
 		let slice = buffer.reserve_slice(10)?;
 		assert_eq!(slice.len(), 10);
 		assert_eq!(slice, [0; 10]);

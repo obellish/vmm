@@ -33,11 +33,13 @@ impl<W: Write> Output for IoWriter<W> {
 }
 
 #[derive(Debug, Clone)]
+#[cfg(feature = "std")]
 pub struct IoReader<R> {
 	reader: R,
 	next_byte: Option<u8>,
 }
 
+#[cfg(feature = "std")]
 impl<R> IoReader<R> {
 	pub const fn new(reader: R) -> Self {
 		Self {
