@@ -23,6 +23,8 @@ pub mod value;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "alloc")]
+pub use self::value::{Value, from_value, from_value_with_config, to_value, to_value_with_config};
 pub use self::{buffer::*, config::*, error::*, format::Type, io::*};
 
 pub fn to_slice<'buf, T: Serialize>(value: &T, buffer: &'buf mut [u8]) -> Result<&'buf mut [u8]> {

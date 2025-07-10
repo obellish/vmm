@@ -9,6 +9,7 @@ version.workspace = true
 
 [dependencies]
 serde = { workspace = true, default-features = false }
+tap.workspace = true
 
 [dev-dependencies]
 serde_bytes = { path = "../serde_bytes", default-features = false, features = [
@@ -17,6 +18,7 @@ serde_bytes = { path = "../serde_bytes", default-features = false, features = [
 serde_derive = "1"
 tracing.workspace = true
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
 
 [features]
 alloc = ["serde/alloc"]

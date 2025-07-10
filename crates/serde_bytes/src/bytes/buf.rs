@@ -115,7 +115,7 @@ impl Hash for ByteBuf {
 	}
 }
 
-impl IntoIterator for ByteBuf{
+impl IntoIterator for ByteBuf {
 	type IntoIter = alloc::vec::IntoIter<u8>;
 	type Item = u8;
 

@@ -1,15 +1,12 @@
 use alloc::{borrow::Cow, collections::VecDeque};
 use core::mem;
 
-use serde::{
-	de::{
-		DeserializeSeed, Deserializer, EnumAccess, Error as DeError, IntoDeserializer, MapAccess,
-		SeqAccess, Unexpected, VariantAccess, Visitor,
-	},
-	forward_to_deserialize_any,
+use serde::de::{
+	DeserializeSeed, Deserializer, EnumAccess, Error as DeError, IntoDeserializer, MapAccess,
+	SeqAccess, Unexpected, VariantAccess, Visitor,
 };
 
-use super::{Float, Integer, OwnedValue, Value};
+use super::{Float, Integer, Value};
 use crate::{Error, Result};
 
 #[repr(transparent)]
@@ -302,16 +299,77 @@ impl<'de> Deserializer<'de> for ValueDeserializer<'de> {
 	}
 
 	fn deserialize_tuple_struct<V>(
-			self,
-			name: &'static str,
-			len: usize,
-			visitor: V,
-		) -> core::result::Result<V::Value, Self::Error>
-		where
-			V: Visitor<'de> {
+		self,
+		_: &'static str,
+		_: usize,
+		visitor: V,
+	) -> core::result::Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
 		match self.0 {
-
+			Value::Array(arr) => visitor.visit_seq(ValueSeqAccess(arr)),
+			other => invalid_type::<V>(other, "tuple struct"),
 		}
+	}
+
+	fn deserialize_map<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		match self.0 {
+			Value::Map(map) => visitor.visit_map(ValueMapAccess(map)),
+			other => invalid_type::<V>(other, "map"),
+		}
+	}
+
+	fn deserialize_struct<V>(
+		self,
+		_: &'static str,
+		_: &'static [&'static str],
+		visitor: V,
+	) -> core::result::Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		self.deserialize_map(visitor)
+	}
+
+	fn deserialize_enum<V>(
+		self,
+		_: &'static str,
+		_: &'static [&'static str],
+		visitor: V,
+	) -> core::result::Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		match self.0 {
+			Value::Integer(Integer::Unsigned(int)) => {
+				visitor.visit_enum((int as u32).into_deserializer())
+			}
+			Value::String(s) => visitor.visit_enum(s.as_ref().into_deserializer()),
+			Value::Map(map) => visitor.visit_enum(ValueEnumAccess(map)),
+			other => invalid_type::<V>(other, "enum"),
+		}
+	}
+
+	fn deserialize_identifier<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		match self.0 {
+			Value::Integer(Integer::Unsigned(_)) => self.deserialize_u32(visitor),
+			Value::String(..) => self.deserialize_str(visitor),
+			other => invalid_type::<V>(other, "identifier"),
+		}
+	}
+
+	fn deserialize_ignored_any<V>(self, visitor: V) -> core::result::Result<V::Value, Self::Error>
+	where
+		V: Visitor<'de>,
+	{
+		self.deserialize_any(visitor)
 	}
 
 	fn is_human_readable(&self) -> bool {
@@ -356,9 +414,9 @@ impl<'de> VariantAccess<'de> for ValueDeserializer<'de> {
 }
 
 #[repr(transparent)]
-struct ValueEnumDeserializer<'de>(VecDeque<(Value<'de>, Value<'de>)>);
+struct ValueEnumAccess<'de>(VecDeque<(Value<'de>, Value<'de>)>);
 
-impl<'de> EnumAccess<'de> for ValueEnumDeserializer<'de> {
+impl<'de> EnumAccess<'de> for ValueEnumAccess<'de> {
 	type Error = Error;
 	type Variant = ValueDeserializer<'de>;
 

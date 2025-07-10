@@ -1,5 +1,5 @@
-use crate::io::*;
 use super::BASIC_DATA as BASIC_INPUT_DATA;
+use crate::io::*;
 
 const PANIC_INPUT_DATA: &[u8] = &[0];
 
