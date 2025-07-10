@@ -12,6 +12,7 @@ use std::{
 
 use clap::Parser as _;
 use color_eyre::eyre::Result;
+use serde_binary::{Config, to_writer_with_config};
 use tracing::{debug, debug_span, info};
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
@@ -103,6 +104,8 @@ fn main() -> Result<()> {
 			unoptimized
 		}
 	};
+
+	write_binary(&program)?;
 
 	info!(
 		"size of final: {} bytes (len: {})",
@@ -267,4 +270,16 @@ fn get_interpreter_output<T: Tape, R>(
 	out.shrink_to_fit();
 
 	out
+}
+
+fn write_binary(program: &Program) -> Result<()> {
+	let file = fs::OpenOptions::new()
+		.create(true)
+		.truncate(true)
+		.write(true)
+		.open("./out/program.bin")?;
+
+	to_writer_with_config(program, file, Config::new(true, false, 0))?;
+
+	Ok(())
 }
