@@ -3,7 +3,7 @@ mod tests;
 
 use core::mem;
 #[cfg(feature = "std")]
-use std::io::prelude::*;
+use std::io::{BufReader, prelude::*};
 
 use super::{Buffer, Error, Result};
 
@@ -32,18 +32,18 @@ impl<W: Write> Output for IoWriter<W> {
 	}
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[cfg(feature = "std")]
 pub struct IoReader<R> {
-	reader: R,
+	reader: BufReader<R>,
 	next_byte: Option<u8>,
 }
 
 #[cfg(feature = "std")]
-impl<R> IoReader<R> {
-	pub const fn new(reader: R) -> Self {
+impl<R: Read> IoReader<R> {
+	pub fn new(reader: R) -> Self {
 		Self {
-			reader,
+			reader: BufReader::new(reader),
 			next_byte: None,
 		}
 	}

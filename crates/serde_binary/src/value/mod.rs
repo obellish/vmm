@@ -13,7 +13,7 @@ use alloc::{
 	vec::Vec,
 };
 use core::{
-	fmt::{Debug, Formatter, Result as FmtResult, Write},
+	fmt::{Debug, Formatter, Result as FmtResult},
 	marker::PhantomData,
 	ops::{Deref, DerefMut},
 };
