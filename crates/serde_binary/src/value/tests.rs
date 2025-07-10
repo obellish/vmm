@@ -102,3 +102,20 @@ fn unit() -> Result<()> {
 	deser::<()>(&[Type::Null.into()], &Value::Null)?;
 	deser_with_indices::<()>(&[Type::Null.into()], &Value::Null)
 }
+
+#[test]
+fn bool() -> Result<()> {
+	init_tracing();
+
+	round_trip(&true, &Value::Bool(true))?;
+	round_trip_with_indices(&true, &Value::Bool(true))?;
+
+	deser::<bool>(&[Type::False.into()], &Value::Bool(false))?;
+	deser_with_indices::<bool>(&[Type::False.into()], &Value::Bool(false))?;
+
+	round_trip(&false, &Value::Bool(false))?;
+	round_trip_with_indices(&false, &Value::Bool(false))?;
+
+	deser::<bool>(&[Type::True.into()], &Value::Bool(true))?;
+	deser_with_indices::<bool>(&[Type::True.into()], &Value::Bool(true))
+}
