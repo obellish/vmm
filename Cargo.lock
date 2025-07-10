@@ -346,6 +346,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
+name = "erased_discriminant"
+version = "0.1.0"
+dependencies = [
+ "typeid",
+]
+
+[[package]]
 name = "eyre"
 version = "0.6.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -840,6 +847,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "serde_reflect"
+version = "0.1.0"
+dependencies = [
+ "erased_discriminant",
+ "once_cell",
+ "serde",
+ "typeid",
+]
+
+[[package]]
 name = "serde_stack"
 version = "0.1.0"
 dependencies = [
@@ -1017,6 +1034,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "typeid"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bc7d623258602320d5c55d1bc22793b57daff0ec7efc270ea7d55ce1d5f5471c"
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1042,6 +1065,7 @@ dependencies = [
  "color-eyre",
  "ron",
  "serde_binary",
+ "serde_reflect",
  "tracing",
  "tracing-error",
  "tracing-flame",

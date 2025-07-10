@@ -1,0 +1,14 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "serde_reflect"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+erased_discriminant = { path = "../erased_discriminant" }
+once_cell = "1"
+serde = { workspace = true, features = ["derive", "alloc", "std"] }
+typeid.workspace = true

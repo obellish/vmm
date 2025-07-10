@@ -546,5 +546,5 @@ fn invalid_type<'de, V>(value: Value<'de>, expected: &str) -> Result<V::Value>
 where
 	V: Visitor<'de>,
 {
-	Err(DeError::invalid_value(Unexpected::from(&value), &expected))
+	Err(DeError::invalid_type(Unexpected::from(&value), &expected))
 }
