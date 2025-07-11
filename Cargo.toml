@@ -43,6 +43,7 @@ members = [
     "crates/parse",
     "crates/program",
     "crates/reflect",
+    "crates/semantic",
     "crates/serde_array",
     "crates/serde_binary",
     "crates/serde_bytes",
