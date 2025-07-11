@@ -355,13 +355,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "erased_discriminant"
-version = "0.1.0"
-dependencies = [
- "typeid",
-]
-
-[[package]]
 name = "eyre"
 version = "0.6.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -678,6 +671,10 @@ dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
 ]
+
+[[package]]
+name = "reflect"
+version = "0.1.0"
 
 [[package]]
 name = "regex"
@@ -1207,10 +1204,6 @@ dependencies = [
  "vmm_ir",
  "vmm_utils",
 ]
-
-[[package]]
-name = "vmm_reflect"
-version = "0.1.0"
 
 [[package]]
 name = "vmm_span"

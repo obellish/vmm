@@ -34,7 +34,6 @@ mimalloc = ["dep:vmm_mimalloc"]
 [workspace]
 members = [
     "crates/alloc_stats",
-    "crates/erased_discriminant",
     "crates/interpret",
     "crates/ir",
     "crates/iter",
