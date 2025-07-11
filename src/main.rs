@@ -13,6 +13,7 @@ use std::{
 use clap::Parser as _;
 use color_eyre::eyre::Result;
 use serde_binary::{Config, to_writer_with_config};
+use serde_reflection::{Tracer, TracerConfig};
 use tracing::{debug, debug_span, info};
 use tracing_error::ErrorLayer;
 use tracing_flame::FlameLayer;
@@ -24,7 +25,7 @@ use tracing_subscriber::{
 use vmm::{
 	alloc_stats::{Region, StatsAlloc},
 	interpret::{Interpreter, Profiler},
-	ir::MinimumOutputs as _,
+	ir::{BlockInstruction, Instruction, MinimumOutputs as _, ScaleAnd, SuperInstruction},
 	opt::{HashMetadataStore, Optimizer, OutputMetadataStore},
 	parse::Parser as BfParser,
 	program::Program,
@@ -48,6 +49,7 @@ fn main() -> Result<()> {
 	fs::create_dir_all("./out")?;
 	let _guard = install_tracing();
 	color_eyre::install()?;
+	write_format()?;
 
 	debug_span!("after_install").in_scope(|| report_alloc_stats(&mut region));
 
@@ -281,5 +283,30 @@ fn write_binary(program: &Program) -> Result<()> {
 
 	to_writer_with_config(program, file, Config::new(true, false, 0))?;
 
+	Ok(())
+}
+
+fn write_format() -> Result<()> {
+	let mut tracer = Tracer::new(TracerConfig::default().default_u8_value(1));
+
+	tracer.trace_simple_type::<BlockInstruction>().unwrap();
+
+	tracer.trace_simple_type::<ScaleAnd>().unwrap();
+
+	tracer.trace_simple_type::<SuperInstruction>().unwrap();
+
+	tracer.trace_simple_type::<Instruction>().unwrap();
+
+	tracer.trace_simple_type::<Program>().unwrap();
+
+	let registry = tracer.registry().unwrap();
+
+	let file = fs::OpenOptions::new()
+		.create(true)
+		.truncate(true)
+		.write(true)
+		.open("./out/format.json")?;
+
+	serde_json::to_writer_pretty(file, &registry)?;
 	Ok(())
 }

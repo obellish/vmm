@@ -11,8 +11,9 @@ version.workspace = true
 clap = { version = "4", features = ["derive"] }
 color-eyre = { version = "0.6", features = ["capture-spantrace"] }
 ron.workspace = true
+serde-reflection = { version = "0.5" }
 serde_binary = { path = "crates/serde_binary" }
-serde_reflect = { path = "crates/serde_reflect" }
+serde_json = "1"
 tracing.workspace = true
 tracing-error = "0.2.1"
 tracing-flame = "0.2.0"
@@ -42,10 +43,10 @@ members = [
     "crates/opt",
     "crates/parse",
     "crates/program",
+    "crates/reflect",
     "crates/serde_array",
     "crates/serde_binary",
     "crates/serde_bytes",
-    "crates/serde_reflect",
     "crates/serde_stack",
     "crates/span",
     "crates/tap",
