@@ -850,10 +850,7 @@ dependencies = [
 name = "serde_reflect"
 version = "0.1.0"
 dependencies = [
- "erased_discriminant",
- "once_cell",
  "serde",
- "typeid",
 ]
 
 [[package]]

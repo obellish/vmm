@@ -1,16 +1,11 @@
 #![cfg_attr(docsrs, feature(doc_auto_cfg, doc_cfg))]
+#![no_std]
 
-pub mod de;
-mod error;
-pub mod format;
-pub mod ser;
-mod trace;
-pub mod value;
+extern crate alloc;
 
-#[doc(inline)]
-pub use self::{
-	error::*,
-	format::{ContainerFormat, Format},
-	trace::*,
-	value::Value,
-};
+#[cfg(feature = "std")]
+extern crate std;
+
+mod format;
+
+pub use self::format::*;
