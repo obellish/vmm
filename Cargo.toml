@@ -122,6 +122,7 @@ unnecessary_wraps = "allow"
 unsafe_derive_deserialize = "allow"
 used_underscore_binding = "allow"
 useless_conversion = "allow"
+useless_nonzero_new_unchecked = "allow"
 
 [workspace.package]
 edition = "2024"

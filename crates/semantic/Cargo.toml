@@ -8,7 +8,4 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-serde = { workspace = true, default-features = false, features = [
-    "alloc",
-    "derive"
-] }
+key-node-list = "0.0.5"
