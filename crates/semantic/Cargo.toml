@@ -8,4 +8,18 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-key-node-list = "0.0.5"
+hashbrown = { version = "0.15", default-features = false, features = [
+    "alloc",
+    "default-hasher",
+    "serde"
+] }
+nom_locate = { version = "5", default-features = false, features = ["alloc"] }
+serde = { workspace = true, default-features = false, features = [
+    "alloc",
+    "derive"
+] }
+tap.workspace = true
+
+[features]
+default = ["std"]
+std = ["nom_locate/std", "serde/std"]
