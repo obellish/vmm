@@ -336,7 +336,7 @@ impl Call {
 pub struct Return(Option<ValueId>);
 
 impl Return {
-    #[must_use]
+	#[must_use]
 	pub const fn value(self) -> Option<ValueId> {
 		self.0
 	}
