@@ -11,7 +11,10 @@ use alloc::{
 	string::{String, ToString as _},
 	vec::Vec,
 };
-use core::fmt::{Display, Formatter, Result as FmtResult};
+use core::{
+	fmt::{Display, Formatter, Result as FmtResult},
+	ops::Deref,
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -22,6 +25,14 @@ use crate::ExpressionOperations;
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(transparent)]
 pub struct ValueName(Cow<'static, str>);
+
+impl Deref for ValueName {
+	type Target = Cow<'static, str>;
+
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
 
 impl Display for ValueName {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -57,6 +68,14 @@ impl From<Cow<'static, str>> for ValueName {
 #[repr(transparent)]
 pub struct ParameterName(Cow<'static, str>);
 
+impl Deref for ParameterName {
+	type Target = Cow<'static, str>;
+
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
+
 impl Display for ParameterName {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		f.write_str(&self.0)
@@ -91,6 +110,14 @@ impl From<Cow<'static, str>> for ParameterName {
 #[repr(transparent)]
 pub struct InnerValueName(Cow<'static, str>);
 
+impl Deref for InnerValueName {
+	type Target = Cow<'static, str>;
+
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
+
 impl Display for InnerValueName {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		f.write_str(&self.0)
@@ -124,6 +151,14 @@ impl From<Cow<'static, str>> for InnerValueName {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct LabelName(Cow<'static, str>);
 
+impl Deref for LabelName {
+	type Target = Cow<'static, str>;
+
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
+
 impl Display for LabelName {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
 		f.write_str(&self.0)
@@ -151,6 +186,14 @@ impl From<Cow<'static, str>> for LabelName {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(transparent)]
 pub struct FunctionName(Cow<'static, str>);
+
+impl Deref for FunctionName {
+	type Target = Cow<'static, str>;
+
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
 
 impl Display for FunctionName {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
@@ -185,6 +228,14 @@ impl From<Cow<'static, str>> for FunctionName {
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(transparent)]
 pub struct ConstantName(Cow<'static, str>);
+
+impl Deref for ConstantName {
+	type Target = Cow<'static, str>;
+
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
+}
 
 impl Display for ConstantName {
 	fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {

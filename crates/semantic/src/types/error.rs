@@ -1,3 +1,5 @@
+use alloc::string::String;
+
 use serde::{Deserialize, Serialize};
 
 use crate::ast::CodeLocation;
@@ -6,6 +8,7 @@ use crate::ast::CodeLocation;
 pub struct StateError {
 	kind: StateErrorType,
 	location: CodeLocation,
+	value: Option<String>,
 }
 
 impl StateError {
@@ -17,6 +20,31 @@ impl StateError {
 	#[must_use]
 	pub const fn location(&self) -> CodeLocation {
 		self.location
+	}
+
+	#[must_use]
+	pub fn value(&self) -> Option<&str> {
+		self.value.as_deref()
+	}
+
+	pub(crate) const fn new(kind: StateErrorType, location: CodeLocation) -> Self {
+		Self::create(kind, location, None)
+	}
+
+	pub(crate) fn with_value(
+		kind: StateErrorType,
+		location: CodeLocation,
+		value: impl Into<String>,
+	) -> Self {
+		Self::create(kind, location, Some(value.into()))
+	}
+
+	const fn create(kind: StateErrorType, location: CodeLocation, value: Option<String>) -> Self {
+		Self {
+			kind,
+			location,
+			value,
+		}
 	}
 }
 

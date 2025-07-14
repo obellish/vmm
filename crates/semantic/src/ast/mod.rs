@@ -258,6 +258,12 @@ impl<'a> From<Ident<'a>> for CodeLocation {
 	}
 }
 
+impl GetLocation for CodeLocation {
+	fn location(&self) -> CodeLocation {
+		*self
+	}
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ExpressionStructValue<'a> {
 	#[serde(borrow)]
