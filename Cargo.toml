@@ -33,7 +33,7 @@ mimalloc = ["dep:vmm_mimalloc"]
 
 [workspace]
 members = [
-    "crates/alloc_stats",
+    "crates/alloc_stats", "crates/cranelift_playground",
     "crates/interpret",
     "crates/ir",
     "crates/iter",

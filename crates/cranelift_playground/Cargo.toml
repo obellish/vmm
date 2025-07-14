@@ -1,0 +1,15 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "cranelift_playground"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow = "1.0.98"
+clap = { version = "4", features = ["derive"] }
+cranelift = { version = "0.121", features = ["frontend", "module", "object"] }
+logos = { version = "*" }
+target-lexicon = "0.13.2"
