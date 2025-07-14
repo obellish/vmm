@@ -42,8 +42,6 @@ members = [
     "crates/opt",
     "crates/parse",
     "crates/program",
-    "crates/reflect",
-    "crates/semantic", "crates/semantic_toy",
     "crates/serde_array",
     "crates/serde_binary",
     "crates/serde_bytes",
@@ -91,6 +89,7 @@ cast_ptr_alignment = "allow"
 cast_sign_loss = "allow"
 cognitive_complexity = "allow"
 disallowed_methods = "deny"
+expl_impl_clone_on_copy = "allow"
 float_cmp = "allow"
 fn_params_excessive_bools = "allow"
 inline_always = "allow"
