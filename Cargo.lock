@@ -1272,6 +1272,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "vmm_semantic_toy"
+version = "0.1.0"
+
+[[package]]
 name = "vmm_span"
 version = "0.1.0"
 dependencies = [
