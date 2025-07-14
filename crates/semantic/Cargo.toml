@@ -1,0 +1,23 @@
+lints.workspace = true
+
+[package]
+edition.workspace = true
+license.workspace = true
+name = "vmm_semantic"
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+hashbrown = { version = "*", default-features = false, features = [
+    "default-hasher",
+    "equivalent",
+    "serde"
+] }
+serde = { workspace = true, default-features = false, features = [
+    "alloc",
+    "derive"
+] }
+
+[features]
+default = ["serde/std", "std"]
+std = []
